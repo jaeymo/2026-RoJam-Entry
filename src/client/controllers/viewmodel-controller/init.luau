@@ -54,7 +54,7 @@ function ViewmodelController.getViewmodelObject(self: ViewmodelController)
 	return self.viewmodelObject
 end
 
-function ViewmodelController.jaegarInit(self: ViewmodelController)
+function ViewmodelController._setup(self: ViewmodelController)
 	self:enable()
 
 	SignalRegistry.jumped:Connect(function()
@@ -64,6 +64,10 @@ function ViewmodelController.jaegarInit(self: ViewmodelController)
 	SignalRegistry.landed:Connect(function()
 		self.viewmodelObject:onJump({ vertical = 1, horizontal = 1 })
 	end)
+end
+
+function ViewmodelController.jaegarInit(self: ViewmodelController)
+	self:_setup()
 end
 
 return ViewmodelController

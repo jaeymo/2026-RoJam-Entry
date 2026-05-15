@@ -6,9 +6,9 @@ local MapMeshCollision = {}
 
 export type MapMeshCollision = typeof(MapMeshCollision)
 
-Classy.new("Invisible", function(instance: Instance)
+Classy.new("NoCollision", function(instance: Instance)
 	if instance:IsA("BasePart") then
-		instance.CanCollide = false
+		instance.Transparency = 1
 	end
 
 	return 0

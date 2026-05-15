@@ -5,6 +5,6 @@ This project was created in two weeks as a 2026 RoJam entry with first prize bei
 ### Developers:
 
 - Legend (U.S): Lead Art Director and Programmer
-- Jaeymo (U.S): Programmer
+- Jaeymo (U.S): Lead Programmer
 - Maxx (Egypt): Programmer
 - 610 (Sweden): Modeler and Builder

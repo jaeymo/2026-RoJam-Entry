@@ -1,0 +1,88 @@
+{
+    "name": "scrub-a-dubbers",
+    "tree": {
+        "$className": "DataModel",
+        "ReplicatedStorage": {
+            "$className": "ReplicatedStorage",
+            "$ignoreUnknownInstances": true,
+            "shared": {
+                "$path": "src/shared"
+            },
+            "packages": {
+                "$path": "Packages"
+            },
+            "client": {
+                "testing": {
+                    "$path": "testing/client"
+                },
+                "$path": "src/client"
+            },
+            "assets": {
+                "$className": "Folder",
+                "ui": {
+                    "$className": "Folder"
+                },
+                "sounds": {
+                    "$className": "Folder"
+                },
+                "junk": {
+                    "$className": "Folder"
+                },
+                "particles": {
+                    "$className": "Folder"
+                },
+                "models": {
+                    "$className": "Folder"
+                }
+            },
+            "global-data": {
+                "$className": "Folder"
+            },
+            "proxies": {
+                "$className": "Folder"
+            }
+        },
+        "ServerScriptService": {
+            "$className": "ServerScriptService",
+            "testing": {
+                "$path": "testing/server"
+            },
+            "bootstrap": {
+                "$path": "src/bootstrap/runtime.server.luau"
+            },
+            "$path": "src/server"
+        },
+        "StarterPlayer": {
+            "$className": "StarterPlayer",
+            "StarterPlayerScripts": {
+                "$className": "StarterPlayerScripts",
+
+                "bootstrap": {
+                    "$path": "src/bootstrap/runtime.client.luau"
+                }
+            }
+        },
+        "Workspace": {
+            "$ignoreUnknownInstances": true,
+            "$className": "Workspace",
+            "runtime": {
+                "$className": "Folder",
+                "players": {
+                    "$className": "Folder"
+                }
+            },
+            "misc": {
+                "$className": "Folder",
+
+                "baseplate": {
+                    "$className": "Folder"
+                }
+            }
+        },
+        "StarterGui": {
+            "ui-assets": {
+                "$className": "Folder"
+            }
+        }
+    }
+}

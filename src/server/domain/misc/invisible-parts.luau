@@ -2,11 +2,11 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Classy = require(ReplicatedStorage.packages.classy)
 
-local MapMeshCollision = {}
+local InvisibleParts = {}
 
-export type MapMeshCollision = typeof(MapMeshCollision)
+export type InvisibleParts = typeof(InvisibleParts)
 
-Classy.new("NoCollision", function(instance: Instance)
+Classy.create("Invisible", function(instance: Instance)
 	if instance:IsA("BasePart") then
 		instance.Transparency = 1
 	end
@@ -16,4 +16,4 @@ end, {
 	ClassNames = { "BasePart" },
 })
 
-return MapMeshCollision
+return InvisibleParts

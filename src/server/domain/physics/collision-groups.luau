@@ -3,8 +3,8 @@ local PhysicsService = game:GetService("PhysicsService")
 
 -- a map of collision groups to what they can collide with
 local COLLISION_GROUPS = {
-	BarrierCollision = { "Entity" },
-	PlayerCharacter = { "PlayerCharacter", "Entity" },
+	BarrierCollision = { "Entity", "PlayerCharacter" },
+	PlayerCharacter = { "Entity", "PlayerCharacter", "BarrierCollision" },
 	MapMesh = {},
 	Entity = { "Entity", "PlayerCharacter", "BarrierCollision" },
 } :: {

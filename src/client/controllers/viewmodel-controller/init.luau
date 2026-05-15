@@ -55,6 +55,24 @@ end
 
 function ViewmodelController.jaegarInit(self: ViewmodelController)
 	self:enable()
+	self.viewmodelObject:disable()
+
+	-- temporary equip handling
+	local temporaryFlag = false
+
+	UserInputService.InputBegan:Connect(function(input, gpe)
+		if input.KeyCode ~= Enum.KeyCode.One then
+			return
+		end
+
+		temporaryFlag = not temporaryFlag
+
+		if temporaryFlag then
+			self.viewmodelObject:enable()
+		else
+			self.viewmodelObject:disable()
+		end
+	end)
 end
 
 return ViewmodelController

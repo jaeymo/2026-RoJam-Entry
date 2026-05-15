@@ -4,6 +4,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Janitor = require(ReplicatedStorage.packages.janitor)
+local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
 local ViewmodelObject = require(script["viewmodel-object"])
 
 local object = ViewmodelObject.new()
@@ -53,8 +54,20 @@ function ViewmodelController.getViewmodelObject(self: ViewmodelController)
 	return self.viewmodelObject
 end
 
-function ViewmodelController.jaegarInit(self: ViewmodelController)
+function ViewmodelController._setup(self: ViewmodelController)
 	self:enable()
+
+	SignalRegistry.jumped:Connect(function()
+		self.viewmodelObject:onLand({ vertical = 1, horizontal = 1 }) -- multipliers if needed
+	end)
+
+	SignalRegistry.landed:Connect(function()
+		self.viewmodelObject:onJump({ vertical = 1, horizontal = 1 })
+	end)
+end
+
+function ViewmodelController.jaegarInit(self: ViewmodelController)
+	self:_setup()
 	self.viewmodelObject:disable()
 
 	-- temporary equip handling

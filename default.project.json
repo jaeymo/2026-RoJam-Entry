@@ -1,5 +1,11 @@
 {
     "name": "scrub-a-dubbers",
+    "servePlaceIds": [
+        105094374152607,
+        82826534627261,
+        97433859598247,
+        121351648675723
+    ],
     "tree": {
         "$className": "DataModel",
         "ReplicatedStorage": {
@@ -56,7 +62,6 @@
             "$className": "StarterPlayer",
             "StarterPlayerScripts": {
                 "$className": "StarterPlayerScripts",
-
                 "bootstrap": {
                     "$path": "src/bootstrap/runtime.client.luau"
                 }
@@ -73,7 +78,6 @@
             },
             "misc": {
                 "$className": "Folder",
-
                 "baseplate": {
                     "$className": "Folder"
                 }

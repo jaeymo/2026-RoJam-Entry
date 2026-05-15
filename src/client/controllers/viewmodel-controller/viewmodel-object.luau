@@ -140,7 +140,7 @@ end
 
 function ViewmodelObject.equip(self: ViewmodelObject, itemModel: Model)
 	if not itemModel.PrimaryPart then
-		warn(`[{script.Name}] ItemModel is missing primary part: {itemModel.Name}`)
+		warn(`[{script}] ItemModel is missing primary part: {itemModel:GetFullName()}`)
 		return
 	end
 

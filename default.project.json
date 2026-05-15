@@ -33,6 +33,9 @@
                 },
                 "models": {
                     "$className": "Folder"
+                },
+                "viewmodel": {
+                    "$className": "Folder"
                 }
             },
             "global-data": {

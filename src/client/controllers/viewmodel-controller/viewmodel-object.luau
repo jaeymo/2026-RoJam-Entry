@@ -27,6 +27,7 @@ local PITCH_DAMPING = ViewmodelSettings.pitchDamping
 local YAW_SPEED = ViewmodelSettings.yawSpeed
 local YAW_DAMPING = ViewmodelSettings.yawDamping
 
+local INVERT_JUMP_FORCES = ViewmodelSettings.invertJumpSettings
 local JUMP_VERTICAL_SPEED = ViewmodelSettings.jumpVerticalSpeed
 local JUMP_VERTICAL_DAMPING = ViewmodelSettings.jumpVerticalDamping
 local JUMP_HORIZONTAL_SPEED = ViewmodelSettings.jumpHorizontalSpeed
@@ -252,7 +253,14 @@ function ViewmodelObject.getSway(self: ViewmodelObject, dt: number): CFrame
 end
 
 function ViewmodelObject.getJump(self: ViewmodelObject): CFrame
-	return CFrame.new(self.springs.jumpHorizontal.Position, self.springs.jumpVertical.Position, 0)
+	local horizontal, vertical = self.springs.jumpHorizontal.Position, self.springs.jumpVertical.Position
+
+	if INVERT_JUMP_FORCES then
+		horizontal *= -1
+		vertical *= -1
+	end
+
+	return CFrame.new(horizontal, vertical, 0)
 end
 
 function ViewmodelObject.getBobble(self: ViewmodelObject, dt: number): CFrame

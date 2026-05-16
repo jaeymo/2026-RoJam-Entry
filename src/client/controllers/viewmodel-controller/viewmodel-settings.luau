@@ -20,14 +20,15 @@ local VIEWMODEL_SETTINGS = {
 	yawDamping = 0.6,
 
 	-- jump
-	jumpVerticalSpeed = 5,
+	invertJumpSettings = true,
+	jumpVerticalSpeed = 8,
 	jumpVerticalDamping = 0.8,
-	jumpHorizontalSpeed = 3,
+	jumpVerticalImpulse = 0.25,
+	jumpHorizontalSpeed = 1,
 	jumpHorizontalDamping = 0.85,
-	jumpVerticalImpulse = 0.45,
-	jumpHorizontalImpulse = 0.075,
-	jumpRandomDirectionMin = 0.75,
-	jumpRandomDirectionMax = 1.5,
+	jumpHorizontalImpulse = 0.0001,
+	jumpRandomDirectionMin = 0.1,
+	jumpRandomDirectionMax = 0.2,
 
 	-- bobble
 	stepIntervalBase = 0.65,

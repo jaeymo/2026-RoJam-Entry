@@ -4,6 +4,7 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local Janitor = require(ReplicatedStorage.packages.janitor)
+local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
 local ViewmodelObject = require(script["viewmodel-object"])
 
 local object = ViewmodelObject.new()
@@ -54,13 +55,16 @@ function ViewmodelController.getViewmodelObject(self: ViewmodelController)
 end
 
 function ViewmodelController.jaegarInit(self: ViewmodelController)
-	self:enable()
-	self.viewmodelObject:disable()
+	self:_setup()
 
 	-- temporary equip handling
 	local temporaryFlag = false
 
-	UserInputService.InputBegan:Connect(function(input, gpe)
+	UserInputService.InputBegan:Connect(function(input: InputObject, gpe: boolean)
+		if gpe then
+			return
+		end
+
 		if input.KeyCode ~= Enum.KeyCode.One then
 			return
 		end
@@ -72,6 +76,19 @@ function ViewmodelController.jaegarInit(self: ViewmodelController)
 		else
 			self.viewmodelObject:disable()
 		end
+	end)
+end
+
+function ViewmodelController._setup(self: ViewmodelController)
+	self:enable()
+	self.viewmodelObject:disable()
+
+	SignalRegistry.jumped:Connect(function()
+		self.viewmodelObject:onLand({ vertical = 1, horizontal = 1 }) -- multipliers if needed
+	end)
+
+	SignalRegistry.landed:Connect(function()
+		self.viewmodelObject:onJump({ vertical = 1, horizontal = 1 })
 	end)
 end
 

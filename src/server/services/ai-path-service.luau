@@ -24,7 +24,7 @@ function AIPathService.CreatePath(
 	start: Vector3,
 	goal: Vector3,
 	agentParams: AgentParams?
-): { Path: Path, Waypoints: { PathWaypoint } }
+): { Path: Path, Waypoints: { PathWaypoint }, Completed: boolean }
 	local path = PathfindingService:CreatePath(agentParams)
 
 	path:ComputeAsync(start, goal)
@@ -36,6 +36,7 @@ function AIPathService.CreatePath(
 	local data = {
 		Path = path,
 		Waypoints = path:GetWaypoints(),
+		Completed = false,
 	}
 
 	return data

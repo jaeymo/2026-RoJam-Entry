@@ -5,11 +5,11 @@ local GenerationTypes = require(script.Parent.types)
 
 local mapAssets = ReplicatedStorage.assets.map
 
-local Factory = {}
+local GenerationFactory = {}
 
-export type Factory = typeof(Factory)
+export type GenerationFactory = typeof(GenerationFactory)
 
-function Factory.getNewRoomAsset(_: Factory, name: string): GenerationTypes.Room?
+function GenerationFactory.getNewRoomAsset(_: GenerationFactory, name: string): GenerationTypes.Room?
 	local room = mapAssets:FindFirstChild(name)
 	if not room then
 		warn(`[{script.Name}] Failed to find map room by the name of: {name}`)
@@ -30,4 +30,4 @@ function Factory.getNewRoomAsset(_: Factory, name: string): GenerationTypes.Room
 	return room :: GenerationTypes.Room
 end
 
-return Factory
+return GenerationFactory

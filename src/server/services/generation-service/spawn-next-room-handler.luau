@@ -16,10 +16,7 @@ Classy.create("SpawnNextRoom", function(instance, janitor)
 
 	local flag = false
 
-	print(instance)
-
 	janitor:Add(instance.Touched:Connect(function(hit: BasePart)
-		print(hit)
 		if flag then
 			return
 		end
@@ -33,8 +30,6 @@ Classy.create("SpawnNextRoom", function(instance, janitor)
 			print(2, hit)
 			return
 		end
-
-		print(hit)
 
 		flag = true
 		SignalRegistry.spawnNextRoomTouched:Fire()

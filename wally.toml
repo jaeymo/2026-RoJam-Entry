@@ -6,6 +6,7 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
+resource-allocator = "jaeymo/resource-allocator@0.1.1"
 typed-promise = "howmanysmall/typed-promise@4.0.6"
 repertoire = "1legendrblx/repertoire@1.3.1"
 janitor = "howmanysmall/janitor@1.18.3"

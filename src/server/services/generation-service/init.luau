@@ -1,8 +1,8 @@
 --!strict
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local GenerationConfig = require(script.config)
-local GenerationFactory = require(script.factory)
+local GenerationConfig = require(script["generation-config"])
+local GenerationFactory = require(script["generation-factory"])
 local GenerationTypes = require(script.types)
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 
@@ -48,6 +48,7 @@ function GenerationService.generateNext(self: GenerationService)
 	newRoom.Parent = GenerationConfig.parent
 
 	self.roomChain[#self.roomChain + 1] = newRoom
+	SignalRegistry.roomSpawned:Fire(newRoom)
 end
 
 function GenerationService.unload(self: GenerationService)
@@ -59,10 +60,12 @@ function GenerationService.unload(self: GenerationService)
 end
 
 function GenerationService.jaegarInit(self: GenerationService)
-	self:initiateGenerationProcess()
+	task.delay(2, function()
+		self:initiateGenerationProcess()
 
-	SignalRegistry.spawnNextRoomTouched:Connect(function()
-		self:generateNext()
+		SignalRegistry.spawnNextRoomTouched:Connect(function()
+			self:generateNext()
+		end)
 	end)
 end
 

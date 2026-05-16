@@ -93,7 +93,7 @@ function AggressiveAI.MoveToLastSeenPos(self: AggressiveAI)
 end
 
 function AggressiveAI.SetState(self: AggressiveAI, state: string)
-	self.entity:SetAttribute(state)
+	self.entity:SetAttribute("State", state)
 end
 
 function AggressiveAI.ChaseLoop(self: AggressiveAI)
@@ -132,8 +132,8 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 		while true do
 			local peepTarget = self:PeepTarget()
 			if peepTarget and peepTarget == self.target then
-				print("move")
 				self.internalState = "followTarget"
+				self:SetState("Chasing")
 				self:MoveToTarget()
 				task.wait()
 				continue
@@ -146,11 +146,10 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 					if elapsedSearchTime >= AIConfig.Pathfinding.SearchTimeout then
 						self.lastSeenPos = nil
 						self.internalState = "followPath"
+						self:SetState("Chasing")
 						continue
 					end
 				end
-
-				print("search")
 
 				self:MoveToLastSeenPos()
 				task.wait()
@@ -159,7 +158,10 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 			self.targetVisible = false
 			newPath()
+
 			self.internalState = "followPath"
+			self:SetState("Hunting")
+
 			followPath()
 		end
 	end)

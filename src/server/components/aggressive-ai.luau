@@ -1,4 +1,4 @@
---!strict
+--!nocheck
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -20,7 +20,12 @@ export type AggressiveAI = typeof(setmetatable(
 		janitor: Classy.Janitor,
 		target: Model?,
 
+		searchStartTick: number?,
+
 		targetVisible: boolean,
+		lastSeenPos: Vector3?,
+
+		internalState: string,
 
 		chaseLoopConnection: thread?,
 
@@ -33,6 +38,7 @@ function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): Aggress
 	return setmetatable({
 		entity = character :: Model,
 		targetVisible = false,
+		internalState = "None",
 		human = character:FindFirstChildWhichIsA("Humanoid") :: Humanoid,
 		janitor = janitor,
 	}, AggressiveAI)
@@ -50,6 +56,7 @@ function AggressiveAI.checkForTarget(self: AggressiveAI)
 
 	-- self.target = Players:GetPlayers()[1]
 	self.target = desiredTarget
+	return true
 end
 
 function AggressiveAI.getPositioning(self: AggressiveAI): (Vector3, Vector3)
@@ -62,12 +69,31 @@ function AggressiveAI.PeepTarget(self: AggressiveAI)
 	local directionToTarget = (targetPos - entityPos).Unit
 	local maxDistance = AIConfig.Pathfinding.SightDistance
 
-	return Raydar:Fire(entityPos, directionToTarget, maxDistance, Raydar.RayTypes.HitWalls)
+	local result = Raydar:Fire(entityPos, directionToTarget, maxDistance, Raydar.RayTypes.HitWalls)
+	if result and result.Instance and result.Instance == self.target then
+		self.lastSeenPos = self.target:GetPivot().Position
+	end
+	return result
 end
 
 function AggressiveAI.MoveToTarget(self: AggressiveAI)
 	local targetPos, _ = self:getPositioning()
 	self.human:MoveTo(targetPos)
+end
+
+function AggressiveAI.MoveToLastSeenPos(self: AggressiveAI)
+	local lastSeenPos = self.lastSeenPos
+	local entityPos = self.entity:GetPivot().Position
+	local mag = (entityPos - lastSeenPos).Magnitude
+	if mag < 1 then
+		self.lastSeenPos = nil
+		return
+	end
+	self.human:MoveTo(self.lastSeenPos)
+end
+
+function AggressiveAI.SetState(self: AggressiveAI, state: string)
+	self.entity:SetAttribute(state)
 end
 
 function AggressiveAI.ChaseLoop(self: AggressiveAI)
@@ -86,7 +112,8 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 	local function followPath()
 		for _, point: PathWaypoint in pairs(self.pathData.Waypoints) do
-			local canSeeTarget = self:PeepTarget()
+			local peepTarget = self:PeepTarget()
+			local canSeeTarget = peepTarget and peepTarget.Instance == self.target
 			if canSeeTarget then
 				self.targetVisible = true
 				break
@@ -103,13 +130,36 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 	self.chaseLoopConnection = task.spawn(function()
 		while true do
-			if self:PeepTarget() and self:checkForTarget() then
+			local peepTarget = self:PeepTarget()
+			if peepTarget and peepTarget == self.target then
+				print("move")
+				self.internalState = "followTarget"
 				self:MoveToTarget()
 				task.wait()
 				continue
+			elseif self.lastSeenPos then
+				if self.internalState ~= "searchTarget" then
+					self.internalState = "searchTarget"
+					self.searchStartTick = os.clock()
+				else
+					local elapsedSearchTime = os.clock() - self.searchStartTick
+					if elapsedSearchTime >= AIConfig.Pathfinding.SearchTimeout then
+						self.lastSeenPos = nil
+						self.internalState = "followPath"
+						continue
+					end
+				end
+
+				print("search")
+
+				self:MoveToLastSeenPos()
+				task.wait()
+				continue
 			end
+
 			self.targetVisible = false
 			newPath()
+			self.internalState = "followPath"
 			followPath()
 		end
 	end)

@@ -25,6 +25,12 @@
             },
             "assets": {
                 "$className": "Folder",
+                "map": {
+                    "$className": "Folder"
+                },
+                "entities": {
+                    "$className": "Folder"
+                },
                 "ui": {
                     "$className": "Folder"
                 },
@@ -76,6 +82,9 @@
             "runtime": {
                 "$className": "Folder",
                 "players": {
+                    "$className": "Folder"
+                },
+                "map": {
                     "$className": "Folder"
                 }
             },

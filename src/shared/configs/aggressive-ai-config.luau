@@ -6,7 +6,16 @@ local AggressiveAiConfig = {
 	},
 
 	Movement = {
-		WalkSpeed = 16,
+		MaxStamina = 10,
+		StaminaDrain = 1,
+		StaminaHeal = 1,
+
+		StaminaRecoveryRate = 0.25,
+		StaminaRecoveryTime = 3,
+
+		ExhaustedSpeed = 8,
+		DefaultWalkSpeed = 16,
+		ChasingSpeed = 20,
 	},
 
 	Pathfinding = {

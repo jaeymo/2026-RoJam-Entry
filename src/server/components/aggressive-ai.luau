@@ -2,6 +2,7 @@
 local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Classy = require(ReplicatedStorage.packages.classy)
@@ -20,7 +21,13 @@ export type AggressiveAI = typeof(setmetatable(
 		janitor: Classy.Janitor,
 		target: Model?,
 
+		staminaDrainTick: number?,
+		staminaRecoveryTick: number?,
 		searchStartTick: number?,
+
+		stamina: number,
+		maxStamina: number,
+		staminaRecoveryConnection: RBXScriptConnection,
 
 		targetVisible: boolean,
 		lastSeenPos: Vector3?,
@@ -37,8 +44,14 @@ export type AggressiveAI = typeof(setmetatable(
 function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): AggressiveAI
 	return setmetatable({
 		entity = character :: Model,
+
 		targetVisible = false,
 		internalState = "None",
+
+		stamina = math.random(0, AIConfig.Movement.MaxStamina),
+		staminaRecoveryTick = os.clock(),
+		staminaDrainTick = os.clock(),
+
 		human = character:FindFirstChildWhichIsA("Humanoid") :: Humanoid,
 		janitor = janitor,
 	}, AggressiveAI)
@@ -96,6 +109,77 @@ function AggressiveAI.SetState(self: AggressiveAI, state: string)
 	self.entity:SetAttribute("State", state)
 end
 
+function AggressiveAI.SetSpeed(self: AggressiveAI, number: number)
+	self.human.WalkSpeed = number
+end
+
+function AggressiveAI.DecreaseStamina(self: AggressiveAI)
+	local elapsedTick = os.clock() - self.staminaDrainTick
+
+	local staminaDrain = AIConfig.Movement.StaminaDrain
+	local maxStamina = AIConfig.Movement.MaxStamina
+
+	if elapsedTick >= 0.5 then
+		self.stamina = math.clamp(self.stamina - staminaDrain, 0, maxStamina)
+		self.staminaDrainTick = os.clock()
+	end
+end
+
+function AggressiveAI.IncreaseStamina(self: AggressiveAI)
+	local staminaRecoveryRate = AIConfig.Movement.StaminaRecoveryRate
+	local staminaHeal = AIConfig.Movement.StaminaHeal
+	local maxStamina = AIConfig.Movement.MaxStamina
+
+	local elapsedTick = os.clock() - self.staminaRecoveryTick
+
+	if elapsedTick >= staminaRecoveryRate then
+		self.stamina = math.clamp(self.stamina + staminaHeal, 0, maxStamina)
+		self.staminaDrainTick = os.clock()
+	end
+end
+
+function AggressiveAI.RecoverStamina(self: AggressiveAI)
+	if self.staminaRecoveryConnection then
+		return
+	end
+
+	self:SetState("ExhaustedWalk")
+	self:SetSpeed(AIConfig.Movement.ExhaustedSpeed)
+
+	local staminaRecoveryTime = AIConfig.Movement.StaminaRecoveryTime
+	local staminaRecoveryRate = AIConfig.Movement.StaminaRecoveryRate
+	local maxStamina = AIConfig.Movement.MaxStamina
+
+	local recoveryTick = os.clock()
+	local healTick = os.clock()
+
+	self.staminaRecoveryConnection = RunService.Heartbeat:Connect(function()
+		local elapsedRecoveryTick = os.clock() - recoveryTick
+		local recover_t = elapsedRecoveryTick / staminaRecoveryTime
+
+		local elapsedHealTick = os.clock() - healTick
+		local heal_t = elapsedHealTick / staminaRecoveryTime
+
+		if heal_t >= staminaRecoveryRate then
+			self.stamina = math.clamp(recover_t * maxStamina, 0, maxStamina)
+			healTick = os.clock()
+		end
+
+		if recover_t >= 1 or self.stamina >= maxStamina then
+			self.staminaRecoveryConnection:Disconnect()
+			self.staminaRecoveryConnection = nil
+
+			if self.internalState == "followTarget" or self.internalState == "searchTarget" then
+				self:SetState("Chasing")
+			else
+				self:SetState("Hunting")
+			end
+
+			return
+		end
+	end)
+end
+
 function AggressiveAI.ChaseLoop(self: AggressiveAI)
 	self:checkForTarget()
 
@@ -118,6 +202,13 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 				self.targetVisible = true
 				break
 			end
+			if self.stamina < AIConfig.Movement.MaxStamina and self.entity:GetAttribute("State") == "ExhaustedWalk" then
+				self:RecoverStamina()
+			else
+				self:IncreaseStamina()
+				self:SetState("Hunting")
+			end
+
 			self.human:MoveTo(point.Position)
 			self.human.MoveToFinished:Wait()
 		end
@@ -130,10 +221,20 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 	self.chaseLoopConnection = task.spawn(function()
 		while true do
+			print(self.stamina)
 			local peepTarget = self:PeepTarget()
-			if peepTarget and peepTarget == self.target then
+
+			if peepTarget and peepTarget.Instance == self.target then
 				self.internalState = "followTarget"
-				self:SetState("Chasing")
+
+				if self.stamina == 0 or self.entity:GetAttribute("State") == "ExhaustedWalk" then
+					self:RecoverStamina()
+				else
+					self:SetSpeed(AIConfig.Movement.ChasingSpeed)
+					self:SetState("Chasing")
+					self:DecreaseStamina()
+				end
+
 				self:MoveToTarget()
 				task.wait()
 				continue
@@ -146,9 +247,18 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 					if elapsedSearchTime >= AIConfig.Pathfinding.SearchTimeout then
 						self.lastSeenPos = nil
 						self.internalState = "followPath"
+
 						self:SetState("Chasing")
 						continue
 					end
+				end
+
+				if self.stamina == 0 or self.entity:GetAttribute("State") == "ExhaustedWalk" then
+					self:RecoverStamina()
+				else
+					self:SetSpeed(AIConfig.Movement.ChasingSpeed)
+					self:SetState("Chasing")
+					self:DecreaseStamina()
 				end
 
 				self:MoveToLastSeenPos()
@@ -160,7 +270,12 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 			newPath()
 
 			self.internalState = "followPath"
-			self:SetState("Hunting")
+			if not self.staminaRecoveryConnection and self.entity:GetAttribute("State") == "ExhaustedWalk" then
+				self:RecoverStamina()
+			else
+				self:SetSpeed(AIConfig.Movement.DefaultWalkSpeed)
+				self:SetState("Hunting")
+			end
 
 			followPath()
 		end

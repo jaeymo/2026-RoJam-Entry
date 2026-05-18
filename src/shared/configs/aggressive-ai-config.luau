@@ -14,7 +14,7 @@ local AggressiveAiConfig = {
 		StaminaRecoveryTime = 3,
 
 		ExhaustedSpeed = 8,
-		DefaultWalkSpeed = 14,
+		DefaultWalkSpeed = 10,
 		ChasingSpeed = 20,
 	},
 

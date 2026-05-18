@@ -42,7 +42,7 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self.animController:RegisterAnimationsFromInstance(AnimationFolder)
 
 	local sweatFxAsset = VfxFolder:WaitForChild("Sweat"):Clone()
-	sweatFxAsset.Parent = self.entity.PrimaryPart
+	sweatFxAsset.Parent = self.entity:WaitForChild("HumanoidRootPart")
 	sweatFxAsset.Enabled = false
 	-- for _, child in pairs(self.entity:GetChildren()) do
 	-- 	if not child:IsA("BasePart") or child == self.entity.PrimaryPart then
@@ -55,8 +55,6 @@ function AggressiveAI.Init(self: AggressiveAI)
 
 	self.sweatFx[#self.sweatFx + 1] = sweatFxAsset
 	-- end
-
-	print(self.sweatFx)
 
 	self.janitor:Add(self.entity:GetAttributeChangedSignal("State"):Connect(function()
 		local oldState = self.currentState
@@ -74,6 +72,14 @@ function AggressiveAI.Init(self: AggressiveAI)
 		end
 
 		self.currentState = newState
+	end))
+
+	self.janitor:Add(self.entity:GetAttributeChangedSignal("Recovering"):Connect(function()
+		if self.entity:GetAttribute("Recovering") then
+			self:Recovering()
+		else
+			self:ExitRecovering()
+		end
 	end))
 
 	local newState = self.entity:GetAttribute("State") :: string
@@ -102,10 +108,6 @@ end
 
 function AggressiveAI.ExitHunting(self: AggressiveAI) end
 
-function AggressiveAI.Hunting(self: AggressiveAI) end
-
-function AggressiveAI.ExitHunting(self: AggressiveAI) end
-
 function AggressiveAI.Idle(self: AggressiveAI)
 	if self.IdleDelay then
 		task.cancel(self.IdleDelay)
@@ -131,18 +133,29 @@ function AggressiveAI.ExitIdle(self: AggressiveAI)
 end
 
 function AggressiveAI.ExhaustedWalk(self: AggressiveAI)
-	for _, fx in pairs(self.sweatFx) do
-		fx.Enabled = true
-	end
+	self.animController:GetTrack("AggressiveStumbleIdle"):AdjustSpeed(0.5)
+	self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(0.5)
 	self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(0.5)
 end
 
 function AggressiveAI.ExitExhaustedWalk(self: AggressiveAI)
+	self.animController:GetTrack("AggressiveStumbleIdle"):AdjustSpeed(1)
+	self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(1)
+	self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(1)
+end
+
+function AggressiveAI.Recovering(self: AggressiveAI)
+	print(self.entity:GetAttribute("State"))
+	for _, fx in pairs(self.sweatFx) do
+		fx.Enabled = true
+	end
+end
+
+function AggressiveAI.ExitRecovering(self: AggressiveAI)
 	print(self.entity:GetAttribute("State"))
 	for _, fx in pairs(self.sweatFx) do
 		fx.Enabled = false
 	end
-	self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(1)
 end
 
 AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {})

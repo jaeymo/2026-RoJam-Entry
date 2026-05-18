@@ -59,7 +59,10 @@ end
 
 function AggressiveAI.init(self: AggressiveAI)
 	self.entity.PrimaryPart:SetNetworkOwner(nil)
-	self:ChaseLoop()
+	task.defer(function()
+		self:ChaseLoop()
+	end)
+	self:SetState("Hunting")
 end
 
 function AggressiveAI.checkForTarget(self: AggressiveAI)
@@ -172,6 +175,7 @@ function AggressiveAI.RecoverStamina(self: AggressiveAI)
 	end
 
 	self:SetState("ExhaustedWalk")
+	self.entity:SetAttribute("Recovering", true)
 	self:SetSpeed(AIConfig.Movement.ExhaustedSpeed)
 
 	local staminaRecoveryTime = AIConfig.Movement.StaminaRecoveryTime
@@ -196,6 +200,8 @@ function AggressiveAI.RecoverStamina(self: AggressiveAI)
 		if recover_t >= 1 or self.stamina >= maxStamina then
 			self.staminaRecoveryConnection:Disconnect()
 			self.staminaRecoveryConnection = nil
+
+			self.entity:SetAttribute("Recovering", false)
 
 			if
 				self.internalState == "followTarget"
@@ -262,7 +268,12 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 			if foundTarget then
 				if self.stamina == 0 or self.entity:GetAttribute("State") == "ExhaustedWalk" then
-					self.internalState = "followTarget"
+					if self.internalState == "closeChase" then
+						self:SetState("Idle")
+					else
+						self.internalState = "followTarget"
+					end
+
 					self:RecoverStamina()
 				else
 					self:SetSpeed(AIConfig.Movement.ChasingSpeed)

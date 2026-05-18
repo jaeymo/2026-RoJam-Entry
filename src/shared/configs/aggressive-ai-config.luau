@@ -18,6 +18,11 @@ local AggressiveAiConfig = {
 		ChasingSpeed = 20,
 	},
 
+	Attacks = {
+		MainAttackCooldown = 3,
+		MainAttackStaminaCost = 3,
+	},
+
 	Pathfinding = {
 		SightDistance = 50,
 		SearchTimeout = 1,

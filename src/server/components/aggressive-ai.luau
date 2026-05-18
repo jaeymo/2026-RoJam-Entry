@@ -218,6 +218,8 @@ function AggressiveAI.RecoverStamina(self: AggressiveAI)
 	end)
 end
 
+function AggressiveAI.Attack(self: AggressiveAI) end
+
 function AggressiveAI.ChaseLoop(self: AggressiveAI)
 	self:checkForTarget()
 

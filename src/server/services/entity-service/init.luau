@@ -50,6 +50,9 @@ end
 
 function EntityService.jaegarInit(self: EntityService)
 	SignalRegistry.roomSpawned:Connect(function(roomModel)
+		if roomModel:HasTag("Safezone") then
+			return
+		end
 		self:loadEntitiesIntoRoom(roomModel)
 	end)
 end

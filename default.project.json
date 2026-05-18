@@ -86,6 +86,9 @@
                 },
                 "map": {
                     "$className": "Folder"
+                },
+                "hitboxes": {
+                    "$className": "Folder"
                 }
             },
             "misc": {

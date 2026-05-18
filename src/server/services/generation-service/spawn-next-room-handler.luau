@@ -22,15 +22,15 @@ Classy.create("SpawnNextRoom", function(instance, janitor)
 		end
 
 		if not hit.Parent then
-			print(1, hit)
 			return
 		end
 
 		if not hit.Parent:HasTag("Character") then
-			print(2, hit)
+			print(hit, 2)
 			return
 		end
 
+		print(hit)
 		flag = true
 		SignalRegistry.spawnNextRoomTouched:Fire()
 	end))

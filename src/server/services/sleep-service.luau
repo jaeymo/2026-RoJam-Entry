@@ -14,13 +14,11 @@ local SleepService = {
 
 export type SleepService = typeof(SleepService)
 
-function SleepService.initiateSleepProcess(self: SleepService)
-	print("bang")
+function SleepService.initiateSleepProcess(_: SleepService)
 	network:Broadcast("playerSlept")
 end
 
 function SleepService.finishSleepProcess(self: SleepService)
-	print("bang bang")
 	self.sleepCount += 1
 	SignalRegistry.playerSlept:Fire()
 end

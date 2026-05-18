@@ -58,13 +58,21 @@ function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): Aggress
 end
 
 function AggressiveAI.init(self: AggressiveAI)
+	self.entity.PrimaryPart:SetNetworkOwner(nil)
 	self:ChaseLoop()
 end
 
 function AggressiveAI.checkForTarget(self: AggressiveAI)
-	local desiredTarget = CollectionService:GetTagged("AIAttractor")[1]
+	-- local desiredTarget = CollectionService:GetTagged("AIAttractor")[1]
+	local plr = Players:GetPlayers()[1]
+	if not plr then
+		return
+	end
+
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	local desiredTarget = char
 	if not desiredTarget then
-		error("NoPlr")
+		warn("NoPlr")
 	end
 
 	-- self.target = Players:GetPlayers()[1]
@@ -82,16 +90,36 @@ function AggressiveAI.PeepTarget(self: AggressiveAI)
 	local directionToTarget = (targetPos - entityPos).Unit
 	local maxDistance = AIConfig.Pathfinding.SightDistance
 
-	local result = Raydar:Fire(entityPos, directionToTarget, maxDistance, Raydar.RayTypes.HitWalls)
+	local result = Raydar:Fire(entityPos, directionToTarget, maxDistance, Raydar.RayTypes.AimForPlayers, self.entity)
+	if result then
+		-- print(result.Instance, result.Instance.Parent)
+	end
 	if result and result.Instance and result.Instance == self.target then
 		self.lastSeenPos = self.target:GetPivot().Position
 	end
 	return result
 end
 
+function AggressiveAI.GetPushedDistance(self: AggressiveAI)
+	local minDistance = AIConfig.Pathfinding.StopDistance
+	local targetPos, entityPos = self:getPositioning()
+	local mag = (targetPos - entityPos).Magnitude
+
+	print(mag, minDistance)
+
+	if mag > minDistance then
+		self.internalState = "followTarget"
+		return targetPos
+	end
+
+	print("close")
+	self.internalState = "closeChase"
+
+	return entityPos
+end
+
 function AggressiveAI.MoveToTarget(self: AggressiveAI)
-	local targetPos, _ = self:getPositioning()
-	self.human:MoveTo(targetPos)
+	self.human:MoveTo(self:GetPushedDistance())
 end
 
 function AggressiveAI.MoveToLastSeenPos(self: AggressiveAI)
@@ -169,7 +197,11 @@ function AggressiveAI.RecoverStamina(self: AggressiveAI)
 			self.staminaRecoveryConnection:Disconnect()
 			self.staminaRecoveryConnection = nil
 
-			if self.internalState == "followTarget" or self.internalState == "searchTarget" then
+			if
+				self.internalState == "followTarget"
+				or self.internalState == "searchTarget"
+				or self.internalState == "closeChase"
+			then
 				self:SetState("Chasing")
 			else
 				self:SetState("Hunting")
@@ -184,7 +216,9 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 	self:checkForTarget()
 
 	if not self.target then
-		return
+		repeat
+			task.wait()
+		until self:checkForTarget()
 	end
 
 	local function newPath()
@@ -197,8 +231,9 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 	local function followPath()
 		for _, point: PathWaypoint in pairs(self.pathData.Waypoints) do
 			local peepTarget = self:PeepTarget()
-			local canSeeTarget = peepTarget and peepTarget.Instance == self.target
-			if canSeeTarget then
+			local foundTarget = peepTarget and peepTarget.Instance:IsDescendantOf(self.target)
+
+			if foundTarget then
 				self.targetVisible = true
 				break
 			end
@@ -206,6 +241,7 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 				self:RecoverStamina()
 			else
 				self:IncreaseStamina()
+
 				self:SetState("Hunting")
 			end
 
@@ -221,18 +257,22 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 	self.chaseLoopConnection = task.spawn(function()
 		while true do
-			print(self.stamina)
 			local peepTarget = self:PeepTarget()
+			local foundTarget = peepTarget and peepTarget.Instance:IsDescendantOf(self.target)
 
-			if peepTarget and peepTarget.Instance == self.target then
-				self.internalState = "followTarget"
-
+			if foundTarget then
 				if self.stamina == 0 or self.entity:GetAttribute("State") == "ExhaustedWalk" then
+					self.internalState = "followTarget"
 					self:RecoverStamina()
 				else
 					self:SetSpeed(AIConfig.Movement.ChasingSpeed)
-					self:SetState("Chasing")
-					self:DecreaseStamina()
+					if self.internalState == "closeChase" then
+						self:SetState("Idle")
+					else
+						self:SetState("Chasing")
+						self.internalState = "followTarget"
+						self:DecreaseStamina()
+					end
 				end
 
 				self:MoveToTarget()
@@ -283,10 +323,15 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 end
 
 function AggressiveAI.CancelLoop(self: AggressiveAI)
+	self.human:MoveTo(self.entity:GetPivot().Position)
 	if self.chaseLoopConnection then
 		task.cancel(self.chaseLoopConnection)
 		self.chaseLoopConnection = nil
 	end
+end
+
+function AggressiveAI.Destroy(self: AggressiveAI)
+	self:CancelLoop()
 end
 
 AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {

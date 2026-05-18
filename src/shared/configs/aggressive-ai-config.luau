@@ -14,14 +14,14 @@ local AggressiveAiConfig = {
 		StaminaRecoveryTime = 3,
 
 		ExhaustedSpeed = 8,
-		DefaultWalkSpeed = 16,
+		DefaultWalkSpeed = 14,
 		ChasingSpeed = 20,
 	},
 
 	Pathfinding = {
 		SightDistance = 50,
 		SearchTimeout = 1,
-		StopDistance = 5,
+		StopDistance = 10,
 	},
 }
 

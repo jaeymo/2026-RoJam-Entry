@@ -6,7 +6,7 @@ export type Raydar = typeof(Raydar)
 Raydar.RayTypes = {
 	HitWalls = {
 		Name = "HitWalls",
-		GetParams = function()
+		GetParams = function(...)
 			local filter = {}
 
 			local params = RaycastParams.new()
@@ -15,10 +15,23 @@ Raydar.RayTypes = {
 			return params
 		end,
 	},
+	AimForPlayers = {
+		Name = "AimForPlayers",
+		GetParams = function(...)
+			local filter = {}
+
+			local params = RaycastParams.new()
+			params.CollisionGroup = "EntityCollision"
+			params.FilterType = Enum.RaycastFilterType.Exclude
+			params.FilterDescendantsInstances = { ... }
+
+			return params
+		end,
+	},
 }
 
-function Raydar.Fire(_: Raydar, origin: Vector3, direction: Vector3, distance: number, raytype)
-	raytype = (raytype and raytype.GetParams) and raytype.GetParams()
+function Raydar.Fire(_: Raydar, origin: Vector3, direction: Vector3, distance: number, raytype, ...)
+	raytype = (raytype and raytype.GetParams) and raytype.GetParams(...)
 	if not raytype then
 		local rayName = raytype and raytype.Name or nil
 		warn("RayType: ", rayName)

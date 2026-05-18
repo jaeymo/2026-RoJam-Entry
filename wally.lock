@@ -25,7 +25,12 @@ dependencies = [["Promise", "evaera/promise@4.0.0"]]
 [[package]]
 name = "jaeymo/2026-rojam-entry"
 version = "0.1.0"
-dependencies = [["classy", "jaeymo/classy@1.7.7"], ["jaegar", "jaeymo/jaegar@1.6.1"], ["janitor", "howmanysmall/janitor@1.18.3"], ["packet", "jaeymo/suphi-packet@0.1.0"], ["repertoire", "1legendrblx/repertoire@1.3.1"], ["resource-allocator", "jaeymo/resource-allocator@0.1.1"], ["signal", "sleitnick/signal@2.0.3"], ["spring", "jaeymo/spring@1.0.1"], ["typed-promise", "howmanysmall/typed-promise@4.0.6"], ["viewer", "jaeymo/viewer@0.1.0"]]
+dependencies = [["better-animation", "jaeymo/better-animation@1.0.0"], ["classy", "jaeymo/classy@1.7.7"], ["jaegar", "jaeymo/jaegar@1.6.1"], ["janitor", "howmanysmall/janitor@1.18.3"], ["packet", "jaeymo/suphi-packet@0.1.0"], ["repertoire", "1legendrblx/repertoire@1.3.1"], ["resource-allocator", "jaeymo/resource-allocator@0.1.1"], ["signal", "sleitnick/signal@2.0.3"], ["spring", "jaeymo/spring@1.0.1"], ["typed-promise", "howmanysmall/typed-promise@4.0.6"], ["viewer", "jaeymo/viewer@0.1.0"]]
+
+[[package]]
+name = "jaeymo/better-animation"
+version = "1.0.0"
+dependencies = []
 
 [[package]]
 name = "jaeymo/classy"

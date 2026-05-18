@@ -26,6 +26,8 @@ local F64 = Packet.NumberF64 -- 15 decimal digits
 
 local VECTOR3_F24 = Packet.Vector3F24
 
-local PACKETS = {}
+local PACKETS = {
+	playerSlept = Packet.new("playerSlept"),
+}
 
 return table.freeze(PACKETS) :: typeof(PACKETS)

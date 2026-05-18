@@ -3,13 +3,46 @@ local GENERATION_CONFIG = {
 	worldOrigin = Vector3.yAxis * 100,
 	parent = workspace:WaitForChild("runtime"):WaitForChild("map"),
 
-	phaseLeniency = 2,
-
 	gamePhases = {
-		early = 5,
-		middle = 5,
-		late = 5,
-	} :: { [string]: number },
+		early = {
+			name = "early",
+			length = 50,
+
+			safezones = {
+				enabled = true,
+
+				minSpacing = 4,
+				maxSpacing = 7,
+
+				guaranteedAtEnd = true,
+			},
+		},
+		middle = {
+			name = "middle",
+			length = 12,
+
+			safezones = {
+				enabled = true,
+
+				minSpacing = 3,
+				maxSpacing = 5,
+
+				guaranteedAtEnd = true,
+			},
+		},
+		late = {
+			name = "late",
+
+			safezones = {
+				enabled = true,
+
+				minSpacing = 5,
+				maxSpacing = 10,
+
+				guaranteedAtEnd = true,
+			},
+		},
+	},
 
 	lateGameGeneration = {
 		maxRooms = 250,

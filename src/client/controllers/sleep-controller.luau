@@ -12,7 +12,7 @@ local SleepController = {}
 
 export type SleepController = typeof(SleepController)
 
-function SleepController.sleep(self: SleepController)
+function SleepController.sleep(_: SleepController)
 	UiMasking:mask(TweenInfo.new(2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)).Completed:Wait()
 	network:SendServer("playerSlept")
 

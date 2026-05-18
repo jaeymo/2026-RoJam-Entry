@@ -6,19 +6,35 @@ local GenerationFactory = require(script["generation-factory"])
 local GenerationTypes = require(script.types)
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 
-local GenerationService = {
-	currentPhase = "Early" :: GamePhase,
-	currentRoomGenerationIndex = 0,
-	currentSafezone = nil :: Folder?,
+local WORLD_ORIGIN = CFrame.new(GenerationConfig.worldOrigin)
 
+local ROOM_TYPE = {
+	NORMAL = "normal",
+
+	SAFEZONE_START = "safezoneStart",
+	SAFEZONE = "safezone",
+	SAFEZONE_EXIT = "safezoneExit",
+}
+
+local SAFEZONE_ROOM_TYPES = {
+	[ROOM_TYPE.SAFEZONE_START] = true,
+	[ROOM_TYPE.SAFEZONE] = true,
+	[ROOM_TYPE.SAFEZONE_EXIT] = true,
+}
+
+local GenerationService = {
+	currentRoomGenerationIndex = 0,
 	unloadedRoomCount = 0,
 
-	roomChain = {} :: {
-		[number]: Room, -- the index of the loaded room = its room model
+	roomPlan = {} :: {
+		[number]: {
+			phase: string,
+			roomType: string,
+		},
 	},
 
-	phaseMap = {} :: {
-		[number]: string,
+	roomChain = {} :: {
+		[number]: Room,
 	},
 
 	loadedSections = {} :: {
@@ -30,141 +46,139 @@ local GenerationService = {
 	},
 }
 
-local WORLD_ORIGIN = CFrame.new(GenerationConfig.worldOrigin)
-
-export type GamePhase = "Early" | "Middle" | "Late"
-
 export type GenerationService = typeof(GenerationService)
-
 export type Room = GenerationTypes.Room
-
--- ignore that there are two of these :)
--- idc
-
-local SAFEZONE_PHASES = {
-	["safezoneStart"] = true,
-	["safezone"] = true,
-	["safezoneExit"] = true,
-} :: { [string]: true }
-
-local SAFEZONE_SEQUENCE = {
-	"safezoneStart",
-	"safezone",
-	"safezoneExit",
-} :: { string }
 
 local function getNodesFromRoom(roomModel: Room): (BasePart, BasePart)
 	return roomModel.Nodes.Room:FindFirstChild("Enter") :: BasePart,
 		roomModel.Nodes.Room:FindFirstChild("Exit") :: BasePart
 end
 
-local function isSectionBoundary(phase: string): boolean
-	return phase == "safezoneExit"
+local function isSectionBoundary(roomType: string): boolean
+	return roomType == ROOM_TYPE.SAFEZONE_EXIT
 end
 
-local function getSafezoneTierFromIndex(phaseMap: { [number]: string }, currentIndex: number): string
-	for i = currentIndex, 1, -1 do
-		local phase = phaseMap[i]
-
-		if phase == "early" or phase == "middle" or phase == "late" then
-			return phase
-		end
-	end
-
-	error(`[{script.Name}] Failed to resolve safezone tier`)
-end
-
-local function buildPhaseTable(phases: { [string]: number }): { [number]: string }
-	local phaseTable = {}
-
-	local orderedPhases = {
-		{ name = "early", length = phases.early },
-		{ name = "middle", length = phases.middle },
-		{ name = "late", length = phases.late },
+local function appendSafezoneSequence(
+	roomPlan: { [number]: { phase: string, roomType: string } },
+	index: number,
+	phase: string
+): number
+	roomPlan[index] = {
+		phase = phase,
+		roomType = ROOM_TYPE.SAFEZONE_START,
 	}
 
-	local round = 1
+	index += 1
 
-	for _, phaseData in orderedPhases do
-		for _ = 1, phaseData.length do
-			phaseTable[round] = phaseData.name
-			round += 1
-		end
+	roomPlan[index] = {
+		phase = phase,
+		roomType = ROOM_TYPE.SAFEZONE,
+	}
 
-		if phaseData.name ~= "late" then
-			for _, safezonePhase in SAFEZONE_SEQUENCE do
-				phaseTable[round] = safezonePhase
-				round += 1
-			end
+	index += 1
+
+	roomPlan[index] = {
+		phase = phase,
+		roomType = ROOM_TYPE.SAFEZONE_EXIT,
+	}
+
+	index += 1
+
+	return index
+end
+
+local function buildFinitePhase(
+	roomPlan: { [number]: { phase: string, roomType: string } },
+	startIndex: number,
+	phaseData
+): number
+	local index = startIndex
+
+	local roomsRemaining = phaseData.length
+	local safezoneConfig = phaseData.safezones
+
+	local distanceUntilSafezone = math.random(safezoneConfig.minSpacing, safezoneConfig.maxSpacing)
+
+	while roomsRemaining > 0 do
+		roomPlan[index] = {
+			phase = phaseData.name,
+			roomType = ROOM_TYPE.NORMAL,
+		}
+
+		index += 1
+
+		roomsRemaining -= 1
+		distanceUntilSafezone -= 1
+
+		local shouldGenerateSafezone = safezoneConfig.enabled and roomsRemaining > 0 and distanceUntilSafezone <= 0
+
+		if shouldGenerateSafezone then
+			index = appendSafezoneSequence(roomPlan, index, phaseData.name)
+
+			distanceUntilSafezone = math.random(safezoneConfig.minSpacing, safezoneConfig.maxSpacing)
 		end
 	end
 
-	return phaseTable
-end
-
-local function appendSafezone(phaseTable: { [number]: string }, index: number): number
-	for _, safezonePhase in SAFEZONE_SEQUENCE do
-		phaseTable[index] = safezonePhase
-		index += 1
+	if safezoneConfig.enabled and safezoneConfig.guaranteedAtEnd then
+		index = appendSafezoneSequence(roomPlan, index, phaseData.name)
 	end
 
 	return index
 end
 
-local function generateLateGame(phaseTable: { [number]: string })
-	local index = #phaseTable + 1
-	local maxRooms = GenerationConfig.lateGameGeneration.maxRooms
+local function buildInitialRoomPlan(): {
+	[number]: {
+		phase: string,
+		roomType: string,
+	},
+}
+	local roomPlan = {}
+	local index = 1
 
-	while index <= maxRooms do
-		local stretchLength = math.random(
-			GenerationConfig.lateGameGeneration.minLateStretch,
-			GenerationConfig.lateGameGeneration.maxLateStretch
-		)
+	index = buildFinitePhase(roomPlan, index, GenerationConfig.gamePhases.early)
+	index = buildFinitePhase(roomPlan, index, GenerationConfig.gamePhases.middle)
 
-		for _ = 1, stretchLength do
-			if index > maxRooms then
-				break
-			end
-
-			phaseTable[index] = "late"
-			index += 1
-		end
-
-		if index <= maxRooms then
-			index = appendSafezone(phaseTable, index)
-		end
-	end
+	return roomPlan
 end
 
 function GenerationService.initiateGenerationProcess(self: GenerationService)
-	self.phaseMap = buildPhaseTable(GenerationConfig.gamePhases)
-	generateLateGame(self.phaseMap)
+	self.roomPlan = buildInitialRoomPlan()
+
+	self:extendLateGame(GenerationConfig.lateGameGeneration.maxRooms)
 
 	self.roomChain = {}
+
 	self:generateNextSection()
+
+	-- testing
+	-- while task.wait(2) do
+	-- 	SignalRegistry.playerSlept:Fire()
+	-- end
 end
 
 function GenerationService.generateNext(self: GenerationService)
 	local nextRoomIndex = self.currentRoomGenerationIndex + 1
-	local selectedPhase = self.phaseMap[nextRoomIndex]
 
-	if not selectedPhase then
-		warn(`[{script.Name}] No phase found for room index {nextRoomIndex}`)
-		return
+	if nextRoomIndex + 25 > #self.roomPlan then
+		self:extendLateGame(nextRoomIndex + 100)
+	end
+
+	local roomData = self.roomPlan[nextRoomIndex]
+
+	if not roomData then
+		error(`[{script.Name}] Missing room plan entry`)
 	end
 
 	local newRoom: Room?
 
-	if SAFEZONE_PHASES[selectedPhase] then
-		local safezoneTier = getSafezoneTierFromIndex(self.phaseMap, nextRoomIndex)
-
-		newRoom = GenerationFactory:getSafezoneRoom(safezoneTier, selectedPhase)
+	if SAFEZONE_ROOM_TYPES[roomData.roomType] then
+		newRoom = GenerationFactory:getSafezoneRoom(roomData.phase, roomData.roomType)
 	else
-		newRoom = GenerationFactory:getRandomRoomFromPhase(selectedPhase)
+		newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
 	end
 
 	if not newRoom then
-		error(`[{script.Name}] Failed to generate room for phase "{selectedPhase}"`)
+		error(`[{script.Name}] Failed to generate room "{roomData.phase}" "{roomData.roomType}"`)
 	end
 
 	local startNode, _ = getNodesFromRoom(newRoom)
@@ -173,6 +187,7 @@ function GenerationService.generateNext(self: GenerationService)
 
 	if next(self.roomChain) then
 		local lastRoom = self.roomChain[#self.roomChain]
+
 		local _, exitNode = getNodesFromRoom(lastRoom)
 
 		spawnCFrame = exitNode.CFrame
@@ -180,9 +195,11 @@ function GenerationService.generateNext(self: GenerationService)
 
 	newRoom.PrimaryPart = startNode
 	newRoom:PivotTo(spawnCFrame)
+
 	newRoom.Parent = GenerationConfig.parent
 
 	self.currentRoomGenerationIndex = nextRoomIndex
+
 	self.roomChain[#self.roomChain + 1] = newRoom
 
 	SignalRegistry.roomSpawned:Fire(newRoom)
@@ -191,13 +208,15 @@ end
 function GenerationService.generateNextSection(self: GenerationService)
 	local sectionStartIndex = self.currentRoomGenerationIndex + 1
 	local sectionEndIndex = sectionStartIndex
+
 	local safezoneStartIndex = -1
 
 	while true do
 		local nextIndex = self.currentRoomGenerationIndex + 1
-		local phase = self.phaseMap[nextIndex]
 
-		if not phase then
+		local roomData = self.roomPlan[nextIndex]
+
+		if not roomData then
 			break
 		end
 
@@ -205,11 +224,11 @@ function GenerationService.generateNextSection(self: GenerationService)
 
 		sectionEndIndex = self.currentRoomGenerationIndex
 
-		if phase == "safezoneStart" then
+		if roomData.roomType == ROOM_TYPE.SAFEZONE_START then
 			safezoneStartIndex = self.currentRoomGenerationIndex
 		end
 
-		if isSectionBoundary(phase) then
+		if isSectionBoundary(roomData.roomType) then
 			break
 		end
 	end
@@ -221,24 +240,30 @@ function GenerationService.generateNextSection(self: GenerationService)
 	}
 end
 
-function GenerationService.unloadLastSection(self: GenerationService)
-	if #self.loadedSections <= 2 then
-		return
-	end
+function GenerationService.extendLateGame(self: GenerationService, targetRoomCount: number)
+	local latePhase = GenerationConfig.gamePhases.late
+	local safezoneConfig = latePhase.safezones
 
-	local section = table.remove(self.loadedSections, 1)
+	local index = #self.roomPlan + 1
 
-	if not section then
-		return
-	end
+	local distanceUntilSafezone = math.random(safezoneConfig.minSpacing, safezoneConfig.maxSpacing)
 
-	local roomCount = section.endIndex - section.startIndex + 1
+	while #self.roomPlan < targetRoomCount do
+		self.roomPlan[index] = {
+			phase = "late",
+			roomType = ROOM_TYPE.NORMAL,
+		}
 
-	for _ = 1, roomCount do
-		local room = table.remove(self.roomChain, 1)
+		index += 1
 
-		if room then
-			room:Destroy()
+		distanceUntilSafezone -= 1
+
+		local shouldGenerateSafezone = safezoneConfig.enabled and distanceUntilSafezone <= 0
+
+		if shouldGenerateSafezone then
+			index = appendSafezoneSequence(self.roomPlan, index, "late")
+
+			distanceUntilSafezone = math.random(safezoneConfig.minSpacing, safezoneConfig.maxSpacing)
 		end
 	end
 end
@@ -251,16 +276,9 @@ function GenerationService.unloadAllBefore(self: GenerationService, generationIn
 
 		if room then
 			room:Destroy()
+
 			self.unloadedRoomCount += 1
 		end
-	end
-end
-
-function GenerationService.unload(self: GenerationService)
-	local firstRoom = table.remove(self.roomChain, 1)
-
-	if firstRoom then
-		firstRoom:Destroy()
 	end
 end
 

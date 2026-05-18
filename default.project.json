@@ -69,6 +69,9 @@
         },
         "StarterPlayer": {
             "$className": "StarterPlayer",
+            "$properties": {
+                "CameraMode": "LockFirstPerson"
+            },
             "StarterPlayerScripts": {
                 "$className": "StarterPlayerScripts",
                 "bootstrap": {

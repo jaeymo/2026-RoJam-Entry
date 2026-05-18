@@ -16,15 +16,6 @@ local GENERATION_CONFIG = {
 		minLateStretch = 3,
 		maxLateStretch = 5,
 	},
-
-	-- a +- value that randomly decides the game phases. for example, early could end at 6 (8-2), while middle could end at 17 (16 + 1)
-	-- phaseLeniency = 2,
-
-	-- gamePhases = {
-	-- 	early = 8,
-	-- 	middle = 16,
-	-- 	late = 24,
-	-- } :: { [string]: number },
 }
 
 return table.freeze(GENERATION_CONFIG) :: typeof(GENERATION_CONFIG)

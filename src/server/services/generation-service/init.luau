@@ -38,10 +38,8 @@ export type GenerationService = typeof(GenerationService)
 
 export type Room = GenerationTypes.Room
 
-local function getNodesFromRoom(roomModel: Room): (BasePart, BasePart)
-	return roomModel.Nodes.Room:FindFirstChild("Enter") :: BasePart,
-		roomModel.Nodes.Room:FindFirstChild("Exit") :: BasePart
-end
+-- ignore that there are two of these :)
+-- idc
 
 local SAFEZONE_PHASES = {
 	["safezoneStart"] = true,
@@ -54,6 +52,11 @@ local SAFEZONE_SEQUENCE = {
 	"safezone",
 	"safezoneExit",
 } :: { string }
+
+local function getNodesFromRoom(roomModel: Room): (BasePart, BasePart)
+	return roomModel.Nodes.Room:FindFirstChild("Enter") :: BasePart,
+		roomModel.Nodes.Room:FindFirstChild("Exit") :: BasePart
+end
 
 local function isSectionBoundary(phase: string): boolean
 	return phase == "safezoneExit"

@@ -14,7 +14,8 @@ Classy.create("SpawnNextRoom", function(instance, janitor)
 		return instance
 	end
 
-	local flag = false
+	-- jaeymo set this to true so the collision spawners are disabled for now
+	local flag = true
 
 	janitor:Add(instance.Touched:Connect(function(hit: BasePart)
 		if flag then

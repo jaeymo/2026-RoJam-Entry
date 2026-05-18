@@ -31,6 +31,9 @@
                 "entities": {
                     "$className": "Folder"
                 },
+                "character": {
+                    "$className": "Folder"
+                },
                 "ui": {
                     "$className": "Folder"
                 },
@@ -69,6 +72,9 @@
         },
         "StarterPlayer": {
             "$className": "StarterPlayer",
+            "$properties": {
+                "CameraMode": "LockFirstPerson"
+            },
             "StarterPlayerScripts": {
                 "$className": "StarterPlayerScripts",
                 "bootstrap": {
@@ -79,12 +85,18 @@
         "Workspace": {
             "$ignoreUnknownInstances": true,
             "$className": "Workspace",
+            "$properties": {
+                "StreamingEnabled": false
+            },
             "runtime": {
                 "$className": "Folder",
                 "players": {
                     "$className": "Folder"
                 },
                 "map": {
+                    "$className": "Folder"
+                },
+                "hitboxes": {
                     "$className": "Folder"
                 }
             },

@@ -242,7 +242,7 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 	end
 end)
 
-warn("RUNNING FLAME COMP")
+-- warn("RUNNING FLAME COMP")
 if RunService:IsClient() then
 	local LocalPlayer = Players.LocalPlayer
 	local Mouse = LocalPlayer:GetMouse()

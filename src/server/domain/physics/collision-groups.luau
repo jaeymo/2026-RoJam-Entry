@@ -6,7 +6,7 @@ local COLLISION_GROUPS = {
 	BarrierCollision = { "Entity", "PlayerCharacter" },
 	EntityCollision = { "Entity", "PlayerCharacter", "IgnoreEntities" },
 
-	PlayerCharacter = { "Entity", "PlayerCharacter", "BarrierCollision" },
+	PlayerCharacter = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision" },
 	Entity = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision" },
 
 	MapMesh = {},

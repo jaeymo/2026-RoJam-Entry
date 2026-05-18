@@ -110,18 +110,4 @@ function GenerationFactory.getSafezoneRoom(_: GenerationFactory, tier: string, r
 	return handleNewRoom(room)
 end
 
--- function GenerationFactory.getStartSafezoneTransition(
--- 	self: GenerationFactory,
--- 	safezoneName: string
--- ): GenerationTypes.Room?
--- 	local folder = (mapAssets:FindFirstChild("safezone") :: Folder):FindFirstChild(safezoneName)
--- end
-
--- function GenerationFactory.getExitSafezoneTransition(
--- 	self: GenerationFactory,
--- 	safezoneName: string
--- ): GenerationTypes.Room?
--- 	local folder = (mapAssets:FindFirstChild("safezone") :: Folder):FindFirstChild(safezoneName)
--- end
-
 return GenerationFactory

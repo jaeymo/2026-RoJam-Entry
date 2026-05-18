@@ -11,6 +11,12 @@ local GENERATION_CONFIG = {
 		late = 5,
 	} :: { [string]: number },
 
+	lateGameGeneration = {
+		maxRooms = 500,
+		minLateStretch = 3,
+		maxLateStretch = 5,
+	},
+
 	-- a +- value that randomly decides the game phases. for example, early could end at 6 (8-2), while middle could end at 17 (16 + 1)
 	-- phaseLeniency = 2,
 

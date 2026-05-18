@@ -8,6 +8,7 @@ export type Signal<T...> = Signal.Signal<T...>
 local SIGNAL_REGISTRY = {
 	spawnNextRoomTouched = Signal.new() :: Signal<>,
 	roomSpawned = Signal.new() :: Signal<Model>,
+	playerSlept = Signal.new() :: Signal<>,
 }
 
 return table.freeze(SIGNAL_REGISTRY) :: typeof(SIGNAL_REGISTRY)

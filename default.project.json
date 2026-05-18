@@ -79,6 +79,9 @@
         "Workspace": {
             "$ignoreUnknownInstances": true,
             "$className": "Workspace",
+            "$properties": {
+                "StreamingEnabled": false
+            },
             "runtime": {
                 "$className": "Folder",
                 "players": {

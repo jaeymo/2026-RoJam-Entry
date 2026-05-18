@@ -11,12 +11,22 @@ local GenerationService = {
 	currentRoomGenerationIndex = 0,
 	currentSafezone = nil :: Folder?,
 
+	unloadedRoomCount = 0,
+
 	roomChain = {} :: {
 		[number]: Room, -- the index of the loaded room = its room model
 	},
 
 	phaseMap = {} :: {
 		[number]: string,
+	},
+
+	loadedSections = {} :: {
+		[number]: {
+			safezoneStartIndex: number,
+			startIndex: number,
+			endIndex: number,
+		},
 	},
 }
 
@@ -44,6 +54,10 @@ local SAFEZONE_SEQUENCE = {
 	"safezone",
 	"safezoneExit",
 } :: { string }
+
+local function isSectionBoundary(phase: string): boolean
+	return phase == "safezoneExit"
+end
 
 local function getSafezoneTierFromIndex(phaseMap: { [number]: string }, currentIndex: number): string
 	for i = currentIndex, 1, -1 do
@@ -85,20 +99,46 @@ local function buildPhaseTable(phases: { [string]: number }): { [number]: string
 	return phaseTable
 end
 
-function GenerationService.initiateGenerationProcess(self: GenerationService)
-	self.phaseMap = buildPhaseTable(GenerationConfig.gamePhases)
-
-	-- this works. dw, this is getting smited i just thought it was a funny bandaid fix
-	for i = 0, 500 do
-		self.phaseMap[#self.phaseMap + i - 1] = "late"
+local function appendSafezone(phaseTable: { [number]: string }, index: number): number
+	for _, safezonePhase in SAFEZONE_SEQUENCE do
+		phaseTable[index] = safezonePhase
+		index += 1
 	end
 
-	self.roomChain = {}
-	self:generateNext()
+	return index
+end
 
-	-- while task.wait(0.2) do
-	-- 	self:generateNext()
-	-- end
+local function generateLateGame(phaseTable: { [number]: string })
+	local index = #phaseTable + 1
+	local maxRooms = GenerationConfig.lateGameGeneration.maxRooms
+
+	while index <= maxRooms do
+		local stretchLength = math.random(
+			GenerationConfig.lateGameGeneration.minLateStretch,
+			GenerationConfig.lateGameGeneration.maxLateStretch
+		)
+
+		for _ = 1, stretchLength do
+			if index > maxRooms then
+				break
+			end
+
+			phaseTable[index] = "late"
+			index += 1
+		end
+
+		if index <= maxRooms then
+			index = appendSafezone(phaseTable, index)
+		end
+	end
+end
+
+function GenerationService.initiateGenerationProcess(self: GenerationService)
+	self.phaseMap = buildPhaseTable(GenerationConfig.gamePhases)
+	generateLateGame(self.phaseMap)
+
+	self.roomChain = {}
+	self:generateNextSection()
 end
 
 function GenerationService.generateNext(self: GenerationService)
@@ -145,45 +185,73 @@ function GenerationService.generateNext(self: GenerationService)
 	SignalRegistry.roomSpawned:Fire(newRoom)
 end
 
--- function GenerationService.generateNext(self: GenerationService)
--- 	-- local shouldNextRoomBeSafezone = false
+function GenerationService.generateNextSection(self: GenerationService)
+	local sectionStartIndex = self.currentRoomGenerationIndex + 1
+	local sectionEndIndex = sectionStartIndex
+	local safezoneStartIndex = -1
 
--- 	-- for _, v in self.phaseMap do
--- 	-- 	shouldNextRoomBeSafezone = v == self.currentRoomGenerationIndex + 1
--- 	-- 	if shouldNextRoomBeSafezone then
--- 	-- 		self.currentPhase = getNextPhase(self.currentPhase)
--- 	-- 		print("BREAKNIG")
--- 	-- 		break
--- 	-- 	end
--- 	-- end
+	while true do
+		local nextIndex = self.currentRoomGenerationIndex + 1
+		local phase = self.phaseMap[nextIndex]
 
--- 	-- local newRoom = nil :: Room?
--- 	-- newRoom = shouldNextRoomBeSafezone and GenerationFactory:getRandomRoomFromPhase("safezone")
--- 	-- 	or GenerationFactory:getRandomRoomFromPhase(self.currentPhase:lower())
+		if not phase then
+			break
+		end
 
--- 	-- if not newRoom then
--- 	-- 	error(`[{script.Name}] Game broke get jaeymo and call him a stupid dumb idiot.`)
--- 	-- end
+		self:generateNext()
 
--- 	-- local startNode, _ = getNodesFromRoom(newRoom)
--- 	-- local spawnCFrame = WORLD_ORIGIN
+		sectionEndIndex = self.currentRoomGenerationIndex
 
--- 	-- if next(self.roomChain) then
--- 	-- 	local lastRoom = self.roomChain[#self.roomChain]
--- 	-- 	local _, exitNode = getNodesFromRoom(lastRoom)
--- 	-- 	spawnCFrame = exitNode.CFrame
--- 	-- end
+		if phase == "safezoneStart" then
+			safezoneStartIndex = self.currentRoomGenerationIndex
+		end
 
--- 	-- newRoom.PrimaryPart = startNode
--- 	-- newRoom:PivotTo(spawnCFrame)
--- 	-- newRoom.Parent = GenerationConfig.parent
+		if isSectionBoundary(phase) then
+			break
+		end
+	end
 
--- 	-- self.currentRoomGenerationIndex += 1
--- 	-- self.roomChain[#self.roomChain + 1] = newRoom
--- 	-- SignalRegistry.roomSpawned:Fire(newRoom)
+	self.loadedSections[#self.loadedSections + 1] = {
+		startIndex = sectionStartIndex,
+		endIndex = sectionEndIndex,
+		safezoneStartIndex = safezoneStartIndex,
+	}
+end
 
--- 	-- print(self)
--- end
+function GenerationService.unloadLastSection(self: GenerationService)
+	if #self.loadedSections <= 2 then
+		return
+	end
+
+	local section = table.remove(self.loadedSections, 1)
+
+	if not section then
+		return
+	end
+
+	local roomCount = section.endIndex - section.startIndex + 1
+
+	for _ = 1, roomCount do
+		local room = table.remove(self.roomChain, 1)
+
+		if room then
+			room:Destroy()
+		end
+	end
+end
+
+function GenerationService.unloadAllBefore(self: GenerationService, generationIndex: number)
+	local roomsToRemove = generationIndex - self.unloadedRoomCount - 1
+
+	for _ = 1, roomsToRemove do
+		local room = table.remove(self.roomChain, 1)
+
+		if room then
+			room:Destroy()
+			self.unloadedRoomCount += 1
+		end
+	end
+end
 
 function GenerationService.unload(self: GenerationService)
 	local firstRoom = table.remove(self.roomChain, 1)
@@ -200,6 +268,18 @@ function GenerationService.jaegarInit(self: GenerationService)
 		SignalRegistry.spawnNextRoomTouched:Connect(function()
 			self:generateNext()
 		end)
+	end)
+
+	SignalRegistry.playerSlept:Connect(function()
+		local currentSection = self.loadedSections[1]
+
+		if currentSection then
+			self:unloadAllBefore(currentSection.safezoneStartIndex)
+		end
+
+		self:generateNextSection()
+
+		table.remove(self.loadedSections, 1)
 	end)
 end
 

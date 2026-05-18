@@ -10,7 +10,7 @@ local EntityService = {}
 
 export type EntityService = typeof(EntityService)
 
-function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Model)
+function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 	local entityList = {
 		["test-a"] = { Weight = 1, Cost = 1 },
 		["test-b"] = { Weight = 1, Cost = 1 },

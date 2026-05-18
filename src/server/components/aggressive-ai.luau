@@ -1,0 +1,358 @@
+--!nocheck
+local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local Classy = require(ReplicatedStorage.packages.classy)
+
+local AIPathService = require(ServerScriptService.services["ai-path-service"])
+local Raydar = require(ReplicatedStorage.shared.utils.raydar)
+
+local AIConfig = require(ReplicatedStorage.shared.configs["aggressive-ai-config"])
+
+local AggressiveAI = {}
+AggressiveAI.__index = AggressiveAI
+export type AggressiveAI = typeof(setmetatable(
+	{} :: {
+		entity: Model,
+		human: Humanoid,
+		janitor: Classy.Janitor,
+		target: Model?,
+
+		staminaDrainTick: number?,
+		staminaRecoveryTick: number?,
+		searchStartTick: number?,
+
+		stamina: number,
+		maxStamina: number,
+		staminaRecoveryConnection: RBXScriptConnection,
+
+		targetVisible: boolean,
+		lastSeenPos: Vector3?,
+
+		internalState: string,
+
+		chaseLoopConnection: thread?,
+
+		pathData: { Path: Path, Waypoints: { PathWaypoint }, Completed: boolean }?,
+	},
+	AggressiveAI
+))
+
+function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): AggressiveAI
+	return setmetatable({
+		entity = character :: Model,
+
+		targetVisible = false,
+		internalState = "None",
+
+		stamina = math.random(0, AIConfig.Movement.MaxStamina),
+		staminaRecoveryTick = os.clock(),
+		staminaDrainTick = os.clock(),
+
+		human = character:FindFirstChildWhichIsA("Humanoid") :: Humanoid,
+		janitor = janitor,
+	}, AggressiveAI)
+end
+
+function AggressiveAI.init(self: AggressiveAI)
+	self.entity.PrimaryPart:SetNetworkOwner(nil)
+	task.defer(function()
+		self:ChaseLoop()
+	end)
+	self:SetState("Hunting")
+end
+
+function AggressiveAI.checkForTarget(self: AggressiveAI)
+	-- local desiredTarget = CollectionService:GetTagged("AIAttractor")[1]
+	local plr = Players:GetPlayers()[1]
+	if not plr then
+		return
+	end
+
+	local char = plr.Character or plr.CharacterAdded:Wait()
+	local desiredTarget = char
+	if not desiredTarget then
+		warn("NoPlr")
+	end
+
+	-- self.target = Players:GetPlayers()[1]
+	self.target = desiredTarget
+	return true
+end
+
+function AggressiveAI.getPositioning(self: AggressiveAI): (Vector3, Vector3)
+	return self.target:GetPivot().Position, self.entity:GetPivot().Position
+end
+
+function AggressiveAI.PeepTarget(self: AggressiveAI)
+	local targetPos, entityPos = self:getPositioning()
+
+	local directionToTarget = (targetPos - entityPos).Unit
+	local maxDistance = AIConfig.Pathfinding.SightDistance
+
+	local result = Raydar:Fire(entityPos, directionToTarget, maxDistance, Raydar.RayTypes.AimForPlayers, self.entity)
+	if result then
+		-- print(result.Instance, result.Instance.Parent)
+	end
+	if result and result.Instance and result.Instance == self.target then
+		self.lastSeenPos = self.target:GetPivot().Position
+	end
+	return result
+end
+
+function AggressiveAI.GetPushedDistance(self: AggressiveAI)
+	local minDistance = AIConfig.Pathfinding.StopDistance
+	local targetPos, entityPos = self:getPositioning()
+	local mag = (targetPos - entityPos).Magnitude
+
+	print(mag, minDistance)
+
+	if mag > minDistance then
+		self.internalState = "followTarget"
+		return targetPos
+	end
+
+	print("close")
+	self.internalState = "closeChase"
+
+	return entityPos
+end
+
+function AggressiveAI.MoveToTarget(self: AggressiveAI)
+	self.human:MoveTo(self:GetPushedDistance())
+end
+
+function AggressiveAI.MoveToLastSeenPos(self: AggressiveAI)
+	local lastSeenPos = self.lastSeenPos
+	local entityPos = self.entity:GetPivot().Position
+	local mag = (entityPos - lastSeenPos).Magnitude
+	if mag < 1 then
+		self.lastSeenPos = nil
+		return
+	end
+	self.human:MoveTo(self.lastSeenPos)
+end
+
+function AggressiveAI.SetState(self: AggressiveAI, state: string)
+	self.entity:SetAttribute("State", state)
+end
+
+function AggressiveAI.SetSpeed(self: AggressiveAI, number: number)
+	self.human.WalkSpeed = number
+end
+
+function AggressiveAI.DecreaseStamina(self: AggressiveAI)
+	local elapsedTick = os.clock() - self.staminaDrainTick
+
+	local staminaDrain = AIConfig.Movement.StaminaDrain
+	local maxStamina = AIConfig.Movement.MaxStamina
+
+	if elapsedTick >= 0.5 then
+		self.stamina = math.clamp(self.stamina - staminaDrain, 0, maxStamina)
+		self.staminaDrainTick = os.clock()
+	end
+end
+
+function AggressiveAI.IncreaseStamina(self: AggressiveAI)
+	local staminaRecoveryRate = AIConfig.Movement.StaminaRecoveryRate
+	local staminaHeal = AIConfig.Movement.StaminaHeal
+	local maxStamina = AIConfig.Movement.MaxStamina
+
+	local elapsedTick = os.clock() - self.staminaRecoveryTick
+
+	if elapsedTick >= staminaRecoveryRate then
+		self.stamina = math.clamp(self.stamina + staminaHeal, 0, maxStamina)
+		self.staminaDrainTick = os.clock()
+	end
+end
+
+function AggressiveAI.RecoverStamina(self: AggressiveAI)
+	if self.staminaRecoveryConnection then
+		return
+	end
+
+	self:SetState("ExhaustedWalk")
+	self.entity:SetAttribute("Recovering", true)
+	self:SetSpeed(AIConfig.Movement.ExhaustedSpeed)
+
+	local staminaRecoveryTime = AIConfig.Movement.StaminaRecoveryTime
+	local staminaRecoveryRate = AIConfig.Movement.StaminaRecoveryRate
+	local maxStamina = AIConfig.Movement.MaxStamina
+
+	local recoveryTick = os.clock()
+	local healTick = os.clock()
+
+	self.staminaRecoveryConnection = RunService.Heartbeat:Connect(function()
+		local elapsedRecoveryTick = os.clock() - recoveryTick
+		local recover_t = elapsedRecoveryTick / staminaRecoveryTime
+
+		local elapsedHealTick = os.clock() - healTick
+		local heal_t = elapsedHealTick / staminaRecoveryTime
+
+		if heal_t >= staminaRecoveryRate then
+			self.stamina = math.clamp(recover_t * maxStamina, 0, maxStamina)
+			healTick = os.clock()
+		end
+
+		if recover_t >= 1 or self.stamina >= maxStamina then
+			self.staminaRecoveryConnection:Disconnect()
+			self.staminaRecoveryConnection = nil
+
+			self.entity:SetAttribute("Recovering", false)
+
+			if
+				self.internalState == "followTarget"
+				or self.internalState == "searchTarget"
+				or self.internalState == "closeChase"
+			then
+				self:SetState("Chasing")
+			else
+				self:SetState("Hunting")
+			end
+
+			return
+		end
+	end)
+end
+
+function AggressiveAI.Attack(self: AggressiveAI) end
+
+function AggressiveAI.ChaseLoop(self: AggressiveAI)
+	self:checkForTarget()
+
+	if not self.target then
+		repeat
+			task.wait()
+		until self:checkForTarget()
+	end
+
+	local function newPath()
+		local targetPos, entityPos = self:getPositioning()
+
+		self.human:MoveTo(self.entity:GetPivot().Position)
+		self.pathData = AIPathService:CreatePath(entityPos, targetPos)
+	end
+
+	local function followPath()
+		for _, point: PathWaypoint in pairs(self.pathData.Waypoints) do
+			local peepTarget = self:PeepTarget()
+			local foundTarget = peepTarget and peepTarget.Instance:IsDescendantOf(self.target)
+
+			if foundTarget then
+				self.targetVisible = true
+				break
+			end
+			if self.stamina < AIConfig.Movement.MaxStamina and self.entity:GetAttribute("State") == "ExhaustedWalk" then
+				self:RecoverStamina()
+			else
+				self:IncreaseStamina()
+
+				self:SetState("Hunting")
+			end
+
+			self.human:MoveTo(point.Position)
+			self.human.MoveToFinished:Wait()
+		end
+		self.pathData.Completed = true
+	end
+
+	if self.chaseLoopConnection then
+		self:CancelLoop()
+	end
+
+	self.chaseLoopConnection = task.spawn(function()
+		while true do
+			local peepTarget = self:PeepTarget()
+			local foundTarget = peepTarget and peepTarget.Instance:IsDescendantOf(self.target)
+
+			if foundTarget then
+				if self.stamina == 0 or self.entity:GetAttribute("State") == "ExhaustedWalk" then
+					if self.internalState == "closeChase" then
+						self:SetState("Idle")
+					else
+						self.internalState = "followTarget"
+					end
+
+					self:RecoverStamina()
+				else
+					self:SetSpeed(AIConfig.Movement.ChasingSpeed)
+					if self.internalState == "closeChase" then
+						self:SetState("Idle")
+					else
+						self:SetState("Chasing")
+						self.internalState = "followTarget"
+						self:DecreaseStamina()
+					end
+				end
+
+				self:MoveToTarget()
+				task.wait()
+				continue
+			elseif self.lastSeenPos then
+				if self.internalState ~= "searchTarget" then
+					self.internalState = "searchTarget"
+					self.searchStartTick = os.clock()
+				else
+					local elapsedSearchTime = os.clock() - self.searchStartTick
+					if elapsedSearchTime >= AIConfig.Pathfinding.SearchTimeout then
+						self.lastSeenPos = nil
+						self.internalState = "followPath"
+
+						self:SetState("Chasing")
+						continue
+					end
+				end
+
+				if self.stamina == 0 or self.entity:GetAttribute("State") == "ExhaustedWalk" then
+					self:RecoverStamina()
+				else
+					self:SetSpeed(AIConfig.Movement.ChasingSpeed)
+					self:SetState("Chasing")
+					self:DecreaseStamina()
+				end
+
+				self:MoveToLastSeenPos()
+				task.wait()
+				continue
+			end
+
+			self.targetVisible = false
+			newPath()
+
+			self.internalState = "followPath"
+			if not self.staminaRecoveryConnection and self.entity:GetAttribute("State") == "ExhaustedWalk" then
+				self:RecoverStamina()
+			else
+				self:SetSpeed(AIConfig.Movement.DefaultWalkSpeed)
+				self:SetState("Hunting")
+			end
+
+			followPath()
+		end
+	end)
+end
+
+function AggressiveAI.CancelLoop(self: AggressiveAI)
+	self.human:MoveTo(self.entity:GetPivot().Position)
+	if self.chaseLoopConnection then
+		task.cancel(self.chaseLoopConnection)
+		self.chaseLoopConnection = nil
+	end
+end
+
+function AggressiveAI.Destroy(self: AggressiveAI)
+	self:CancelLoop()
+end
+
+AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {
+	NamingConvention = {
+		Init = "init",
+	},
+})
+
+Classy.registerGlobal("AggressiveAI", AggressiveAI.classy)
+
+return AggressiveAI

@@ -14,7 +14,7 @@ Viewer.WatchTag("SleepProximityPrompt", false, function(instance: Instance)
 
 	local tempFlag = false
 
-	proxy.Triggered:Connect(function(player: Player)
+	proxy.Triggered:Connect(function(_: Player)
 		if tempFlag then
 			return
 		end

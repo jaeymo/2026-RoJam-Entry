@@ -12,7 +12,7 @@ local GENERATION_CONFIG = {
 	} :: { [string]: number },
 
 	lateGameGeneration = {
-		maxRooms = 500,
+		maxRooms = 250,
 		minLateStretch = 3,
 		maxLateStretch = 5,
 	},

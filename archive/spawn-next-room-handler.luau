@@ -31,7 +31,6 @@ Classy.create("SpawnNextRoom", function(instance, janitor)
 			return
 		end
 
-		print(hit)
 		flag = true
 		SignalRegistry.spawnNextRoomTouched:Fire()
 	end))

@@ -5,17 +5,17 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local Classy = require(ReplicatedStorage.packages.classy)
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 
-local SpawnNextRoomHandler = {}
+local RoomExitHandler = {}
 
-export type SpawnNextRoomHandler = typeof(SpawnNextRoomHandler)
+export type RoomExitHandler = typeof(RoomExitHandler)
 
-Classy.create("SpawnNextRoom", function(instance, janitor)
+Classy.create("RoomExitCollision", function(instance, janitor)
 	if not instance:IsA("BasePart") then
 		return instance
 	end
 
 	-- jaeymo set this to true so the collision spawners are disabled for now
-	local flag = true
+	local flag = false
 
 	janitor:Add(instance.Touched:Connect(function(hit: BasePart)
 		if flag then
@@ -27,12 +27,11 @@ Classy.create("SpawnNextRoom", function(instance, janitor)
 		end
 
 		if not hit.Parent:HasTag("Character") then
-			print(hit, 2)
 			return
 		end
 
 		flag = true
-		SignalRegistry.spawnNextRoomTouched:Fire()
+		SignalRegistry.roomExitReached:Fire()
 	end))
 
 	return instance
@@ -40,4 +39,4 @@ end, {
 	ClassNames = { "BasePart" },
 })
 
-return SpawnNextRoomHandler
+return RoomExitHandler

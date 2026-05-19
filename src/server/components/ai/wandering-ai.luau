@@ -14,6 +14,7 @@ local AIConfig = require(ReplicatedStorage.shared.configs["aggressive-ai-config"
 
 local WanderingAI = {}
 WanderingAI.__index = WanderingAI
+
 export type WanderingAI = typeof(setmetatable(
 	{} :: {
 		entity: Model,

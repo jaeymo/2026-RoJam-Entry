@@ -25,6 +25,7 @@ local F32 = Packet.NumberF32 -- 7 decimal digits
 local F64 = Packet.NumberF64 -- 15 decimal digits
 
 local VECTOR3_F24 = Packet.Vector3F24
+local VECTOR3_F32 = Packet.Vector3F32
 
 local PACKETS = {
 	playerSlept = Packet.new("playerSlept"),

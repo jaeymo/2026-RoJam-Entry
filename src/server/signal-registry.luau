@@ -6,8 +6,10 @@ local Signal = require(ReplicatedStorage.packages.signal)
 export type Signal<T...> = Signal.Signal<T...>
 
 local SIGNAL_REGISTRY = {
-	spawnNextRoomTouched = Signal.new() :: Signal<>,
 	roomSpawned = Signal.new() :: Signal<Model>,
+	roomInitialized = Signal.new() :: Signal<Model>,
+	roomEntered = Signal.new() :: Signal<Model>,
+	roomExitReached = Signal.new() :: Signal<>,
 	playerSlept = Signal.new() :: Signal<>,
 }
 

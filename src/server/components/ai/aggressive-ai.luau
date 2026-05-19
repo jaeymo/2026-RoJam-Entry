@@ -14,6 +14,7 @@ local AIConfig = require(ReplicatedStorage.shared.configs["aggressive-ai-config"
 
 local AggressiveAI = {}
 AggressiveAI.__index = AggressiveAI
+
 export type AggressiveAI = typeof(setmetatable(
 	{} :: {
 		entity: Model,
@@ -108,14 +109,11 @@ function AggressiveAI.GetPushedDistance(self: AggressiveAI)
 	local targetPos, entityPos = self:getPositioning()
 	local mag = (targetPos - entityPos).Magnitude
 
-	print(mag, minDistance)
-
 	if mag > minDistance then
 		self.internalState = "followTarget"
 		return targetPos
 	end
 
-	print("close")
 	self.internalState = "closeChase"
 
 	return entityPos
@@ -345,6 +343,7 @@ end
 
 function AggressiveAI.Destroy(self: AggressiveAI)
 	self:CancelLoop()
+	self.janitor:Cleanup()
 end
 
 AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {

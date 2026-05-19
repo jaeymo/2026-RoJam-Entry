@@ -3,6 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local EntityFactory = require(script["entity-factory"])
+local Lucky = require(ReplicatedStorage.shared.utils.lucky)
+local MutationsConfig = require(ReplicatedStorage.shared.configs["mutations-config"])
 local ResourceAllocator = require(ReplicatedStorage.packages["resource-allocator"])
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 
@@ -10,46 +12,101 @@ local EntityService = {}
 
 export type EntityService = typeof(EntityService)
 
-function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
-	local entityList = {
-		["test-a"] = { Weight = 1, Cost = 1 },
-		["test-b"] = { Weight = 1, Cost = 1 },
-	}
-
-	local allocator = ResourceAllocator.new()
-	allocator:BatchAddItems(entityList)
-
-	local allEntitySpawns = {} :: { BasePart }
+function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Model)
+	local passiveEntitySpawns = {} :: { BasePart }
+	local aggressiveEntitySpawns = {} :: { BasePart }
 
 	for _, v in roomModel:GetDescendants() do
-		if v:HasTag("EntitySpawnNode") and v:IsA("BasePart") then
-			table.insert(allEntitySpawns, v)
+		if not v:IsA("BasePart") then
+			continue
+		end
+
+		if v:HasTag("PassiveSpawnNode") then
+			table.insert(passiveEntitySpawns, v)
+		elseif v:HasTag("AggressiveSpawnNode") then
+			table.insert(aggressiveEntitySpawns, v)
 		end
 	end
 
-	local allocatedEntities = allocator:Allocate(math.round(#allEntitySpawns / 2))
+	local entityStateAllocator = ResourceAllocator.new()
+	entityStateAllocator:BatchAddItems({
+		["Passive"] = { Weight = 1, Cost = 1 },
+		["Aggressive"] = { Weight = 2, Cost = 1 },
+	})
 
-	for entityName, amount in allocatedEntities do
+	local totalEntityCount = math.random(4, 12)
+	local allocatedStates = entityStateAllocator:Allocate(totalEntityCount)
+
+	print("GENERATED ENTITIES: ", totalEntityCount)
+
+	local passiveAmount = allocatedStates["Passive"] or 0
+	if passiveAmount <= 0 then
+		warn("no treatables spawned!")
+	end
+
+	for _ = 1, passiveAmount do
+		local newEntityModel = EntityFactory:getNewEntityModel("test-a")
+		if not newEntityModel then
+			warn(`[{script.Name}] Failed to make new entity: {"test-a"}`)
+			continue
+		end
+
+		local randomIndex = math.random(1, #passiveEntitySpawns)
+		local chosenNode = passiveEntitySpawns[randomIndex]
+
+		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
+		newEntityModel.Parent = workspace
+
+		-- if Lucky:roll(MutationsConfig.MutationChance) then
+		-- 	local chosenMutation = Lucky:chooseWeighted(MutationsConfig.Mutations)
+		-- 	if chosenMutation then
+		-- 		newEntityModel:AddTag(chosenMutation.Name)
+		-- 		print(chosenMutation.Name, newEntityModel)
+		-- 	end
+		-- end
+
+		-- local tag = math.random() >= 0.5 and "PassiveAI" or "WanderingAI"
+
+		local tag = "Passive"
+		newEntityModel:AddTag(tag)
+		task.wait(0.1)
+	end
+
+	for entityState, amount in allocatedStates do
+		if entityState == "Passive" then
+			return
+		end
+
 		for _ = 1, amount do
-			local newEntityModel = EntityFactory:getNewEntityModel(entityName)
+			local newEntityModel = EntityFactory:getNewEntityModel("test-a")
 			if not newEntityModel then
-				warn(`[{script.Name}] Failed to make new entity: {entityName}`)
+				warn(`[{script.Name}] Failed to make new entity: {"test-a"}`)
 				continue
 			end
 
-			local randomIndex = math.random(1, #allEntitySpawns)
-
-			local chosenNode = allEntitySpawns[randomIndex]
-			table.remove(allEntitySpawns, randomIndex)
+			local randomIndex = math.random(1, #aggressiveEntitySpawns)
+			local chosenNode = aggressiveEntitySpawns[randomIndex]
 
 			newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 			newEntityModel.Parent = workspace
+
+			newEntityModel:AddTag("AggressiveAI")
+
+			-- if Lucky:roll(MutationsConfig.MutationChance) then
+			-- 	local chosenMutation = Lucky:chooseWeighted(MutationsConfig.Mutations)
+			-- 	if chosenMutation then
+			-- 		newEntityModel:AddTag(chosenMutation.Name)
+			-- 		print(chosenMutation.Name, newEntityModel)
+			-- 	end
+			-- end
+
+			task.wait(0.1)
 		end
 	end
 end
 
 function EntityService.jaegarInit(self: EntityService)
-	SignalRegistry.roomSpawned:Connect(function(roomModel)
+	SignalRegistry.roomInitialized:Connect(function(roomModel)
 		if roomModel:HasTag("Safezone") then
 			return
 		end

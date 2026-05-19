@@ -24,6 +24,7 @@ local SAFEZONE_ROOM_TYPES = {
 
 local GenerationService = {
 	currentRoomGenerationIndex = 0,
+	roomInitializedIndex = 0,
 	unloadedRoomCount = 0,
 
 	roomPlan = {} :: {
@@ -106,12 +107,10 @@ local function buildFinitePhase(
 		}
 
 		index += 1
-
 		roomsRemaining -= 1
 		distanceUntilSafezone -= 1
 
 		local shouldGenerateSafezone = safezoneConfig.enabled and roomsRemaining > 0 and distanceUntilSafezone <= 0
-
 		if shouldGenerateSafezone then
 			index = appendSafezoneSequence(roomPlan, index, phaseData.name)
 
@@ -147,13 +146,8 @@ function GenerationService.initiateGenerationProcess(self: GenerationService)
 	self:extendLateGame(GenerationConfig.lateGameGeneration.maxRooms)
 
 	self.roomChain = {}
-
 	self:generateNextSection()
-
-	-- testing
-	-- while task.wait(2) do
-	-- 	SignalRegistry.playerSlept:Fire()
-	-- end
+	self:initializeNext()
 end
 
 function GenerationService.generateNext(self: GenerationService)
@@ -164,7 +158,6 @@ function GenerationService.generateNext(self: GenerationService)
 	end
 
 	local roomData = self.roomPlan[nextRoomIndex]
-
 	if not roomData then
 		error(`[{script.Name}] Missing room plan entry`)
 	end
@@ -182,12 +175,10 @@ function GenerationService.generateNext(self: GenerationService)
 	end
 
 	local startNode, _ = getNodesFromRoom(newRoom)
-
 	local spawnCFrame = WORLD_ORIGIN
 
 	if next(self.roomChain) then
 		local lastRoom = self.roomChain[#self.roomChain]
-
 		local _, exitNode = getNodesFromRoom(lastRoom)
 
 		spawnCFrame = exitNode.CFrame
@@ -195,14 +186,24 @@ function GenerationService.generateNext(self: GenerationService)
 
 	newRoom.PrimaryPart = startNode
 	newRoom:PivotTo(spawnCFrame)
-
 	newRoom.Parent = GenerationConfig.parent
 
 	self.currentRoomGenerationIndex = nextRoomIndex
-
 	self.roomChain[#self.roomChain + 1] = newRoom
 
 	SignalRegistry.roomSpawned:Fire(newRoom)
+end
+
+function GenerationService.initializeNext(self: GenerationService)
+	self.roomInitializedIndex += 1
+
+	local roomModel = self.roomChain[self.roomInitializedIndex]
+	if not roomModel then
+		warn(`[{script.Name}] Failed to get room for: {self.roomInitializedIndex}, `, self.roomChain)
+		return
+	end
+
+	SignalRegistry.roomInitialized:Fire(roomModel)
 end
 
 function GenerationService.generateNextSection(self: GenerationService)
@@ -213,7 +214,6 @@ function GenerationService.generateNextSection(self: GenerationService)
 
 	while true do
 		local nextIndex = self.currentRoomGenerationIndex + 1
-
 		local roomData = self.roomPlan[nextIndex]
 
 		if not roomData then
@@ -255,7 +255,6 @@ function GenerationService.extendLateGame(self: GenerationService, targetRoomCou
 		}
 
 		index += 1
-
 		distanceUntilSafezone -= 1
 
 		local shouldGenerateSafezone = safezoneConfig.enabled and distanceUntilSafezone <= 0
@@ -286,8 +285,13 @@ function GenerationService.jaegarInit(self: GenerationService)
 	task.delay(2, function()
 		self:initiateGenerationProcess()
 
-		SignalRegistry.spawnNextRoomTouched:Connect(function()
-			self:generateNext()
+		SignalRegistry.roomExitReached:Connect(function()
+			self:initializeNext()
+
+			local nextRoom = self.roomChain[self.roomInitializedIndex]
+			if nextRoom then
+				SignalRegistry.roomEntered:Fire(nextRoom)
+			end
 		end)
 	end)
 
@@ -299,7 +303,6 @@ function GenerationService.jaegarInit(self: GenerationService)
 		end
 
 		self:generateNextSection()
-
 		table.remove(self.loadedSections, 1)
 	end)
 end

@@ -154,7 +154,6 @@ function AggressiveAI.ExhaustedWalk(self: AggressiveAI) end
 function AggressiveAI.ExitExhaustedWalk(self: AggressiveAI) end
 
 function AggressiveAI.Attack(self: AggressiveAI)
-	print("attack")
 	self.animController:Play("AttackPunch1")
 	self.animController:GetTrack("AttackPunch1"):GetMarkerReachedSignal("hit"):Wait()
 end

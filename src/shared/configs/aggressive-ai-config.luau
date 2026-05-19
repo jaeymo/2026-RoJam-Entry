@@ -21,6 +21,7 @@ local AggressiveAiConfig = {
 	Attacks = {
 		MainAttackCooldown = 3,
 		MainAttackStaminaCost = 3,
+		AttackMovementSpeedMultiplier = 0.5,
 	},
 
 	Pathfinding = {

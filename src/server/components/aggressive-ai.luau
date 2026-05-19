@@ -6,6 +6,8 @@ local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Classy = require(ReplicatedStorage.packages.classy)
+local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
+local Network = Jaegar:GetNetwork()
 
 local AIPathService = require(ServerScriptService.services["ai-path-service"])
 local Raydar = require(ReplicatedStorage.shared.utils.raydar)
@@ -108,14 +110,12 @@ function AggressiveAI.GetPushedDistance(self: AggressiveAI)
 	local targetPos, entityPos = self:getPositioning()
 	local mag = (targetPos - entityPos).Magnitude
 
-	print(mag, minDistance)
-
 	if mag > minDistance then
 		self.internalState = "followTarget"
 		return targetPos
 	end
 
-	print("close")
+	self:Attack()
 	self.internalState = "closeChase"
 
 	return entityPos
@@ -213,12 +213,43 @@ function AggressiveAI.RecoverStamina(self: AggressiveAI)
 				self:SetState("Hunting")
 			end
 
+			self.attackTick = os.clock()
+
 			return
 		end
 	end)
 end
 
-function AggressiveAI.Attack(self: AggressiveAI) end
+function AggressiveAI.Attack(self: AggressiveAI)
+	local cooldown = AIConfig.Attacks.MainAttackCooldown
+	if not self.attackTick then
+		self.attackTick = os.clock() - cooldown
+	end
+
+	local elapsedTick = os.clock() - self.attackTick
+
+	if elapsedTick <= cooldown or self.entity:GetAttribute("Recovering") then
+		return
+	end
+
+	local maxStam = AIConfig.Movement.MaxStamina
+	local attackCost = AIConfig.Attacks.MainAttackStaminaCost
+
+	self:SetState("Attack")
+	self.internalState = "attacking"
+	self.attackTick = os.clock()
+	self.stamina = math.clamp(self.stamina - attackCost, 0, maxStam)
+	Network:Broadcast("spawnEnemyHitbox", self.entity:GetPivot(), Vector3.one * 4)
+
+	self:SetSpeed(AIConfig.Movement.DefaultWalkSpeed * AIConfig.Attacks.AttackMovementSpeedMultiplier)
+	task.wait(1)
+	if self.entity:GetAttribute("Recovering") then
+		self:SetSpeed(AIConfig.Movement.ExhaustedSpeed)
+	else
+		self:SetSpeed(AIConfig.Movement.DefaultWalkSpeed)
+	end
+	self.internalState = "None"
+end
 
 function AggressiveAI.ChaseLoop(self: AggressiveAI)
 	self:checkForTarget()
@@ -265,12 +296,21 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 	self.chaseLoopConnection = task.spawn(function()
 		while true do
+			if self.internalState == "attacking" then
+				task.wait()
+				continue
+			end
 			local peepTarget = self:PeepTarget()
 			local foundTarget = peepTarget and peepTarget.Instance:IsDescendantOf(self.target)
 
 			if foundTarget then
 				if self.stamina == 0 or self.entity:GetAttribute("State") == "ExhaustedWalk" then
+					if self.internalState == "attacking" then
+						continue
+					end
+
 					if self.internalState == "closeChase" then
+						self:Attack()
 						self:SetState("Idle")
 					else
 						self.internalState = "followTarget"
@@ -278,8 +318,13 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 					self:RecoverStamina()
 				else
-					self:SetSpeed(AIConfig.Movement.ChasingSpeed)
+					if self.entity:GetAttribute("Recovering") then
+						self:SetSpeed(AIConfig.Movement.ExhaustedSpeed)
+					else
+						self:SetSpeed(AIConfig.Movement.ChasingSpeed)
+					end
 					if self.internalState == "closeChase" then
+						self:Attack()
 						self:SetState("Idle")
 					else
 						self:SetState("Chasing")

@@ -95,12 +95,17 @@ function AggressiveAI.Destroy(self: AggressiveAI)
 end
 
 function AggressiveAI.Chasing(self: AggressiveAI)
-	self.animController:Stop("AggressiveStumble")
 	self.animController:Stop("AggressiveStumbleIdle")
 
-	self.animController:Play("AggressiveStumbleChase", true)
 	if self.entity:GetAttribute("Recovering") then
-		self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(0.5)
+		self.animController:Stop("AggressiveStumbleChase")
+
+		self.animController:Play("AggressiveStumble", true)
+		self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(0.5)
+	else
+		self.animController:Stop("AggressiveStumble")
+
+		self.animController:Play("AggressiveStumbleChase", true)
 	end
 end
 
@@ -159,6 +164,13 @@ function AggressiveAI.ExitAttack(self: AggressiveAI) end
 function AggressiveAI.Recovering(self: AggressiveAI)
 	for _, fx in pairs(self.sweatFx) do
 		fx.Enabled = true
+	end
+
+	if self.animController:GetTrack("AggressiveStumbleChase").IsPlaying then
+		self.animController:Stop("AggressiveStumbleChase")
+
+		self.animController:Play("AggressiveStumble", true)
+		self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(0.8)
 	end
 end
 

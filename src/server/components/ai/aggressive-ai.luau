@@ -1,5 +1,4 @@
 --!nocheck
-local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -21,6 +20,8 @@ export type AggressiveAI = typeof(setmetatable(
 		human: Humanoid,
 		janitor: Classy.Janitor,
 		target: Model?,
+
+		destroyed: boolean,
 
 		staminaDrainTick: number?,
 		staminaRecoveryTick: number?,
@@ -55,14 +56,20 @@ function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): Aggress
 
 		human = character:FindFirstChildWhichIsA("Humanoid") :: Humanoid,
 		janitor = janitor,
+		destroyed = false,
 	}, AggressiveAI)
 end
 
-function AggressiveAI.init(self: AggressiveAI)
+function AggressiveAI.Init(self: AggressiveAI)
 	self.entity.PrimaryPart:SetNetworkOwner(nil)
+
 	task.defer(function()
+		if self.destroyed then
+			return
+		end
 		self:ChaseLoop()
 	end)
+
 	self:SetState("Hunting")
 end
 
@@ -95,9 +102,9 @@ function AggressiveAI.PeepTarget(self: AggressiveAI)
 	local maxDistance = AIConfig.Pathfinding.SightDistance
 
 	local result = Raydar:Fire(entityPos, directionToTarget, maxDistance, Raydar.RayTypes.AimForPlayers, self.entity)
-	if result then
-		-- print(result.Instance, result.Instance.Parent)
-	end
+	-- if result then
+	-- print(result.Instance, result.Instance.Parent)
+	-- end
 	if result and result.Instance and result.Instance == self.target then
 		self.lastSeenPos = self.target:GetPivot().Position
 	end
@@ -224,7 +231,11 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 	if not self.target then
 		repeat
 			task.wait()
-		until self:checkForTarget()
+		until self.destroyed or self:checkForTarget()
+	end
+
+	if self.destroyed then
+		return
 	end
 
 	local function newPath()
@@ -343,13 +354,11 @@ end
 
 function AggressiveAI.Destroy(self: AggressiveAI)
 	self:CancelLoop()
-	self.janitor:Cleanup()
+	self.destroyed = true
 end
 
 AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {
-	NamingConvention = {
-		Init = "init",
-	},
+	Nuke = false,
 })
 
 Classy.registerGlobal("AggressiveAI", AggressiveAI.classy)

@@ -42,7 +42,6 @@ function TerminalMutation.init(self: TerminalMutation)
 end
 
 TerminalMutation.classy = Classy.create("TerminalMutation", TerminalMutation, {
-	Logging = true,
 	NamingConvention = {
 		Init = "init",
 		Destroy = "destroy",

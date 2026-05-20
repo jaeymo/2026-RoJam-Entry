@@ -43,7 +43,6 @@ function AggressiveMutation.init(self: AggressiveMutation)
 end
 
 AggressiveMutation.classy = Classy.create("AggressiveMutation", AggressiveMutation, {
-	Logging = true,
 	NamingConvention = {
 		Init = "init",
 		Destroy = "destroy",

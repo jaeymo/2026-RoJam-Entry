@@ -116,6 +116,7 @@ function WanderingAI.CancelLoop(self: WanderingAI)
 end
 
 WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {
+	Nuke = false,
 	NamingConvention = {
 		Init = "init",
 	},

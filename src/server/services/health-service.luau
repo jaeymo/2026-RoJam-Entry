@@ -1,4 +1,5 @@
 --!strict
+local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
@@ -11,7 +12,12 @@ local HealthService = {}
 export type HealthService = typeof(HealthService)
 
 function HealthService.killEntity(_: HealthService, entityModel: Model)
+	entityModel:RemoveTag("PassiveAI")
+	entityModel:RemoveTag("WanderingAI")
+	entityModel:RemoveTag("AggressiveAI")
 	entityModel:AddTag("Death")
+
+	Debris:AddItem(entityModel, 3)
 end
 
 function HealthService.jaegarInit(self: HealthService)

@@ -34,7 +34,7 @@ function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Mode
 		["Aggressive"] = { Weight = 2, Cost = 1 },
 	})
 
-	local totalEntityCount = math.random(3, 5)
+	local totalEntityCount = math.random(1, 1)
 	local allocatedStates = entityStateAllocator:Allocate(totalEntityCount)
 
 	local passiveAmount = allocatedStates["Passive"] or 0
@@ -63,8 +63,6 @@ function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Mode
 
 		-- local tag = math.random() >= 0.5 and "PassiveAI" or "WanderingAI"
 		newEntityModel:AddTag("PassiveAI")
-
-		print(newEntityModel)
 		task.wait(0.1) -- fun lil wait
 	end
 
@@ -80,7 +78,6 @@ function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Mode
 
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel:AddTag("Ragdoll")
-		print(newEntityModel)
 		newEntityModel.Parent = workspace
 
 		newEntityModel:AddTag("AggressiveAI")
@@ -92,8 +89,6 @@ function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Mode
 				newEntityModel:AddTag(`{chosenMutation.Name}Mutation`)
 			end
 		end
-
-		print(newEntityModel)
 
 		task.wait(0.1) -- fun lil wait
 	end

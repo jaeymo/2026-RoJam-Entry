@@ -2,7 +2,10 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
+local configs = ReplicatedStorage.shared.configs
+
 local Classy = require(ReplicatedStorage.packages.classy)
+local MutationConfig = require(configs["mutations-config"])
 local MutationService = require(ServerScriptService.services["mutation-service"])
 
 local TerminalMutation = {}
@@ -26,7 +29,8 @@ end
 function TerminalMutation.init(self: TerminalMutation)
 	MutationService:initializeEntityMutation("Terminal", self.instance)
 
-	local randomMutationTime = math.random(5, 10)
+	local activationDelayRange = MutationConfig.Mutations.Terminal.ActivationDelayRange
+	local randomMutationTime = math.random(activationDelayRange[1], activationDelayRange[2])
 	local flag = false
 
 	task.delay(randomMutationTime, function()

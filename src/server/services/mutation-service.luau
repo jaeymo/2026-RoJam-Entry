@@ -15,9 +15,9 @@ function MutationService.mutateEntity(_: MutationService, mutationName: string, 
 	entityModel:SetAttribute(`{mutationName}MutationDone`, true)
 
 	if mutationName == "Aggressive" then
-		entityModel:RemoveTag("Passive")
-		entityModel:RemoveTag("Wandering")
-		entityModel:AddTag("Aggressive")
+		entityModel:RemoveTag("PassiveAI")
+		entityModel:RemoveTag("WanderingAI")
+		entityModel:AddTag("AggressiveAI")
 
 		-- can add something for terminal here if need be, like a skin change
 		-- elseif mutationName == "Terminal" then

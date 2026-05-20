@@ -12,7 +12,7 @@ local EntityService = {}
 
 export type EntityService = typeof(EntityService)
 
-function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Model)
+function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 	local passiveEntitySpawns = {} :: { BasePart }
 	local aggressiveEntitySpawns = {} :: { BasePart }
 
@@ -30,11 +30,11 @@ function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Mode
 
 	local entityStateAllocator = ResourceAllocator.new()
 	entityStateAllocator:BatchAddItems({
-		["Passive"] = { Weight = 1, Cost = 1 },
-		["Aggressive"] = { Weight = 2, Cost = 1 },
+		["Passive"] = { Weight = 5, Cost = 1 },
+		["Aggressive"] = { Weight = 1, Cost = 1 },
 	})
 
-	local totalEntityCount = math.random(1, 1)
+	local totalEntityCount = math.random(1, 4)
 	local allocatedStates = entityStateAllocator:Allocate(totalEntityCount)
 
 	local passiveAmount = allocatedStates["Passive"] or 0
@@ -52,6 +52,7 @@ function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Mode
 
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel:AddTag("Ragdoll")
+		newEntityModel:AddTag("Entity")
 		newEntityModel.Parent = workspace
 
 		if Lucky:roll(MutationsConfig.MutationChance) then
@@ -77,9 +78,10 @@ function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Mode
 		local chosenNode = aggressiveEntitySpawns[randomIndex]
 
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
-		newEntityModel:AddTag("Ragdoll")
 		newEntityModel.Parent = workspace
 
+		newEntityModel:AddTag("Ragdoll")
+		newEntityModel:AddTag("Entity")
 		newEntityModel:AddTag("AggressiveAI")
 
 		-- less chance

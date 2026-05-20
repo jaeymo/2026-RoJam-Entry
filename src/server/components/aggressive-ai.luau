@@ -229,7 +229,7 @@ function AggressiveAI.Attack(self: AggressiveAI)
 	local elapsedTick = os.clock() - self.attackTick
 
 	if elapsedTick <= cooldown or self.entity:GetAttribute("Recovering") then
-		return
+		return false
 	end
 
 	local maxStam = AIConfig.Movement.MaxStamina
@@ -249,6 +249,7 @@ function AggressiveAI.Attack(self: AggressiveAI)
 		self:SetSpeed(AIConfig.Movement.DefaultWalkSpeed)
 	end
 	self.internalState = "None"
+	return true
 end
 
 function AggressiveAI.ChaseLoop(self: AggressiveAI)
@@ -280,7 +281,6 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 				self:RecoverStamina()
 			else
 				self:IncreaseStamina()
-
 				self:SetState("Hunting")
 			end
 
@@ -310,8 +310,9 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 					end
 
 					if self.internalState == "closeChase" then
-						self:Attack()
-						self:SetState("Idle")
+						if not self:Attack() then
+							self:SetState("Idle")
+						end
 					else
 						self.internalState = "followTarget"
 					end
@@ -324,8 +325,9 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 						self:SetSpeed(AIConfig.Movement.ChasingSpeed)
 					end
 					if self.internalState == "closeChase" then
-						self:Attack()
-						self:SetState("Idle")
+						if not self:Attack() then
+							self:SetState("Idle")
+						end
 					else
 						self:SetState("Chasing")
 						self.internalState = "followTarget"

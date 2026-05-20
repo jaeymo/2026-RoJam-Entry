@@ -3,28 +3,65 @@ local PhysicsService = game:GetService("PhysicsService")
 
 -- a map of collision groups to what they can collide with
 local COLLISION_GROUPS = {
-	BarrierCollision = { "Entity", "PlayerCharacter" },
-	EntityCollision = { "Entity", "PlayerCharacter", "IgnoreEntities" },
+	BarrierCollision = {
+		CanCollide = { "Entity", "PlayerCharacter" },
+	},
+	EntityCollision = {
+		CanCollide = { "Entity", "PlayerCharacter", "IgnoreEntities" },
+	},
 
-	PlayerCharacter = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision" },
-	Entity = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision" },
+	PlayerCharacter = {
+		CanCollide = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision", "IgnoreEntities" },
+	},
+	PassiveEntity = {
+		CanCollide = { "PlayerCharacter", "BarrierCollision", "EntityCollision" },
+		CannotCollide = { "PassiveEntity" },
+	},
+	Entity = {
+		CanCollide = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision" },
+	},
 
-	MapMesh = {},
-	IgnoreEntities = { "EntityCollision" },
+	MapMesh = {
+		CanCollide = {},
+	},
+	IgnoreEntities = {
+		CanCollide = { "EntityCollision", "PlayerCharacter" },
+	},
+	IgnoreCharacters = {
+		CanCollide = { "EntityCollision" },
+	},
+
+	PathNode = {
+		CanCollide = { "PathCast" },
+	},
+	PathCast = {
+		CanCollide = { "EntityCollision", "PathNode" },
+	},
 } :: {
-	[string]: { string },
+	[string]: { CanCollide: { string }, CannotCollide: { string } },
 }
 
 for v in COLLISION_GROUPS do
 	PhysicsService:RegisterCollisionGroup(v)
 end
 
-for name, canCollideData in COLLISION_GROUPS do
+for name, collisionData in COLLISION_GROUPS do
 	local collided = {} :: { [string]: boolean }
 
+	local canCollideData = collisionData.CanCollide
 	for _, canCollideName in canCollideData do
+		if name == "Entity" then
+			print(name, canCollideName)
+		end
 		PhysicsService:CollisionGroupSetCollidable(name, canCollideName, true)
 		collided[canCollideName] = true
+	end
+
+	local cannotCollideData = collisionData.CannotCollide
+	if cannotCollideData then
+		for _, cannotCollideName in cannotCollideData do
+			PhysicsService:CollisionGroupSetCollidable(name, cannotCollideName, false)
+		end
 	end
 
 	for otherName in COLLISION_GROUPS do

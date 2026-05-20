@@ -6,11 +6,25 @@ local WanderingAIConfig = {
 	},
 
 	Movement = {
+		MaxStamina = 20,
+		StaminaDrain = 1,
+		StaminaHeal = 1,
 
-		DefaultWalkSpeed = 16,
+		StaminaRecoveryRate = 0.25,
+		StaminaRecoveryTime = 3,
+
+		BreakTime = { Min = 30, Max = 50, Weight = 10 },
+
+		DefaultWalkSpeed = 6,
+	},
+
+	Animations = {
+		Wandering = "Wander",
+		Resting = "Rest",
 	},
 
 	Pathfinding = {
+		TargetMemoryLength = 2,
 		SpaceOutTime = 3,
 		DistractedTime = 3,
 

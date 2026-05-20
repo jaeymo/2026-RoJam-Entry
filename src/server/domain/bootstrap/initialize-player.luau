@@ -1,5 +1,8 @@
 --!strict
 local Players = game:GetService("Players")
+local ServerScriptService = game:GetService("ServerScriptService")
+
+local HealthService = require(ServerScriptService.services["health-service"])
 
 local PlayerInitialization = {}
 

@@ -100,15 +100,30 @@ function AggressiveAI.Destroy(self: AggressiveAI)
 end
 
 function AggressiveAI.Chasing(self: AggressiveAI)
-	self.animController:Stop("AggressiveStumble")
-	self.animController:Play("AggressiveStumbleChase", true)
+	self.animController:Stop("AggressiveStumbleIdle")
+
+	if self.entity:GetAttribute("Recovering") then
+		self.animController:Stop("AggressiveStumbleChase")
+
+		self.animController:Play("AggressiveStumble", true)
+		self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(0.5)
+	else
+		self.animController:Stop("AggressiveStumble")
+
+		self.animController:Play("AggressiveStumbleChase", true)
+	end
 end
 
 function AggressiveAI.ExitChasing(self: AggressiveAI) end
 
 function AggressiveAI.Hunting(self: AggressiveAI)
+	self.animController:Stop("AggressiveStumbleIdle")
 	self.animController:Stop("AggressiveStumbleChase")
+
 	self.animController:Play("AggressiveStumble", true)
+	if self.entity:GetAttribute("Recovering") then
+		self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(0.5)
+	end
 end
 
 function AggressiveAI.ExitHunting(self: AggressiveAI) end
@@ -127,6 +142,9 @@ function AggressiveAI.Idle(self: AggressiveAI)
 		self.animController:Stop("AggressiveStumbleChase")
 		self.animController:Stop("AggressiveStumble")
 		self.animController:Play("AggressiveStumbleIdle")
+		if self.entity:GetAttribute("Recovering") then
+			self.animController:GetTrack("AggressiveStumbleIdle"):AdjustSpeed(2)
+		end
 	end)
 end
 
@@ -135,24 +153,29 @@ function AggressiveAI.ExitIdle(self: AggressiveAI)
 		task.cancel(self.IdleDelay)
 		self.IdleDelay = nil
 	end
-	self.animController:Stop("AggressiveStumbleIdle")
 end
 
-function AggressiveAI.ExhaustedWalk(self: AggressiveAI)
-	self.animController:GetTrack("AggressiveStumbleIdle"):AdjustSpeed(0.5)
-	self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(0.5)
-	self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(0.5)
+function AggressiveAI.ExhaustedWalk(self: AggressiveAI) end
+
+function AggressiveAI.ExitExhaustedWalk(self: AggressiveAI) end
+
+function AggressiveAI.Attack(self: AggressiveAI)
+	self.animController:Play("AttackPunch1")
+	self.animController:GetTrack("AttackPunch1"):GetMarkerReachedSignal("hit"):Wait()
 end
 
-function AggressiveAI.ExitExhaustedWalk(self: AggressiveAI)
-	self.animController:GetTrack("AggressiveStumbleIdle"):AdjustSpeed(1)
-	self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(1)
-	self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(1)
-end
+function AggressiveAI.ExitAttack(self: AggressiveAI) end
 
 function AggressiveAI.Recovering(self: AggressiveAI)
 	for _, fx in pairs(self.sweatFx) do
 		fx.Enabled = true
+	end
+
+	if self.animController:GetTrack("AggressiveStumbleChase").IsPlaying then
+		self.animController:Stop("AggressiveStumbleChase")
+
+		self.animController:Play("AggressiveStumble", true)
+		self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(0.8)
 	end
 end
 
@@ -160,6 +183,10 @@ function AggressiveAI.ExitRecovering(self: AggressiveAI)
 	for _, fx in pairs(self.sweatFx) do
 		fx.Enabled = false
 	end
+
+	self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(1)
+	self.animController:GetTrack("AggressiveStumbleIdle"):AdjustSpeed(1)
+	self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(1)
 end
 
 AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {})

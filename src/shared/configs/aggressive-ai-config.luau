@@ -6,7 +6,7 @@ local AggressiveAiConfig = {
 	},
 
 	Movement = {
-		MaxStamina = 10,
+		MaxStamina = 15,
 		StaminaDrain = 1,
 		StaminaHeal = 1,
 
@@ -18,9 +18,15 @@ local AggressiveAiConfig = {
 		ChasingSpeed = 20,
 	},
 
+	Animations = {
+		Wandering = "Wander",
+		Resting = "Rest",
+	},
+
 	Attacks = {
 		MainAttackCooldown = 3,
-		MainAttackStaminaCost = 3,
+		MainAttackStaminaCost = 5,
+		AttackMovementSpeedMultiplier = 0.5,
 	},
 
 	Pathfinding = {

@@ -86,7 +86,8 @@
             "$ignoreUnknownInstances": true,
             "$className": "Workspace",
             "$properties": {
-                "StreamingEnabled": false
+                "StreamingEnabled": false,
+                "ClientAnimatorThrottling": "Disabled"
             },
             "runtime": {
                 "$className": "Folder",
@@ -97,6 +98,9 @@
                     "$className": "Folder"
                 },
                 "hitboxes": {
+                    "$className": "Folder"
+                },
+                "entities": {
                     "$className": "Folder"
                 }
             },

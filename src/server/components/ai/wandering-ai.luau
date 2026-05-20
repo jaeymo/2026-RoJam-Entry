@@ -14,6 +14,7 @@ local AIConfig = require(ReplicatedStorage.shared.configs["wandering-ai-config"]
 
 local WanderingAI = {}
 WanderingAI.__index = WanderingAI
+
 export type WanderingAI = typeof(setmetatable(
 	{} :: {
 		entity: Model,
@@ -277,6 +278,7 @@ function WanderingAI.CancelLoop(self: WanderingAI)
 end
 
 WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {
+	Nuke = false,
 	NamingConvention = {
 		Init = "init",
 	},

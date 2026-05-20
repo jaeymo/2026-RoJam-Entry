@@ -17,19 +17,23 @@ export type AggressiveAI = typeof(setmetatable(
 		entity: Model,
 
 		currentState: string,
-		animController: BetterAnimation.BetterAnimation?,
-
+		animController: BetterAnimation.BetterAnimation,
+		human: Humanoid,
 		sweatFx: { ParticleEmitter },
 
+		IdleDelay: thread?,
 		janitor: Classy.Janitor,
 	},
 	AggressiveAI
 ))
 
 function AggressiveAI.new(entity: Instance, janitor: Classy.Janitor): AggressiveAI
+	local animController = BetterAnimation.new(HttpService:GenerateGUID())
+
 	return setmetatable({
 		entity = entity :: Model,
-		human = entity:WaitForChild("Humanoid"),
+		human = entity:WaitForChild("Humanoid") :: Humanoid,
+		animController = animController,
 		sweatFx = {},
 		currentState = "None",
 		janitor = janitor,
@@ -38,12 +42,13 @@ end
 
 function AggressiveAI.Init(self: AggressiveAI)
 	self.animController = BetterAnimation.new(HttpService:GenerateGUID()) :: BetterAnimation.BetterAnimation
-	self.animController:RegisterAnimator(self.human:WaitForChild("Animator"))
+	self.animController:RegisterAnimator(self.human:WaitForChild("Animator") :: Animator)
 	self.animController:RegisterAnimationsFromInstance(AnimationFolder)
 
-	local sweatFxAsset = VfxFolder:WaitForChild("Sweat"):Clone()
+	local sweatFxAsset = VfxFolder:WaitForChild("Sweat"):Clone() :: ParticleEmitter
 	sweatFxAsset.Parent = self.entity:WaitForChild("HumanoidRootPart")
 	sweatFxAsset.Enabled = false
+
 	-- for _, child in pairs(self.entity:GetChildren()) do
 	-- 	if not child:IsA("BasePart") or child == self.entity.PrimaryPart then
 	-- 		continue
@@ -128,6 +133,7 @@ function AggressiveAI.Idle(self: AggressiveAI)
 		task.cancel(self.IdleDelay)
 		self.IdleDelay = nil
 	end
+
 	self.IdleDelay = task.spawn(function()
 		task.wait(stateDelay)
 		if self.entity:GetAttribute("State") ~= "Idle" then

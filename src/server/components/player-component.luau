@@ -1,7 +1,9 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 local Classy = require(ReplicatedStorage.packages.classy)
+local HealthService = require(ServerScriptService.services["health-service"])
 local Janitor = require(ReplicatedStorage.packages.janitor)
 
 local PlayerComponent = {}
@@ -36,6 +38,7 @@ function PlayerComponent.watchCharacter(self: PlayerComponent)
 
 	local function handleCharacter(character: Model)
 		character:AddTag("Character")
+		character:AddTag("Entity")
 
 		for _, part in character:GetDescendants() do
 			if part:IsA("BasePart") then
@@ -50,6 +53,8 @@ function PlayerComponent.watchCharacter(self: PlayerComponent)
 		end))
 
 		character.Parent = container
+
+		HealthService:initEntity(character, 100)
 	end
 
 	if self.instance.Character then

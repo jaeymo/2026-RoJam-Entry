@@ -7,7 +7,7 @@ Raydar.RayTypes = {
 	HitWalls = {
 		Name = "HitWalls",
 		GetParams = function(...)
-			local filter = {}
+			-- local filter = {}
 
 			local params = RaycastParams.new()
 			params.CollisionGroup = "IgnoreCharacters"
@@ -18,7 +18,7 @@ Raydar.RayTypes = {
 	AimForPlayers = {
 		Name = "AimForPlayers",
 		GetParams = function(...)
-			local filter = {}
+			-- local filter = {}
 
 			local params = RaycastParams.new()
 			params.CollisionGroup = "IgnoreEntities"
@@ -45,12 +45,14 @@ Raydar.RayTypes = {
 
 function Raydar.Fire(_: Raydar, origin: Vector3, direction: Vector3, distance: number, raytype, ...)
 	raytype = (raytype and raytype.GetParams) and raytype.GetParams(...)
+
 	if not raytype then
 		local rayName = raytype and raytype.Name or nil
 		warn("RayType: ", rayName)
 		error("raytype nil or did not return rayparams. Make sure you are getting a raytype from Raydar.Raytypes")
 	end
-	local result = workspace:Raycast(origin, direction * distance, raytype)
+
+	local result = workspace:Raycast(origin, direction * distance, (raytype :: any) :: RaycastParams)
 	return result
 end
 

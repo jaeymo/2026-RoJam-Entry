@@ -29,9 +29,9 @@ function AIPathService.CreatePath(
 
 	path:ComputeAsync(start, goal)
 
-	if path.Status ~= Enum.PathStatus.Success then
-		warn("Failed to ComputeAsync. Status:", path.Status.Name)
-	end
+	-- if path.Status ~= Enum.PathStatus.Success then
+	-- 	-- warn("Failed to ComputeAsync. Status:", path.Status.Name)
+	-- end
 
 	local data = {
 		Path = path,

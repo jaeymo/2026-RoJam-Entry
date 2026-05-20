@@ -14,11 +14,11 @@ local COLLISION_GROUPS = {
 		CanCollide = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision", "IgnoreEntities" },
 	},
 	PassiveEntity = {
-		CanCollide = { "PlayerCharacter", "BarrierCollision", "EntityCollision" },
+		CanCollide = { "PlayerCharacter", "BarrierCollision", "EntityCollision", "PathWall" },
 		CannotCollide = { "PassiveEntity" },
 	},
 	Entity = {
-		CanCollide = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision" },
+		CanCollide = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision", "PathWall" },
 	},
 
 	MapMesh = {
@@ -34,8 +34,11 @@ local COLLISION_GROUPS = {
 	PathNode = {
 		CanCollide = { "PathCast" },
 	},
+	PathWall = {
+		CanCollide = { "Entity", "PassiveEntity", "PathCast" },
+	},
 	PathCast = {
-		CanCollide = { "EntityCollision", "PathNode" },
+		CanCollide = { "EntityCollision", "PathNode", "PathWall" },
 	},
 } :: {
 	[string]: { CanCollide: { string }, CannotCollide: { string } },

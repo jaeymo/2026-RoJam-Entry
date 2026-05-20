@@ -15,7 +15,7 @@ local WanderingAIConfig = {
 
 		BreakTime = { Min = 30, Max = 50, Weight = 10 },
 
-		DefaultWalkSpeed = 6,
+		DefaultWalkSpeed = 8,
 	},
 
 	Animations = {

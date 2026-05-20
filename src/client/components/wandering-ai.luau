@@ -82,6 +82,14 @@ function WanderingAI.Init(self: WanderingAI)
 		end
 	end))
 
+	self.janitor:Add(task.spawn(function()
+		while task.wait(math.random(3, 10)) do
+			if self.entity:GetAttribute("State") == "Wandering" then
+				self.animController:Play("ShakyIdle")
+			end
+		end
+	end))
+
 	local newState = self.entity:GetAttribute("State") :: string
 	local func = self[newState]
 
@@ -94,6 +102,13 @@ function WanderingAI.Destroy(self: WanderingAI)
 	self.janitor:Cleanup()
 end
 
+function WanderingAI.Resting(self: WanderingAI)
+	self.animController:Play("ParanoidIdle", true)
+end
+function WanderingAI.ExitResting(self: WanderingAI)
+	self.animController:Stop("ParanoidIdle")
+end
+
 function WanderingAI.Wandering(self: WanderingAI)
 	self.animController:Play("Walk", true)
 end
@@ -102,8 +117,8 @@ function WanderingAI.ExitWandering(self: WanderingAI)
 	self.animController:Stop("Walk")
 end
 
-WanderingAI.classy = Classy.create("AggressiveAI", WanderingAI, {})
+WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {})
 
-Classy.registerGlobal("AggressiveAI", WanderingAI.classy)
+Classy.registerGlobal("WanderingAI", WanderingAI.classy)
 
 return WanderingAI

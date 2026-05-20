@@ -101,6 +101,9 @@ function WanderingAI.checkForTargetNodes(self: WanderingAI)
 	-- self.target = Players:GetPlayers()[1]
 	table.clear(self.pathNodes)
 	for _, v in pairs(desiredTarget) do
+		if not v:IsDescendantOf(workspace) then
+			continue
+		end
 		self.pathNodes[#self.pathNodes + 1] = v
 	end
 	return true
@@ -152,8 +155,6 @@ function WanderingAI.TakeBreak(self: WanderingAI)
 		return
 	end
 	self.internalState = "takingBreak"
-
-	print("break")
 
 	self.human:MoveTo(self.entity:GetPivot().Position)
 	self:SetState("Resting")

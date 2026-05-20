@@ -12,10 +12,14 @@ function Lucky.roll(_: Lucky, chance: number): boolean
 	return math.random() <= chance
 end
 
-function Lucky.chooseWeighted<T>(_: Lucky, items: { T & WeightedItem }): T?
+function Lucky.chooseWeighted<T>(_: Lucky, items: { T & WeightedItem }, blacklist: { string }?): T?
 	local totalWeight = 0
 
 	for _, item in items do
+		if blacklist and table.find(blacklist, item.Name) then
+			continue
+		end
+
 		totalWeight += item.Weight
 	end
 
@@ -28,6 +32,10 @@ function Lucky.chooseWeighted<T>(_: Lucky, items: { T & WeightedItem }): T?
 	local current = 0
 
 	for _, item in items do
+		if blacklist and table.find(blacklist, item.Name) then
+			continue
+		end
+
 		current += item.Weight
 
 		if roll <= current then

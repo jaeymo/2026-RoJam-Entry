@@ -34,15 +34,11 @@ function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Mode
 		["Aggressive"] = { Weight = 2, Cost = 1 },
 	})
 
-	local totalEntityCount = math.random(4, 12)
+	local totalEntityCount = math.random(3, 5)
 	local allocatedStates = entityStateAllocator:Allocate(totalEntityCount)
 
-	print("GENERATED ENTITIES: ", totalEntityCount)
-
 	local passiveAmount = allocatedStates["Passive"] or 0
-	if passiveAmount <= 0 then
-		warn("no treatables spawned!")
-	end
+	local aggressiveAmount = allocatedStates["Aggressive"] or 0
 
 	for _ = 1, passiveAmount do
 		local newEntityModel = EntityFactory:getNewEntityModel("test-a")
@@ -55,53 +51,51 @@ function EntityService.loadEntitiesIntoRoom(self: EntityService, roomModel: Mode
 		local chosenNode = passiveEntitySpawns[randomIndex]
 
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
+		newEntityModel:AddTag("Ragdoll")
 		newEntityModel.Parent = workspace
 
-		-- if Lucky:roll(MutationsConfig.MutationChance) then
-		-- 	local chosenMutation = Lucky:chooseWeighted(MutationsConfig.Mutations)
-		-- 	if chosenMutation then
-		-- 		newEntityModel:AddTag(chosenMutation.Name)
-		-- 		print(chosenMutation.Name, newEntityModel)
-		-- 	end
-		-- end
+		if Lucky:roll(MutationsConfig.MutationChance) then
+			local chosenMutation = Lucky:chooseWeighted(MutationsConfig.Mutations)
+			if chosenMutation then
+				newEntityModel:AddTag(`{chosenMutation.Name}Mutation`)
+			end
+		end
 
 		-- local tag = math.random() >= 0.5 and "PassiveAI" or "WanderingAI"
+		newEntityModel:AddTag("PassiveAI")
 
-		local tag = "Passive"
-		newEntityModel:AddTag(tag)
-		task.wait(0.1)
+		print(newEntityModel)
+		task.wait(0.1) -- fun lil wait
 	end
 
-	for entityState, amount in allocatedStates do
-		if entityState == "Passive" then
-			return
+	for _ = 1, aggressiveAmount do
+		local newEntityModel = EntityFactory:getNewEntityModel("test-a")
+		if not newEntityModel then
+			warn(`[{script.Name}] Failed to make new entity: {"test-a"}`)
+			continue
 		end
 
-		for _ = 1, amount do
-			local newEntityModel = EntityFactory:getNewEntityModel("test-a")
-			if not newEntityModel then
-				warn(`[{script.Name}] Failed to make new entity: {"test-a"}`)
-				continue
+		local randomIndex = math.random(1, #aggressiveEntitySpawns)
+		local chosenNode = aggressiveEntitySpawns[randomIndex]
+
+		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
+		newEntityModel:AddTag("Ragdoll")
+		print(newEntityModel)
+		newEntityModel.Parent = workspace
+
+		newEntityModel:AddTag("AggressiveAI")
+
+		-- less chance
+		if Lucky:roll(MutationsConfig.AggressiveMutationChance) then
+			local chosenMutation = Lucky:chooseWeighted(MutationsConfig.Mutations, { "Aggressive" }) -- blacklists aggressive mutation
+			if chosenMutation then
+				newEntityModel:AddTag(`{chosenMutation.Name}Mutation`)
 			end
-
-			local randomIndex = math.random(1, #aggressiveEntitySpawns)
-			local chosenNode = aggressiveEntitySpawns[randomIndex]
-
-			newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
-			newEntityModel.Parent = workspace
-
-			newEntityModel:AddTag("AggressiveAI")
-
-			-- if Lucky:roll(MutationsConfig.MutationChance) then
-			-- 	local chosenMutation = Lucky:chooseWeighted(MutationsConfig.Mutations)
-			-- 	if chosenMutation then
-			-- 		newEntityModel:AddTag(chosenMutation.Name)
-			-- 		print(chosenMutation.Name, newEntityModel)
-			-- 	end
-			-- end
-
-			task.wait(0.1)
 		end
+
+		print(newEntityModel)
+
+		task.wait(0.1) -- fun lil wait
 	end
 end
 

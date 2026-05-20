@@ -99,6 +99,9 @@
                 },
                 "hitboxes": {
                     "$className": "Folder"
+                },
+                "entities": {
+                    "$className": "Folder"
                 }
             },
             "misc": {

@@ -10,6 +10,10 @@ local CharacterState = {}
 
 export type CharacterState = typeof(CharacterState)
 
+function CharacterState.getCharacter(_: CharacterState): Model?
+	return player.Character
+end
+
 function CharacterState.getHumanoid(_: CharacterState): Humanoid?
 	return player.Character and player.Character:FindFirstChild("Humanoid") :: Humanoid?
 end

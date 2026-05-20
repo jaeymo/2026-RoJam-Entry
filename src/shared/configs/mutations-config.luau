@@ -1,15 +1,16 @@
 --!strict
 local MUTATIONS_CONFIG = {
-	MutationChance = 0.75,
+	MutationChance = 0.8,
+	AggressiveMutationChance = 0.5,
 
 	Mutations = {
 		Aggressive = {
-			Weight = 45,
+			Weight = 25,
 			Name = "Aggressive",
 		},
 		Terminal = {
-			Weight = 25,
-			Name = "Aggressive",
+			Weight = 85,
+			Name = "Terminal",
 		},
 	},
 }

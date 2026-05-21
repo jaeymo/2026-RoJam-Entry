@@ -1,8 +1,11 @@
 --!nocheck
 local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local AnimationFolder = ReplicatedStorage:WaitForChild("assets"):WaitForChild("animations")
-local VfxFolder = ReplicatedStorage:WaitForChild("assets"):WaitForChild("particles")
+
+local assetsFolder = ReplicatedStorage:WaitForChild("assets")
+local AnimationFolder = assetsFolder:WaitForChild("animations")
+local VfxFolder = assetsFolder:WaitForChild("particles")
+local enitityFolder = assetsFolder:WaitForChild("entities")
 
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
@@ -14,7 +17,8 @@ local stateDelay = 0.25 -- optional
 
 export type AggressiveAI = typeof(setmetatable(
 	{} :: {
-		entity: Model,
+		serverEntity: Model,
+		clientEntity: Model,
 
 		currentState: string,
 		animController: BetterAnimation.BetterAnimation,
@@ -31,8 +35,7 @@ function AggressiveAI.new(entity: Instance, janitor: Classy.Janitor): Aggressive
 	local animController = BetterAnimation.new(HttpService:GenerateGUID())
 
 	return setmetatable({
-		entity = entity :: Model,
-		human = entity:WaitForChild("Humanoid") :: Humanoid,
+		serverEntity = entity :: Model,
 		animController = animController,
 		sweatFx = {},
 		currentState = "None",
@@ -40,13 +43,29 @@ function AggressiveAI.new(entity: Instance, janitor: Classy.Janitor): Aggressive
 	}, AggressiveAI)
 end
 
+function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
+	local entityAsset = enitityFolder:FindFirstChild(serverModel.Name, true)
+	if not entityAsset then
+		warn(serverModel, entityAsset)
+	end
+
+	local clientModel = entityAsset:WaitForChild("Client"):Clone()
+	clientModel:PivotTo(serverModel:GetPivot())
+	clientModel.Parent = serverModel
+
+	self.clientEntity = clientModel
+	self.human = self.clientEntity:WaitForChild("Humanoid")
+end
+
 function AggressiveAI.Init(self: AggressiveAI)
+	self:CreateAIModel(self.serverEntity)
+
 	self.animController = BetterAnimation.new(HttpService:GenerateGUID()) :: BetterAnimation.BetterAnimation
 	self.animController:RegisterAnimator(self.human:WaitForChild("Animator") :: Animator)
 	self.animController:RegisterAnimationsFromInstance(AnimationFolder)
 
 	local sweatFxAsset = VfxFolder:WaitForChild("Sweat"):Clone() :: ParticleEmitter
-	sweatFxAsset.Parent = self.entity:WaitForChild("HumanoidRootPart")
+	sweatFxAsset.Parent = self.clientEntity:WaitForChild("HumanoidRootPart")
 	sweatFxAsset.Enabled = false
 
 	-- for _, child in pairs(self.entity:GetChildren()) do
@@ -61,7 +80,7 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self.sweatFx[#self.sweatFx + 1] = sweatFxAsset
 	-- end
 
-	self.janitor:Add(self.entity:GetAttributeChangedSignal("State"):Connect(function()
+	self.janitor:Add(self.serverEntity:GetAttributeChangedSignal("State"):Connect(function()
 		local oldState = self.currentState
 		local exitFunc = self["Exit" .. oldState]
 
@@ -69,7 +88,7 @@ function AggressiveAI.Init(self: AggressiveAI)
 			exitFunc(self)
 		end
 
-		local newState = self.entity:GetAttribute("State") :: string
+		local newState = self.serverEntity:GetAttribute("State") :: string
 		local func = self[newState]
 
 		if func then
@@ -79,15 +98,15 @@ function AggressiveAI.Init(self: AggressiveAI)
 		self.currentState = newState
 	end))
 
-	self.janitor:Add(self.entity:GetAttributeChangedSignal("Recovering"):Connect(function()
-		if self.entity:GetAttribute("Recovering") then
+	self.janitor:Add(self.serverEntity:GetAttributeChangedSignal("Recovering"):Connect(function()
+		if self.serverEntity:GetAttribute("Recovering") then
 			self:Recovering()
 		else
 			self:ExitRecovering()
 		end
 	end))
 
-	local newState = self.entity:GetAttribute("State") :: string
+	local newState = self.serverEntity:GetAttribute("State") :: string
 	local func = self[newState]
 
 	if func then
@@ -102,7 +121,7 @@ end
 function AggressiveAI.Chasing(self: AggressiveAI)
 	self.animController:Stop("AggressiveStumbleIdle")
 
-	if self.entity:GetAttribute("Recovering") then
+	if self.serverEntity:GetAttribute("Recovering") then
 		self.animController:Stop("AggressiveStumbleChase")
 
 		self.animController:Play("AggressiveStumble", true)
@@ -121,7 +140,7 @@ function AggressiveAI.Hunting(self: AggressiveAI)
 	self.animController:Stop("AggressiveStumbleChase")
 
 	self.animController:Play("AggressiveStumble", true)
-	if self.entity:GetAttribute("Recovering") then
+	if self.serverEntity:GetAttribute("Recovering") then
 		self.animController:GetTrack("AggressiveStumble"):AdjustSpeed(0.5)
 	end
 end
@@ -136,13 +155,13 @@ function AggressiveAI.Idle(self: AggressiveAI)
 
 	self.IdleDelay = task.spawn(function()
 		task.wait(stateDelay)
-		if self.entity:GetAttribute("State") ~= "Idle" then
+		if self.serverEntity:GetAttribute("State") ~= "Idle" then
 			return
 		end
 		self.animController:Stop("AggressiveStumbleChase")
 		self.animController:Stop("AggressiveStumble")
 		self.animController:Play("AggressiveStumbleIdle")
-		if self.entity:GetAttribute("Recovering") then
+		if self.serverEntity:GetAttribute("Recovering") then
 			self.animController:GetTrack("AggressiveStumbleIdle"):AdjustSpeed(2)
 		end
 	end)

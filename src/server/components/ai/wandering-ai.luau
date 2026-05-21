@@ -57,7 +57,29 @@ function WanderingAI.new(character: Instance, janitor: Classy.Janitor): Wanderin
 	}, WanderingAI)
 end
 
+function WanderingAI.cleanEntityModel(self: WanderingAI, entityModel: Model)
+	entityModel.PrimaryPart = entityModel.HumanoidRootPart
+	entityModel.PrimaryPart.Anchored = true
+	self.human.HipHeight = 2
+	entityModel.Client:Destroy()
+	-- for _, child in pairs(entityModel:GetChildren()) do
+	-- 	if child.Name == "HumanoidRootPart" then
+	-- 		child.Transparency = 0.5
+	-- 		continue
+	-- 	elseif not child:IsA("Accessory") and not child:IsA("BasePart") then
+	-- 		continue
+	-- 	end
+
+	-- 	child:Destroy()
+	-- end
+	entityModel.PrimaryPart.Anchored = false
+end
+
 function WanderingAI.init(self: WanderingAI)
+	self:cleanEntityModel(self.entity)
+	self.entity.PrimaryPart:SetNetworkOwner(nil)
+
+	self.human.Health = AIConfig.Vitals.MaxHealth
 	self.human.WalkSpeed = AIConfig.Movement.DefaultWalkSpeed
 	self:WanderLoop()
 end

@@ -1,5 +1,6 @@
 --!nocheck
 local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local assetsFolder = ReplicatedStorage:WaitForChild("assets")
@@ -10,6 +11,9 @@ local enitityFolder = assetsFolder:WaitForChild("entities")
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
 
+local Plr = Players.LocalPlayer
+local LocalChar = Plr.Character or Plr.CharacterAdded:Wait()
+
 local AggressiveAI = {}
 AggressiveAI.__index = AggressiveAI
 
@@ -19,6 +23,8 @@ export type AggressiveAI = typeof(setmetatable(
 	{} :: {
 		serverEntity: Model,
 		clientEntity: Model,
+
+		characterFollower: any,
 
 		currentState: string,
 		animController: BetterAnimation.BetterAnimation,
@@ -65,6 +71,8 @@ end
 
 function AggressiveAI.Init(self: AggressiveAI)
 	self:CreateAIModel(self.serverEntity)
+
+	self.clientEntity:AddTag("CharacterFollower")
 
 	self.animController = BetterAnimation.new(HttpService:GenerateGUID()) :: BetterAnimation.BetterAnimation
 	self.animController:RegisterAnimator(self.human:WaitForChild("Animator") :: Animator)
@@ -119,14 +127,19 @@ function AggressiveAI.Init(self: AggressiveAI)
 		func(self)
 	end
 
-	self.clientEntity:AddTag("CharacterFollower")
+	task.wait()
+	self.characterFollower = Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity):GetData()
 end
 
 function AggressiveAI.Destroy(self: AggressiveAI)
-	self.janitor:Cleanup()
+	-- self.janitor:Cleanup()
 end
 
 function AggressiveAI.Chasing(self: AggressiveAI)
+	if self.characterFollower then
+		self.characterFollower:ChangeLookAtTarget(nil)
+	end
+
 	self.animController:Stop("AggressiveStumbleIdle")
 
 	if self.serverEntity:GetAttribute("Recovering") then
@@ -144,6 +157,10 @@ end
 function AggressiveAI.ExitChasing(self: AggressiveAI) end
 
 function AggressiveAI.Hunting(self: AggressiveAI)
+	if self.characterFollower then
+		self.characterFollower:ChangeLookAtTarget(nil)
+	end
+
 	self.animController:Stop("AggressiveStumbleIdle")
 	self.animController:Stop("AggressiveStumbleChase")
 
@@ -156,6 +173,8 @@ end
 function AggressiveAI.ExitHunting(self: AggressiveAI) end
 
 function AggressiveAI.Idle(self: AggressiveAI)
+	self.characterFollower:ChangeLookAtTarget(LocalChar)
+
 	if self.IdleDelay then
 		task.cancel(self.IdleDelay)
 		self.IdleDelay = nil
@@ -187,8 +206,19 @@ function AggressiveAI.ExhaustedWalk(self: AggressiveAI) end
 function AggressiveAI.ExitExhaustedWalk(self: AggressiveAI) end
 
 function AggressiveAI.Attack(self: AggressiveAI)
+	if self.characterFollower then
+		self.characterFollower:ChangeLookAtTarget(LocalChar)
+	end
+
 	self.animController:Play("AttackPunch1")
 	self.animController:GetTrack("AttackPunch1"):GetMarkerReachedSignal("hit"):Wait()
+
+	local dir = (self.serverEntity:GetPivot().Position - LocalChar:GetPivot().Position).Unit
+	self.characterFollower:ShakeOffset({
+		Duration = 0.25,
+		Direction = -dir,
+		Velocity = 1,
+	})
 end
 
 function AggressiveAI.ExitAttack(self: AggressiveAI) end

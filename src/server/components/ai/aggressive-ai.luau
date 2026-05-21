@@ -62,7 +62,27 @@ function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): Aggress
 	}, AggressiveAI)
 end
 
+function AggressiveAI.cleanEntityModel(self: AggressiveAI, entityModel: Model)
+	entityModel.PrimaryPart = entityModel.HumanoidRootPart
+	entityModel.PrimaryPart.Anchored = true
+	self.human.HipHeight = 2
+	entityModel.HumanoidRootPart.Transparency = 0.5
+	entityModel.Client:Destroy()
+	-- for _, child in pairs(entityModel:GetChildren()) do
+	-- 	if child.Name == "HumanoidRootPart" then
+	-- 		child.Transparency = 0.5
+	-- 		continue
+	-- 	elseif not child:IsA("Accessory") and not child:IsA("BasePart") then
+	-- 		continue
+	-- 	end
+
+	-- 	child:Destroy()
+	-- end
+	entityModel.PrimaryPart.Anchored = false
+end
+
 function AggressiveAI.Init(self: AggressiveAI)
+	self:cleanEntityModel(self.entity)
 	self.entity.PrimaryPart:SetNetworkOwner(nil)
 
 	task.defer(function()

@@ -21,6 +21,11 @@ local WanderingAIConfig = {
 	Animations = {
 		Wandering = "Wander",
 		Resting = "Rest",
+
+		Idles = {
+			"AntsyIdle",
+			"ParanoidIdle",
+		},
 	},
 
 	Pathfinding = {

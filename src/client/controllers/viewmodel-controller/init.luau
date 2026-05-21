@@ -3,6 +3,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
+local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Janitor = require(ReplicatedStorage.packages.janitor)
 local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
 local ViewmodelObject = require(script["viewmodel-object"])
@@ -14,7 +15,16 @@ local ViewmodelController = {
 	janitor = Janitor.new(),
 	isActive = false,
 	viewmodelObject = object,
+	animationObject = BetterAnimation.new("viewmodel"),
 }
+
+do
+	ViewmodelController.animationObject:RegisterAnimator(object.animator)
+
+	ViewmodelController.animationObject:RegisterAnimationsFromInstance(
+		(ReplicatedStorage.assets:FindFirstChild("animations") :: any):FindFirstChild("viewmodel")
+	)
+end
 
 export type ViewmodelController = typeof(ViewmodelController)
 
@@ -57,25 +67,14 @@ end
 function ViewmodelController.jaegarInit(self: ViewmodelController)
 	self:_setup()
 
-	-- temporary equip handling
-	local temporaryFlag = false
+	SignalRegistry.itemEquipped:Connect(function(_: string)
+		self:getViewmodelObject():enable()
+		-- self:getViewmodelObject():equip(ReplicatedStorage.assets.models["viewmodel-equippables"].template:Clone())
+	end)
 
-	UserInputService.InputBegan:Connect(function(input: InputObject, gpe: boolean)
-		if gpe then
-			return
-		end
-
-		if input.KeyCode ~= Enum.KeyCode.One then
-			return
-		end
-
-		temporaryFlag = not temporaryFlag
-
-		if temporaryFlag then
-			self.viewmodelObject:enable()
-		else
-			self.viewmodelObject:disable()
-		end
+	SignalRegistry.itemUnequipped:Connect(function(_: string)
+		self:getViewmodelObject():unequip()
+		self:getViewmodelObject():disable()
 	end)
 end
 

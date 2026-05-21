@@ -54,6 +54,7 @@ function HitboxController.CheckForHumanoids(CFrame, Size)
 		end
 		table.insert(humans, humanoid)
 	end
+
 	return humans
 end
 

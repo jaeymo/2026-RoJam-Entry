@@ -96,7 +96,7 @@ function AggressiveAI.Init(self: AggressiveAI)
 end
 
 function AggressiveAI.Destroy(self: AggressiveAI)
-	self.janitor:Cleanup()
+	-- self.janitor:Cleanup()
 end
 
 function AggressiveAI.Chasing(self: AggressiveAI)

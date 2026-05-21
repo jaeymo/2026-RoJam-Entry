@@ -14,7 +14,16 @@ end
 
 function Scepter.primary(self: Scepter)
 	local x = require(ReplicatedStorage.client.controllers["viewmodel-controller"])
-	x.animationObject:Play("ViewModelBonk")
+
+	local names = {
+		"ViewModelBatter",
+		"ViewModelBonk",
+		"ViewModelPoke",
+	}
+
+	local selection = names[math.random(1, #names)]
+	print(selection)
+	x.animationObject:Play(selection)
 end
 
 return Scepter

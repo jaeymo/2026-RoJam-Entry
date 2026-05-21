@@ -42,7 +42,6 @@ function ItemController.equip(self: ItemController, itemName: string)
 	self.currentlyHeldItem = itemName
 	SignalRegistry.itemEquipped:Fire(itemName)
 	ItemProfileHandler:getProfile(itemName):equip()
-	print("Equipped: ", itemName)
 end
 
 function ItemController.unequipCurrent(self: ItemController)
@@ -61,7 +60,6 @@ function ItemController.primary(self: ItemController)
 		return
 	end
 
-	print(self.currentlyHeldItem)
 	SignalRegistry.itemPrimary:Fire(self.currentlyHeldItem)
 	ItemProfileHandler:getProfile(self.currentlyHeldItem):primary()
 end

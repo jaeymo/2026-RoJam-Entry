@@ -1,4 +1,10 @@
 --!strict
+
+--[[
+	this module might get cooked ngl, not sure if it needs to exist
+	-- jaeymo!
+]]
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
@@ -26,9 +32,9 @@ function CombatController.jaegarInit(self: CombatController)
 		self.currentlyHeldItemName = name
 	end)
 
-	SignalRegistry.itemPrimary:Connect(function(name: string)
-		print(name)
-	end)
+	-- SignalRegistry.itemPrimary:Connect(function(name: string)
+	-- 	print(name)
+	-- end)
 
 	SignalRegistry.itemUnequipped:Connect(function()
 		self.currentlyHeldItemName = nil

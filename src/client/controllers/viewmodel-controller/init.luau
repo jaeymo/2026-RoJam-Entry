@@ -22,7 +22,8 @@ do
 	ViewmodelController.animationObject:RegisterAnimator(object.animator)
 
 	ViewmodelController.animationObject:RegisterAnimationsFromInstance(
-		(ReplicatedStorage.assets:FindFirstChild("animations") :: any):FindFirstChild("viewmodel")
+		(ReplicatedStorage.assets:FindFirstChild("animations") :: any):FindFirstChild("viewmodel"),
+		workspace:WaitForChild("runtime")
 	)
 end
 

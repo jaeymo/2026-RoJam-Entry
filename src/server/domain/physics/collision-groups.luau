@@ -53,9 +53,9 @@ for name, collisionData in COLLISION_GROUPS do
 
 	local canCollideData = collisionData.CanCollide
 	for _, canCollideName in canCollideData do
-		if name == "Entity" then
-			print(name, canCollideName)
-		end
+		-- if name == "Entity" then
+		-- 	print(name, canCollideName)
+		-- end
 		PhysicsService:CollisionGroupSetCollidable(name, canCollideName, true)
 		collided[canCollideName] = true
 	end

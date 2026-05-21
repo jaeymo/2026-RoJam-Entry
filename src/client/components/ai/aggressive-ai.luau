@@ -50,11 +50,17 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 	end
 
 	local clientModel = entityAsset:WaitForChild("Client"):Clone()
+	clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
 	clientModel:PivotTo(serverModel:GetPivot())
 	clientModel.Parent = serverModel
 
 	self.clientEntity = clientModel
 	self.human = self.clientEntity:WaitForChild("Humanoid")
+
+	local objVal = Instance.new("ObjectValue")
+	objVal.Name = "TargetModel"
+	objVal.Value = serverModel
+	objVal.Parent = clientModel
 end
 
 function AggressiveAI.Init(self: AggressiveAI)
@@ -112,6 +118,8 @@ function AggressiveAI.Init(self: AggressiveAI)
 	if func then
 		func(self)
 	end
+
+	self.clientEntity:AddTag("CharacterFollower")
 end
 
 function AggressiveAI.Destroy(self: AggressiveAI)

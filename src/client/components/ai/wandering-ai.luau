@@ -53,6 +53,11 @@ function WanderingAI.CreateAIModel(self: WanderingAI, serverModel: Model)
 
 	self.clientEntity = clientModel
 	self.human = self.clientEntity:WaitForChild("Humanoid")
+
+	local objVal = Instance.new("ObjectValue")
+	objVal.Name = "TargetModel"
+	objVal.Value = serverModel
+	objVal.Parent = clientModel
 end
 
 function WanderingAI.Init(self: WanderingAI)

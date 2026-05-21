@@ -9,11 +9,16 @@ local UserInputService = game:GetService("UserInputService")
 
 --// Modules //--
 local Classy = require(ReplicatedStorage.packages.classy)
-local Config = require(ReplicatedStorage.shared.configs.configuration)
+local Config = require(ReplicatedStorage.shared.configs.dialogue)
 
 --// Variables //--
 local ActiveConfig = {}
-local UsedMessages = {}
+
+local UsedDialogue = {}
+local UsedOutOfMessage = {}
+local UsedInfectionDialogue = {}
+
+local Prompts = {}
 
 local Keybinds = {
 	Enum.KeyCode.One,
@@ -22,9 +27,7 @@ local Keybinds = {
 	Enum.KeyCode.Four,
 }
 
---// Client Variables //--
 local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
 
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
@@ -38,13 +41,13 @@ local ExitFrame = ScreenGui:WaitForChild("List"):WaitForChild("Exit")
 local Sound = ScreenGui:WaitForChild("List"):WaitForChild("Sounds"):WaitForChild("Select")
 
 --// Main Code //--
-local NPC_Ineractions = {}
+local NPC_Interactions = {}
 
-NPC_Ineractions.Cooldown = false
-NPC_Ineractions.ActiveNPC = nil
-NPC_Ineractions.ActiveActions = {}
+NPC_Interactions.Cooldown = false
+NPC_Interactions.ActiveNPC = nil
+NPC_Interactions.ActiveActions = {}
 
-local function SystemMessage(Model: Model, Text: string)
+function NPC_Interactions.SystemMessage(Model: Model, Text: string)
 	local Head = Model:FindFirstChild("Head") or Model.PrimaryPart
 	if not Head then
 		return
@@ -54,9 +57,9 @@ local function SystemMessage(Model: Model, Text: string)
 end
 
 local function GetConfigForNPC(NPC: Model)
-	local FoundConfig = Config.NPC_Interactions.NonAggressiveNPCs
+	local FoundConfig = Config.NonAggressiveNPCs
 
-	for Name, Table in Config.NPC_Interactions do
+	for Name, Table in Config do
 		if Name == "NonAggressiveNPCs" then
 			continue
 		end
@@ -70,95 +73,133 @@ local function GetConfigForNPC(NPC: Model)
 	return FoundConfig
 end
 
-local function RunTalk()
-	local NPC = NPC_Ineractions.ActiveNPC
-	if not NPC then
-		return
-	end
-
-	UsedMessages[NPC] = UsedMessages[NPC] or {}
-
-	local Used = UsedMessages[NPC]
-
+local function GetUniqueDialogue(Pool: {}, UsedTable: {}, ResetOnEmpty: boolean?)
 	local Available = {}
 
-	for Index, Dialogue in ipairs(ActiveConfig.Dialogue) do
-		if not Used[Index] then
+	for Index, Data in ipairs(Pool) do
+		if not UsedTable[Index] then
 			table.insert(Available, {
 				Index = Index,
-				Data = Dialogue,
+				Data = Data,
 			})
 		end
 	end
 
 	if #Available <= 0 then
-		local YouMessage = ActiveConfig.OutOfMessages.YOU[math.random(1, #ActiveConfig.OutOfMessages.YOU)]
+		if not ResetOnEmpty then
+			return nil
+		end
 
-		local NPCMessage = ActiveConfig.OutOfMessages.NPC[math.random(1, #ActiveConfig.OutOfMessages.NPC)]
+		table.clear(UsedTable)
 
-		SystemMessage(Character, YouMessage)
-
-		task.delay(1, function()
-			SystemMessage(NPC, NPCMessage)
-		end)
-
-		return
+		for Index, Data in ipairs(Pool) do
+			table.insert(Available, {
+				Index = Index,
+				Data = Data,
+			})
+		end
 	end
 
 	local Chosen = Available[math.random(1, #Available)]
 
-	Used[Chosen.Index] = true
+	UsedTable[Chosen.Index] = true
 
-	local Dialogue = Chosen.Data
-
-	SystemMessage(Character, Dialogue.YOU)
-
-	task.delay(1, function()
-		SystemMessage(NPC, Dialogue.NPC)
-
-		if Dialogue.Followups and #Dialogue.Followups > 0 then
-			local Followup = Dialogue.Followups[math.random(1, #Dialogue.Followups)]
-
-			task.delay(1, function()
-				SystemMessage(Character, Followup.YOU)
-
-				task.delay(1, function()
-					SystemMessage(NPC, Followup.NPC)
-				end)
-			end)
-		end
+	task.delay(30, function()
+		UsedTable[Chosen.Index] = nil
 	end)
+
+	return Chosen.Data
+end
+
+local function RunTalk()
+	local NPC = NPC_Interactions.ActiveNPC
+	if not NPC then
+		return
+	end
+
+	local FoundConfig = "NonAggressiveNPCs"
+
+	for Name in Config do
+		if Name ~= "NonAggressiveNPCs" and NPC:HasTag(Name) then
+			FoundConfig = Name
+			break
+		end
+	end
+
+	UsedDialogue[FoundConfig] = UsedDialogue[FoundConfig] or {}
+	UsedOutOfMessage[FoundConfig] = UsedOutOfMessage[FoundConfig] or {}
+
+	local Dialogue = GetUniqueDialogue(ActiveConfig.Dialogue, UsedDialogue[FoundConfig], false)
+
+	if not Dialogue then
+		local Message = GetUniqueDialogue(ActiveConfig.OutOfMessages, UsedOutOfMessage[FoundConfig], true)
+
+		NPC_Interactions.SystemMessage(NPC, Message)
+
+		return
+	end
+
+	NPC_Interactions.SystemMessage(NPC, Dialogue.Text)
+
+	if Dialogue.Followups and #Dialogue.Followups > 0 then
+		task.delay(1.5, function()
+			NPC_Interactions.SystemMessage(NPC, Dialogue.Followups[math.random(1, #Dialogue.Followups)])
+		end)
+	end
 end
 
 local function RunInfectedInteraction()
-	if not NPC_Ineractions.ActiveNPC:GetAttribute("Infected") then
+	local NPC = NPC_Interactions.ActiveNPC
+	if not NPC then
 		return
 	end
 
-	local Messages = ActiveConfig.Specials.Infected
-
-	if not Messages or #Messages <= 0 then
+	local Level = NPC:GetAttribute("Infected") or 0
+	if Level <= 0 then
 		return
 	end
 
-	SystemMessage(NPC_Ineractions.ActiveNPC, Messages[math.random(1, #Messages)])
+	local Pools = ActiveConfig.InfectedLevel
+	if not Pools then
+		return
+	end
+
+	local Pool = Pools[Level]
+	if not Pool or #Pool <= 0 then
+		return
+	end
+
+	UsedInfectionDialogue[Level] = UsedInfectionDialogue[Level] or {}
+
+	local Message = GetUniqueDialogue(Pool, UsedInfectionDialogue[Level])
+
+	NPC_Interactions.SystemMessage(NPC, Message)
 end
 
 local function CloseUI()
 	ScreenGui.Enabled = false
-	NPC_Ineractions.ActiveNPC = nil
-	NPC_Ineractions.Cooldown = nil
+	NPC_Interactions.ActiveNPC = nil
+	NPC_Interactions.Cooldown = false
 
 	ActiveConfig = {}
-	table.clear(NPC_Ineractions.ActiveActions)
+	table.clear(NPC_Interactions.ActiveActions)
+end
+
+local function SetPromptsState(State: boolean)
+	for _, Prompt in Prompts do
+		if Prompt and Prompt.Parent then
+			Prompt.Enabled = State
+		end
+	end
 end
 
 local function RunAction(Action: string)
-	if NPC_Ineractions.Cooldown then
+	if NPC_Interactions.Cooldown then
 		return
 	end
 
-	NPC_Ineractions.Cooldown = true
+	SetPromptsState(false)
+	NPC_Interactions.Cooldown = true
 
 	Sound:Play()
 
@@ -166,7 +207,7 @@ local function RunAction(Action: string)
 		RunTalk()
 		CloseUI()
 	elseif Action == "Exit" then
-		if NPC_Ineractions.ActiveNPC and NPC_Ineractions.ActiveNPC:GetAttribute("Infected") then
+		if NPC_Interactions.ActiveNPC and NPC_Interactions.ActiveNPC:GetAttribute("Infected") then
 			RunInfectedInteraction()
 		end
 
@@ -175,14 +216,15 @@ local function RunAction(Action: string)
 		local Functions = ActiveConfig.Functions
 
 		if Functions and Functions[Action] then
-			Functions[Action](NPC_Ineractions.ActiveNPC)
+			Functions[Action](NPC_Interactions.ActiveNPC)
 		end
 
 		CloseUI()
 	end
 
-	task.delay(1, function()
-		NPC_Ineractions.Cooldown = false
+	task.delay(3, function()
+		NPC_Interactions.Cooldown = false
+		SetPromptsState(true)
 	end)
 end
 
@@ -199,16 +241,16 @@ local function SetupUI(NPC: Instance)
 
 	table.insert(Actions, "Talk")
 
-	if NPC:GetAttribute("Infected") then
+	if not NPC:HasTag("Plague_Doctor") then
 		table.insert(Actions, "Cure")
 	end
 
 	local Highest = #Actions + 1
 
-	NPC_Ineractions.ActiveActions = {}
+	NPC_Interactions.ActiveActions = {}
 
 	for Index, Action in ipairs(Actions) do
-		NPC_Ineractions.ActiveActions[Keybinds[Index]] = Action
+		NPC_Interactions.ActiveActions[Keybinds[Index]] = Action
 
 		if Action == "Trade" then
 			TradeFrame.Visible = true
@@ -222,10 +264,10 @@ local function SetupUI(NPC: Instance)
 		end
 	end
 
-	NPC_Ineractions.ActiveActions[Keybinds[Highest]] = "Exit"
+	NPC_Interactions.ActiveActions[Keybinds[Highest]] = "Exit"
 	ExitFrame.Keybind.Text = tostring(Highest)
 
-	NPC_Ineractions.ActiveNPC = NPC
+	NPC_Interactions.ActiveNPC = NPC
 	ActiveConfig = GetConfigForNPC(NPC)
 
 	ScreenGui.Enabled = true
@@ -250,6 +292,8 @@ local function SetupPrompt(NPC: Instance)
 	Prompt.ActionText = ""
 	Prompt.RequiresLineOfSight = false
 	Prompt.Parent = PrimaryPart
+
+	table.insert(Prompts, Prompt)
 end
 
 UserInputService.InputBegan:Connect(function(Input: InputObject, GPE: boolean)
@@ -257,7 +301,7 @@ UserInputService.InputBegan:Connect(function(Input: InputObject, GPE: boolean)
 		return
 	end
 
-	local Action = NPC_Ineractions.ActiveActions[Input.KeyCode]
+	local Action = NPC_Interactions.ActiveActions[Input.KeyCode]
 
 	if Action then
 		RunAction(Action)
@@ -284,4 +328,4 @@ Classy.create("NPC", function(NPC: Instance)
 	}
 end)
 
-return NPC_Ineractions
+return NPC_Interactions

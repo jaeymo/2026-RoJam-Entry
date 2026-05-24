@@ -24,6 +24,7 @@ export type AggressiveAI = typeof(setmetatable(
 		serverEntity: Model,
 		clientEntity: Model,
 
+		destroyed: boolean,
 		characterFollower: any,
 
 		currentState: string,
@@ -44,6 +45,7 @@ function AggressiveAI.new(entity: Instance, janitor: Classy.Janitor): Aggressive
 		serverEntity = entity :: Model,
 		animController = animController,
 		sweatFx = {},
+		destroyed = false,
 		currentState = "None",
 		janitor = janitor,
 	}, AggressiveAI)
@@ -132,6 +134,7 @@ function AggressiveAI.Init(self: AggressiveAI)
 end
 
 function AggressiveAI.Destroy(self: AggressiveAI)
+	self.destroyed = true
 	-- self.janitor:Cleanup()
 end
 
@@ -182,12 +185,20 @@ function AggressiveAI.Idle(self: AggressiveAI)
 
 	self.IdleDelay = task.spawn(function()
 		task.wait(stateDelay)
+
+		if self.destroyed then
+			print(self)
+			return
+		end
+
 		if self.serverEntity:GetAttribute("State") ~= "Idle" then
 			return
 		end
+
 		self.animController:Stop("AggressiveStumbleChase")
 		self.animController:Stop("AggressiveStumble")
 		self.animController:Play("AggressiveStumbleIdle")
+
 		if self.serverEntity:GetAttribute("Recovering") then
 			self.animController:GetTrack("AggressiveStumbleIdle"):AdjustSpeed(2)
 		end
@@ -246,7 +257,9 @@ function AggressiveAI.ExitRecovering(self: AggressiveAI)
 	self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(1)
 end
 
-AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {})
+AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {
+	Nuke = false,
+})
 
 Classy.registerGlobal("AggressiveAI", AggressiveAI.classy)
 

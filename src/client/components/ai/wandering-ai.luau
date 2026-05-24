@@ -126,7 +126,7 @@ function WanderingAI.Init(self: WanderingAI)
 end
 
 function WanderingAI.Destroy(self: WanderingAI)
-	self.janitor:Cleanup()
+	-- self.janitor:Cleanup()
 end
 
 function WanderingAI.Resting(self: WanderingAI)

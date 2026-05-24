@@ -115,7 +115,6 @@ end
 
 UserInputService.InputBegan:Connect(function(Input: InputObject, GPE: boolean)
 	if not GPE then
-		warn("GPE")
 		return
 	end
 

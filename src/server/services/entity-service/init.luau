@@ -57,7 +57,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")
-		newEntityModel.Parent = workspace
+		newEntityModel.Parent = parent
 
 		if Lucky:roll(MutationsConfig.MutationChance) then
 			local chosenMutation = Lucky:chooseWeighted(MutationsConfig.Mutations)
@@ -82,7 +82,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		local chosenNode = aggressiveEntitySpawns[randomIndex]
 
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
-		newEntityModel.Parent = workspace
+		newEntityModel.Parent = parent
 
 		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")

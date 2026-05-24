@@ -41,7 +41,7 @@ function CharacterFollower.Init(self: CharacterFollower)
 	self:Start()
 	self.offset = Vector3.zero
 
-	print(self)
+	print(self.targetModel)
 end
 
 function CharacterFollower.Start(self: CharacterFollower)

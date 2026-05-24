@@ -86,7 +86,6 @@ function WanderingAI.Init(self: WanderingAI)
 	sweatFxAsset.Parent = self.clientEntity:WaitForChild("HumanoidRootPart")
 	sweatFxAsset.Enabled = false
 
-	print("WANDERING: ", self.clientEntity)
 	self.serverEntity:SetAttribute("Initialized", true)
 
 	-- for _, child in pairs(self.entity:GetChildren()) do
@@ -140,6 +139,14 @@ function WanderingAI.Init(self: WanderingAI)
 
 	if func then
 		func(self)
+	end
+
+	task.wait()
+	self.characterFollower = Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity)
+		and Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity):GetData()
+
+	if not self.characterFollower then
+		warn(`[{script.Name}] Failed to get characterFollower`)
 	end
 end
 

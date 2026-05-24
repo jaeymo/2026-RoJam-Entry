@@ -77,12 +77,12 @@ function AggressiveAI.EquipWeapon(self: AggressiveAI)
 	end
 
 	local weaponAsset = ReplicatedStorage.assets.models["npc-weapons"]:FindFirstChild(self.currentWeapon)
-	self.clientEntity.Name = self.currentWeapon
 
 	if not weaponAsset then
 		return
 	end
 
+	self.clientEntity.Name = self.currentWeapon
 	local arm = self.clientEntity["Right Arm"]
 
 	weaponAsset = weaponAsset:Clone()
@@ -94,6 +94,7 @@ function AggressiveAI.EquipWeapon(self: AggressiveAI)
 		motor6D.Parent = weaponAsset.PrimaryPart
 	end
 
+	motor6D.Name = "Weapon"
 	motor6D.Part0 = arm
 	weaponAsset.Parent = self.clientEntity
 end
@@ -155,6 +156,11 @@ function AggressiveAI.Init(self: AggressiveAI)
 	if func then
 		func(self)
 	end
+
+	self.currentJob = self.serverEntity:GetAttribute("JobName")
+	self.currentWeapon = self.serverEntity:GetAttribute("JobWeapon")
+
+	self:EquipWeapon()
 
 	task.wait()
 	self.characterFollower = Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity):GetData()

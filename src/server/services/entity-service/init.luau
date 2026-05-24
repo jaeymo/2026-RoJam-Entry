@@ -6,6 +6,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local EntityFactory = require(script["entity-factory"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local MutationsConfig = require(ReplicatedStorage.shared.configs["mutations-config"])
+local NpcEmployer = require(ReplicatedStorage.shared.utils["npc-employer"])
 local ResourceAllocator = require(ReplicatedStorage.packages["resource-allocator"])
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 
@@ -61,8 +62,17 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 
 		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
+
+		local data = NpcEmployer:getAJob()
+		newEntityModel:SetAttribute("JobWeapon", data.Weapon)
+		newEntityModel:SetAttribute("JobName", data.Name)
+		newEntityModel:SetAttribute("DamageMultiplier", data.DamageMultiplier)
+		newEntityModel:SetAttribute("HealthMultiplier", data.HealthMultiplier)
+
+		newEntityModel.Parent = workspace
+
+		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")
-		newEntityModel.Parent = parent
 
 		if Lucky:roll(MutationsConfig.MutationChance) then
 			local chosenMutation = Lucky:chooseWeighted(MutationsConfig.Mutations)
@@ -90,6 +100,13 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel.Parent = parent
 
+		local data = NpcEmployer:getAJob()
+		newEntityModel:SetAttribute("JobWeapon", data.Weapon)
+		newEntityModel:SetAttribute("JobName", data.Name)
+		newEntityModel:SetAttribute("DamageMultiplier", data.DamageMultiplier)
+		newEntityModel:SetAttribute("HealthMultiplier", data.HealthMultiplier)
+
+		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")
 		newEntityModel:AddTag("AggressiveAI")
 

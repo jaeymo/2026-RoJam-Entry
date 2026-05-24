@@ -24,6 +24,7 @@ export type WanderingAI = typeof(setmetatable(
 
 		currentState: string,
 		animController: BetterAnimation.BetterAnimation?,
+		human: Humanoid,
 
 		sweatFx: { ParticleEmitter },
 
@@ -41,16 +42,25 @@ function WanderingAI.new(entity: Instance, janitor: Classy.Janitor): WanderingAI
 	}, WanderingAI)
 end
 
+function WanderingAI.isInitialized(self: WanderingAI): boolean
+	return self.serverEntity:GetAttribute("Initialized")
+end
+
 function WanderingAI.CreateAIModel(self: WanderingAI, serverModel: Model)
 	local entityAsset = enitityFolder:FindFirstChild(serverModel.Name, true)
 	if not entityAsset then
 		warn(serverModel, entityAsset)
 	end
 
-	local clientModel = entityAsset:WaitForChild("Client"):Clone()
-	clientModel:PivotTo(serverModel:GetPivot())
-	clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
-	clientModel.Parent = serverModel
+	local clientModel
+	if not self:isInitialized() then
+		clientModel = entityAsset:WaitForChild("Client"):Clone()
+		clientModel:PivotTo(serverModel:GetPivot())
+		clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
+		clientModel.Parent = serverModel
+	else
+		clientModel = serverModel:WaitForChild("Client")
+	end
 
 	self.clientEntity = clientModel
 	self.human = self.clientEntity:WaitForChild("Humanoid")
@@ -75,6 +85,9 @@ function WanderingAI.Init(self: WanderingAI)
 	local sweatFxAsset = VfxFolder:WaitForChild("Sweat"):Clone()
 	sweatFxAsset.Parent = self.clientEntity:WaitForChild("HumanoidRootPart")
 	sweatFxAsset.Enabled = false
+
+	print("WANDERING: ", self.clientEntity)
+	self.serverEntity:SetAttribute("Initialized", true)
 
 	-- for _, child in pairs(self.entity:GetChildren()) do
 	-- 	if not child:IsA("BasePart") or child == self.entity.PrimaryPart then
@@ -132,6 +145,7 @@ end
 
 function WanderingAI.Destroy(self: WanderingAI)
 	-- self.janitor:Cleanup()
+	self.animController:StopAll()
 end
 
 function WanderingAI.Resting(self: WanderingAI)
@@ -150,7 +164,9 @@ function WanderingAI.ExitWandering(self: WanderingAI)
 	self.animController:Stop("Walk")
 end
 
-WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {})
+WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {
+	Nuke = false,
+})
 
 Classy.registerGlobal("WanderingAI", WanderingAI.classy)
 

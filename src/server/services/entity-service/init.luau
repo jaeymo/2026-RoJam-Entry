@@ -1,4 +1,5 @@
 --!strict
+local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
@@ -38,8 +39,12 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		["Aggressive"] = { Weight = 1, Cost = 1 },
 	})
 
-	local totalEntityCount = math.random(1, 4)
+	local totalEntityCount = math.random(2, 2)
+
 	local allocatedStates = entityStateAllocator:Allocate(totalEntityCount)
+	allocatedStates = {
+		["Passive"] = totalEntityCount,
+	}
 
 	local passiveAmount = allocatedStates["Passive"] or 0
 	local aggressiveAmount = allocatedStates["Aggressive"] or 0
@@ -54,8 +59,8 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		local randomIndex = math.random(1, #passiveEntitySpawns)
 		local chosenNode = passiveEntitySpawns[randomIndex]
 
+		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
-		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")
 		newEntityModel.Parent = parent
 
@@ -81,10 +86,10 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		local randomIndex = math.random(1, #aggressiveEntitySpawns)
 		local chosenNode = aggressiveEntitySpawns[randomIndex]
 
+		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel.Parent = parent
 
-		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")
 		newEntityModel:AddTag("AggressiveAI")
 

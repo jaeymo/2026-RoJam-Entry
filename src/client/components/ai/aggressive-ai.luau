@@ -51,16 +51,26 @@ function AggressiveAI.new(entity: Instance, janitor: Classy.Janitor): Aggressive
 	}, AggressiveAI)
 end
 
+function AggressiveAI.isInitialized(self: AggressiveAI): boolean
+	return self.serverEntity:GetAttribute("Initialized")
+end
+
 function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 	local entityAsset = enitityFolder:FindFirstChild(serverModel.Name, true)
 	if not entityAsset then
 		warn(serverModel, entityAsset)
 	end
 
-	local clientModel = entityAsset:WaitForChild("Client"):Clone()
-	clientModel:PivotTo(serverModel:GetPivot())
-	clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
-	clientModel.Parent = serverModel
+	local clientModel
+
+	if not self:isInitialized() then
+		clientModel = entityAsset:WaitForChild("Client"):Clone()
+		clientModel:PivotTo(serverModel:GetPivot())
+		clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
+		clientModel.Parent = serverModel
+	else
+		clientModel = serverModel:WaitForChild("Client")
+	end
 
 	self.clientEntity = clientModel
 	self.human = self.clientEntity:WaitForChild("Humanoid")
@@ -72,6 +82,7 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 
 	clientModel.PrimaryPart.Anchored = true
 end
+
 function AggressiveAI.Init(self: AggressiveAI)
 	self:CreateAIModel(self.serverEntity)
 
@@ -84,6 +95,8 @@ function AggressiveAI.Init(self: AggressiveAI)
 	local sweatFxAsset = VfxFolder:WaitForChild("Sweat"):Clone() :: ParticleEmitter
 	sweatFxAsset.Parent = self.clientEntity:WaitForChild("HumanoidRootPart")
 	sweatFxAsset.Enabled = false
+
+	self.serverEntity:SetAttribute("Initialized", true)
 
 	-- for _, child in pairs(self.entity:GetChildren()) do
 	-- 	if not child:IsA("BasePart") or child == self.entity.PrimaryPart then
@@ -136,6 +149,7 @@ end
 
 function AggressiveAI.Destroy(self: AggressiveAI)
 	self.destroyed = true
+	self.animController:StopAll()
 	-- self.janitor:Cleanup()
 end
 

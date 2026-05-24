@@ -1,16 +1,16 @@
 --!strict
 local MUTATIONS_CONFIG = {
-	MutationChance = 0.3,
+	MutationChance = 1,
 	AggressiveMutationChance = 0.1,
 
 	Mutations = {
 		Aggressive = {
-			Weight = 45,
+			Weight = 1000,
 			Name = "Aggressive",
 			ActivationDelayRange = { 5, 6 },
 		},
 		Terminal = {
-			Weight = 25,
+			Weight = 1,
 			Name = "Terminal",
 			ActivationDelayRange = { 5, 6 },
 		},

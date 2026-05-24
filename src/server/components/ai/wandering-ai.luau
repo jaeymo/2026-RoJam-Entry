@@ -119,19 +119,27 @@ function WanderingAI.changeTarget(self: WanderingAI)
 end
 
 function WanderingAI.checkForTargetNodes(self: WanderingAI)
-	local desiredTarget = CollectionService:GetTagged("PathNodes")
-	if not desiredTarget then
+	local desiredTargets = {}
+	local GUID = self.entity.Parent.Name
+
+	for _, room in CollectionService:GetTagged("Room") do
+		if room:GetAttribute("GUID") ~= GUID then
+			continue
+		end
+
+		desiredTargets = room:FindFirstChild("EntitySpawns", true):GetChildren()
+	end
+
+	if not desiredTargets then
 		error("NoTarg")
 	end
 
-	-- self.target = Players:GetPlayers()[1]
 	table.clear(self.pathNodes)
-	for _, v in pairs(desiredTarget) do
-		if not v:IsDescendantOf(workspace) then
-			continue
-		end
+
+	for _, v in pairs(desiredTargets) do
 		self.pathNodes[#self.pathNodes + 1] = v
 	end
+
 	return true
 end
 

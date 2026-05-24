@@ -3,7 +3,6 @@ local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
@@ -25,6 +24,7 @@ function HealthService.initEntity(self: HealthService, entityModel: Model, healt
 	self:setMaxHealth(entityModel, health)
 	self:setHealth(entityModel, health)
 
+	-- memory leak! dont care!
 	entityModel:GetAttributeChangedSignal("Health"):Connect(function()
 		if self:getHealth(entityModel) <= 0 then
 			self:killEntity(entityModel)
@@ -81,8 +81,6 @@ function HealthService.killEntity(self: HealthService, entityModel: Model)
 
 	self:setHealth(entityModel, 0)
 	entityModel:AddTag("Dead")
-
-	Debris:AddItem(entityModel, 3) -- :::temporary
 end
 
 function HealthService.jaegarInit(self: HealthService)
@@ -92,8 +90,6 @@ function HealthService.jaegarInit(self: HealthService)
 		instance:RemoveTag("AggressiveAI")
 		instance:RemoveTag("AggressiveMutation")
 		instance:RemoveTag("TerminalMutation")
-
-		Ragdoller:activateRagdoll(instance :: Model)
 	end)
 
 	SignalRegistry.mutationFinished:Connect(function(mutation: string, entityModel: Model)

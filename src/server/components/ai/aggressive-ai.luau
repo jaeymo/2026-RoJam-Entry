@@ -65,9 +65,15 @@ end
 function AggressiveAI.cleanEntityModel(self: AggressiveAI, entityModel: Model)
 	entityModel.PrimaryPart = entityModel.HumanoidRootPart
 	entityModel.PrimaryPart.Anchored = true
+
 	self.human.HipHeight = 2
+
 	entityModel.HumanoidRootPart.Transparency = 0.5
-	entityModel.Client:Destroy()
+
+	if entityModel:FindFirstChild("Client") then
+		entityModel:FindFirstChild("Client"):Destroy()
+	end
+
 	-- for _, child in pairs(entityModel:GetChildren()) do
 	-- 	if child.Name == "HumanoidRootPart" then
 	-- 		child.Transparency = 0.5
@@ -84,6 +90,7 @@ end
 function AggressiveAI.Init(self: AggressiveAI)
 	self:cleanEntityModel(self.entity)
 	self.entity.PrimaryPart:SetNetworkOwner(nil)
+	self.entity.PrimaryPart.CollisionGroup = "Entity"
 
 	task.defer(function()
 		if self.destroyed then

@@ -27,7 +27,6 @@ function TerminalMutation.new(instance: Instance, janitor: Classy.Janitor): Term
 end
 
 function TerminalMutation.init(self: TerminalMutation)
-	print("TERMINAL!")
 	MutationService:initializeEntityMutation("Terminal", self.instance)
 
 	local activationDelayRange = MutationConfig.Mutations.Terminal.ActivationDelayRange

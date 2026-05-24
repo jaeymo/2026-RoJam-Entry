@@ -40,8 +40,6 @@ function CharacterFollower.Init(self: CharacterFollower)
 
 	self:Start()
 	self.offset = Vector3.zero
-
-	print(self.targetModel)
 end
 
 function CharacterFollower.Start(self: CharacterFollower)
@@ -63,7 +61,13 @@ function CharacterFollower.Start(self: CharacterFollower)
 		end
 
 		self.taggedModel:PivotTo(targetCFrame)
+		print("RUNNING")
 	end))
+end
+
+function CharacterFollower.Stop(self: CharacterFollower)
+	self.janitor:Cleanup()
+	print("STOPPED")
 end
 
 function CharacterFollower.ChangeLookAtTarget(self: CharacterFollower, newChar: Model)

@@ -1,4 +1,5 @@
 --!nocheck
+local CollectionService = game:GetService("CollectionService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,6 +11,8 @@ local enitityFolder = assetsFolder:WaitForChild("entities")
 
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
+local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
+local Viewer = require(ReplicatedStorage.packages.viewer)
 
 local Plr = Players.LocalPlayer
 local LocalChar = Plr.Character or Plr.CharacterAdded:Wait()
@@ -72,6 +75,8 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 		clientModel = serverModel:WaitForChild("Client")
 	end
 
+	Ragdoller:addRagdoll(clientModel)
+
 	self.clientEntity = clientModel
 	self.human = self.clientEntity:WaitForChild("Humanoid")
 
@@ -97,6 +102,29 @@ function AggressiveAI.Init(self: AggressiveAI)
 	sweatFxAsset.Enabled = false
 
 	self.serverEntity:SetAttribute("Initialized", true)
+
+	Viewer.WatchTag("Dead", false, function(instance: Instance)
+		if instance == self.serverEntity then
+			self.characterFollower:Stop()
+
+			Ragdoller:activateRagdoll(self.clientEntity)
+
+			local root = self.clientEntity:FindFirstChild("HumanoidRootPart")
+			if not root then
+				return
+			end
+
+			local bv = Instance.new("BodyVelocity")
+			bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+			bv.P = 1e6
+			bv.Velocity = Vector3.new(0, 500, 0) + root.CFrame.LookVector * 100
+			bv.Parent = root.Parent.Head
+
+			task.delay(0.2, function()
+				bv:Destroy()
+			end)
+		end
+	end)
 
 	-- for _, child in pairs(self.entity:GetChildren()) do
 	-- 	if not child:IsA("BasePart") or child == self.entity.PrimaryPart then

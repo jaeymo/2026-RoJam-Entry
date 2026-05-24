@@ -7,15 +7,13 @@ local AnimationFolder = assetsFolder:WaitForChild("animations")
 local VfxFolder = assetsFolder:WaitForChild("particles")
 local enitityFolder = assetsFolder:WaitForChild("entities")
 
+local AIConfig = require(ReplicatedStorage.shared.configs["wandering-ai-config"])
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
-
-local AIConfig = require(ReplicatedStorage.shared.configs["wandering-ai-config"])
+local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
 
 local WanderingAI = {}
 WanderingAI.__index = WanderingAI
-
-local stateDelay = 0.25 -- optional
 
 export type WanderingAI = typeof(setmetatable(
 	{} :: {
@@ -61,6 +59,8 @@ function WanderingAI.CreateAIModel(self: WanderingAI, serverModel: Model)
 	else
 		clientModel = serverModel:WaitForChild("Client")
 	end
+
+	Ragdoller:addRagdoll(clientModel)
 
 	self.clientEntity = clientModel
 	self.human = self.clientEntity:WaitForChild("Humanoid")
@@ -141,13 +141,14 @@ function WanderingAI.Init(self: WanderingAI)
 		func(self)
 	end
 
-	task.wait()
-	self.characterFollower = Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity)
-		and Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity):GetData()
+	-- task.wait()
+	-- self.characterFollower = Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity)
+	-- 	and Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity):GetData()
 
-	if not self.characterFollower then
-		warn(`[{script.Name}] Failed to get characterFollower`)
-	end
+	-- if not self.characterFollower then
+	-- 	warn(`[{script.Name}] Failed to get characterFollower`)
+
+	-- end
 end
 
 function WanderingAI.Destroy(self: WanderingAI)

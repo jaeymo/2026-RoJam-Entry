@@ -43,7 +43,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 
 	local allocatedStates = entityStateAllocator:Allocate(totalEntityCount)
 	allocatedStates = {
-		["Passive"] = totalEntityCount,
+		["Aggressive"] = totalEntityCount,
 	}
 
 	local passiveAmount = allocatedStates["Passive"] or 0

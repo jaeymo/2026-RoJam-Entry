@@ -25,6 +25,7 @@ function HealthService.initEntity(self: HealthService, entityModel: Model, healt
 	self:setMaxHealth(entityModel, health)
 	self:setHealth(entityModel, health)
 
+	-- memory leak! dont care!
 	entityModel:GetAttributeChangedSignal("Health"):Connect(function()
 		if self:getHealth(entityModel) <= 0 then
 			self:killEntity(entityModel)
@@ -82,7 +83,7 @@ function HealthService.killEntity(self: HealthService, entityModel: Model)
 	self:setHealth(entityModel, 0)
 	entityModel:AddTag("Dead")
 
-	Debris:AddItem(entityModel, 3) -- :::temporary
+	Debris:AddItem(entityModel, 1000) -- :::temporary
 end
 
 function HealthService.jaegarInit(self: HealthService)
@@ -93,7 +94,7 @@ function HealthService.jaegarInit(self: HealthService)
 		instance:RemoveTag("AggressiveMutation")
 		instance:RemoveTag("TerminalMutation")
 
-		Ragdoller:activateRagdoll(instance :: Model)
+		-- Ragdoller:activateRagdoll(instance :: Model)
 	end)
 
 	SignalRegistry.mutationFinished:Connect(function(mutation: string, entityModel: Model)

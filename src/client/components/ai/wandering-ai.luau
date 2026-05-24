@@ -11,6 +11,7 @@ local AIConfig = require(ReplicatedStorage.shared.configs["wandering-ai-config"]
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
 local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
+local Viewer = require(ReplicatedStorage.packages.viewer)
 
 local WanderingAI = {}
 WanderingAI.__index = WanderingAI
@@ -60,7 +61,7 @@ function WanderingAI.CreateAIModel(self: WanderingAI, serverModel: Model)
 		clientModel = serverModel:WaitForChild("Client")
 	end
 
-	Ragdoller:addRagdoll(clientModel)
+	clientModel:AddTag("Ragdoll")
 
 	self.clientEntity = clientModel
 	self.human = self.clientEntity:WaitForChild("Humanoid")
@@ -151,11 +152,6 @@ function WanderingAI.Init(self: WanderingAI)
 	-- end
 end
 
-function WanderingAI.Destroy(self: WanderingAI)
-	-- self.janitor:Cleanup()
-	self.animController:StopAll()
-end
-
 function WanderingAI.Resting(self: WanderingAI)
 	self.currentIdle = "ParanoidIdle"
 	self.animController:Play(self.currentIdle, true)
@@ -170,6 +166,43 @@ end
 
 function WanderingAI.ExitWandering(self: WanderingAI)
 	self.animController:Stop("Walk")
+end
+
+function WanderingAI.OnDied(self: WanderingAI)
+	self.animController:StopAll()
+	self.characterFollower:Stop()
+
+	self.clientEntity.PrimaryPart.Anchored = false
+	Ragdoller:activateRagdoll(self.clientEntity)
+
+	local root = self.clientEntity:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return
+	end
+
+	local head = self.clientEntity:FindFirstChild("Head")
+	if not head then
+		warn("get jaeymo")
+		return
+	end
+
+	local bv = Instance.new("BodyVelocity")
+	bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+	bv.P = 1e6
+	bv.Velocity = Vector3.new(0, math.random(-15, 15), 0) + (-root.CFrame.LookVector * 100) * -1
+	bv.Parent = head
+
+	task.delay(0.2, function()
+		bv:Destroy()
+	end)
+end
+
+function WanderingAI.Destroy(self: WanderingAI)
+	self.animController:StopAll()
+
+	if self.serverEntity:HasTag("Dead") then
+		self:OnDied()
+	end
 end
 
 WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {

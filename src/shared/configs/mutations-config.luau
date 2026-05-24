@@ -13,7 +13,7 @@ local MUTATIONS_CONFIG = {
 		Terminal = {
 			Weight = 1000,
 			Name = "Terminal",
-			ActivationDelayRange = { 5, 6 },
+			ActivationDelayRange = { 2, 3 },
 		},
 	},
 }

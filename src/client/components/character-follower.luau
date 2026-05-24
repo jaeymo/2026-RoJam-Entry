@@ -61,13 +61,11 @@ function CharacterFollower.Start(self: CharacterFollower)
 		end
 
 		self.taggedModel:PivotTo(targetCFrame)
-		print("RUNNING")
 	end))
 end
 
 function CharacterFollower.Stop(self: CharacterFollower)
 	self.janitor:Cleanup()
-	print("STOPPED")
 end
 
 function CharacterFollower.ChangeLookAtTarget(self: CharacterFollower, newChar: Model)

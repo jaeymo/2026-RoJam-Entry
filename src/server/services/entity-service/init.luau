@@ -39,7 +39,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		["Aggressive"] = { Weight = 1, Cost = 1 },
 	})
 
-	local totalEntityCount = math.random(2, 2)
+	local totalEntityCount = math.random(2, 5)
 
 	local allocatedStates = entityStateAllocator:Allocate(totalEntityCount)
 	allocatedStates = {

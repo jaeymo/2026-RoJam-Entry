@@ -243,26 +243,26 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 end)
 
 -- warn("RUNNING FLAME COMP")
-if RunService:IsClient() then
-	local LocalPlayer = Players.LocalPlayer
-	local Mouse = LocalPlayer:GetMouse()
+-- if RunService:IsClient() then
+-- 	local LocalPlayer = Players.LocalPlayer
+-- 	local Mouse = LocalPlayer:GetMouse()
 
-	UserInputService.InputBegan:Connect(function(Input: InputObject, GPE: boolean)
-		if GPE then
-			return
-		end
+-- 	UserInputService.InputBegan:Connect(function(Input: InputObject, GPE: boolean)
+-- 		if GPE then
+-- 			return
+-- 		end
 
-		if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-			FlameHandler:Spawn(Mouse.Hit.Position, Vector3.new(12, 6, 12), {
-				LifeTime = 2,
-				FlammableStartup = 0.25,
-				BurnDamage = 5,
-				FlameTransmission = 1,
-				DestroyOnBurn = false,
-				BurnoutCooldown = 2,
-			})
-		end
-	end)
-end
+-- 		if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+-- 			FlameHandler:Spawn(Mouse.Hit.Position, Vector3.new(12, 6, 12), {
+-- 				LifeTime = 2,
+-- 				FlammableStartup = 0.25,
+-- 				BurnDamage = 5,
+-- 				FlameTransmission = 1,
+-- 				DestroyOnBurn = false,
+-- 				BurnoutCooldown = 2,
+-- 			})
+-- 		end
+-- 	end)
+-- end
 
 return FlameHandler

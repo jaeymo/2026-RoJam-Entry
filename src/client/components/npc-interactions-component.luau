@@ -309,6 +309,10 @@ UserInputService.InputBegan:Connect(function(Input: InputObject, GPE: boolean)
 end)
 
 ProximityPromptService.PromptTriggered:Connect(function(ProximityPrompt: ProximityPrompt)
+	if ProximityPrompt.Name ~= "NPCPrompt" then
+		return
+	end
+
 	local Model = ProximityPrompt:FindFirstAncestorOfClass("Model")
 	if not Model or not Model.PrimaryPart then
 		return

@@ -22,4 +22,8 @@ function EntityFactory.getNewEntityModel(_: EntityFactory, name: string): Model?
 	return entity:Clone()
 end
 
+function EntityFactory.getNewDoctorModel(_: EntityFactory): Model?
+	return ((entityAssets:FindFirstChild("doctors") :: Folder):FindFirstChild("plague-doctor") :: Model):Clone() :: Model?
+end
+
 return EntityFactory

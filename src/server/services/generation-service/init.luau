@@ -1,4 +1,5 @@
 --!strict
+local HttpService = game:GetService("HttpService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local GenerationConfig = require(script["generation-config"])
@@ -186,6 +187,7 @@ function GenerationService.generateNext(self: GenerationService)
 
 	newRoom.PrimaryPart = startNode
 	newRoom:PivotTo(spawnCFrame)
+	newRoom:SetAttribute("GUID", HttpService:GenerateGUID(false))
 	newRoom.Parent = GenerationConfig.parent
 
 	self.currentRoomGenerationIndex = nextRoomIndex

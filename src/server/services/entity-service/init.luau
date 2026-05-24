@@ -13,6 +13,10 @@ local EntityService = {}
 export type EntityService = typeof(EntityService)
 
 function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
+	local parent = Instance.new("Folder")
+	parent.Name = roomModel:GetAttribute("GUID") :: string
+	parent.Parent = workspace:WaitForChild("runtime"):WaitForChild("entities")
+
 	local passiveEntitySpawns = {} :: { BasePart }
 	local aggressiveEntitySpawns = {} :: { BasePart }
 
@@ -63,7 +67,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		end
 
 		-- local tag = math.random() >= 0.5 and "PassiveAI" or "WanderingAI"
-		newEntityModel:AddTag("PassiveAI")
+		newEntityModel:AddTag("WanderingAI")
 		task.wait(0.1) -- fun lil wait
 	end
 

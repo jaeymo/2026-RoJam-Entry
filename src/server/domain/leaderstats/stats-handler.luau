@@ -1,7 +1,6 @@
 --// Services //--
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local RunService = game:GetService("RunService")
 
 --// Datastore //--
@@ -9,9 +8,11 @@ local Leaderboard = DataStoreService:GetDataStore("GlobalLeaderboards")
 
 --// Variables //--
 local DefaultStats = {
-	["Tolls"] = 0,
-	["Cured"] = 0,
-	["Currency"] = 0,
+	Tolls = 0,
+	Currency = 0,
+
+	Cured_Success = 0,
+	Cured_Fail = 0,
 }
 
 --// Main Code //--
@@ -23,7 +24,13 @@ local function SetupStats(Player)
 	end
 end
 
-local function UpdateLeaderboard(Player: Player, Tolls: number, Cures: number, CurrencyEarned: number)
+local function UpdateLeaderboard(
+	Player: Player,
+	Tolls: number,
+	CureSuccess: number,
+	CureFail: number,
+	CurrencyEarned: number
+)
 	local UserId = tostring(Player.UserId)
 
 	local Success, Error = pcall(function()
@@ -31,15 +38,19 @@ local function UpdateLeaderboard(Player: Player, Tolls: number, Cures: number, C
 			OldData = OldData
 				or {
 					Name = Player.Name,
-					TotalTolls = 0,
-					TotalCures = 0,
-					TotalCurrency = 0,
+
+					Total_Tolls = 0,
+					Total_Cures_Success = 0,
+					Total_Cures_Fail = 0,
+					Total_Currency = 0,
 				}
 
 			OldData.Name = Player.Name
-			OldData.TotalTolls += Tolls
-			OldData.TotalCures += Cures
-			OldData.TotalCurrency += CurrencyEarned
+
+			OldData.Total_Tolls += Tolls
+			OldData.Total_Cures_Success += CureSuccess
+			OldData.Total_Cures_Fail += CureFail
+			OldData.Total_Currency += CurrencyEarned
 
 			return OldData
 		end)
@@ -50,7 +61,7 @@ local function UpdateLeaderboard(Player: Player, Tolls: number, Cures: number, C
 	end
 end
 
-function StatsHandler:ModifyStat(Player: Player, Stat: string, Amount: number)
+function StatsHandler.ModifyStat(Player: Player, Stat: string, Amount: number)
 	if not Player or not Player:GetAttribute(Stat) then
 		return
 	end
@@ -63,36 +74,31 @@ function StatsHandler:ModifyStat(Player: Player, Stat: string, Amount: number)
 	Player:SetAttribute(Stat, NewValue)
 end
 
-function StatsHandler:ClaimStats(Player: Player)
+function StatsHandler.ClaimStats(Player: Player)
 	if not Player then
 		return
 	end
 
 	local Tolls = Player:GetAttribute("Tolls") or 0
-	local Cures = Player:GetAttribute("Cured") or 0
 
-	local CurrencyEarned = math.floor((Tolls * 0.5) + (Cures * 0.5))
+	local CureSuccess = Player:GetAttribute("Cured_Success") or 0
+	local CureFail = Player:GetAttribute("Cured_Fail") or 0
 
-	self:ModifyStat(Player, "Currency", CurrencyEarned)
+	local CurrencyEarned = math.floor((Tolls * 0.5) + (CureSuccess * 1) - (CureFail * 0.25))
+
+	CurrencyEarned = math.max(0, CurrencyEarned)
+
+	StatsHandler.ModifyStat(Player, "Currency", CurrencyEarned)
 
 	if not RunService:IsStudio() then
-		UpdateLeaderboard(Player, Tolls, Cures, CurrencyEarned)
+		UpdateLeaderboard(Player, Tolls, CureSuccess, CureFail, CurrencyEarned)
 	end
 
 	Player:SetAttribute("Tolls", 0)
-	Player:SetAttribute("Cured", 0)
+	Player:SetAttribute("Cured_Success", 0)
+	Player:SetAttribute("Cured_Fail", 0)
 
 	return CurrencyEarned
-end
-
-if RunService:IsStudio() then
-	ProximityPromptService.PromptTriggered:Connect(function(ProximityPrompt: ProximityPrompt, Player: Player)
-		if ProximityPrompt.ActionText == "Cured" or ProximityPrompt.ActionText == "Tolls" then
-			StatsHandler:ModifyStat(Player, ProximityPrompt.ActionText, 1)
-		else
-			StatsHandler:ClaimStats(Player)
-		end
-	end)
 end
 
 Players.PlayerAdded:Connect(SetupStats)

@@ -56,8 +56,8 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 	end
 
 	local clientModel = entityAsset:WaitForChild("Client"):Clone()
-	clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
 	clientModel:PivotTo(serverModel:GetPivot())
+	clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
 	clientModel.Parent = serverModel
 
 	self.clientEntity = clientModel
@@ -67,8 +67,9 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 	objVal.Name = "TargetModel"
 	objVal.Value = serverModel
 	objVal.Parent = clientModel
-end
 
+	clientModel.PrimaryPart.Anchored = true
+end
 function AggressiveAI.Init(self: AggressiveAI)
 	self:CreateAIModel(self.serverEntity)
 

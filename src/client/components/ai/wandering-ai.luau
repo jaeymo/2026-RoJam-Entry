@@ -49,6 +49,7 @@ function WanderingAI.CreateAIModel(self: WanderingAI, serverModel: Model)
 
 	local clientModel = entityAsset:WaitForChild("Client"):Clone()
 	clientModel:PivotTo(serverModel:GetPivot())
+	clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
 	clientModel.Parent = serverModel
 
 	self.clientEntity = clientModel
@@ -58,10 +59,14 @@ function WanderingAI.CreateAIModel(self: WanderingAI, serverModel: Model)
 	objVal.Name = "TargetModel"
 	objVal.Value = serverModel
 	objVal.Parent = clientModel
+
+	clientModel.PrimaryPart.Anchored = true
 end
 
 function WanderingAI.Init(self: WanderingAI)
 	self:CreateAIModel(self.serverEntity)
+
+	self.clientEntity:AddTag("CharacterFollower")
 
 	self.animController = BetterAnimation.new(HttpService:GenerateGUID()) :: BetterAnimation.BetterAnimation
 	self.animController:RegisterAnimator(self.human:WaitForChild("Animator"))

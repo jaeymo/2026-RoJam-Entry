@@ -60,6 +60,9 @@ end
 function WanderingAI.cleanEntityModel(self: WanderingAI, entityModel: Model)
 	entityModel.PrimaryPart = entityModel.HumanoidRootPart
 	entityModel.PrimaryPart.Anchored = true
+	entityModel.PrimaryPart.Transparency = 0.5
+
+	entityModel.PrimaryPart.CollisionGroup = "PassiveEntity"
 	self.human.HipHeight = 2
 	entityModel.Client:Destroy()
 	-- for _, child in pairs(entityModel:GetChildren()) do

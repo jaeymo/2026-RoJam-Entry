@@ -1,4 +1,5 @@
 --!nocheck
+local CollectionService = game:GetService("CollectionService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -10,6 +11,8 @@ local enitityFolder = assetsFolder:WaitForChild("entities")
 
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
+local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
+local Viewer = require(ReplicatedStorage.packages.viewer)
 
 local Plr = Players.LocalPlayer
 local LocalChar = Plr.Character or Plr.CharacterAdded:Wait()
@@ -24,6 +27,7 @@ export type AggressiveAI = typeof(setmetatable(
 		serverEntity: Model,
 		clientEntity: Model,
 
+		destroyed: boolean,
 		characterFollower: any,
 
 		currentState: string,
@@ -44,9 +48,14 @@ function AggressiveAI.new(entity: Instance, janitor: Classy.Janitor): Aggressive
 		serverEntity = entity :: Model,
 		animController = animController,
 		sweatFx = {},
+		destroyed = false,
 		currentState = "None",
 		janitor = janitor,
 	}, AggressiveAI)
+end
+
+function AggressiveAI.isInitialized(self: AggressiveAI): boolean
+	return self.serverEntity:GetAttribute("Initialized")
 end
 
 function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
@@ -55,10 +64,18 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 		warn(serverModel, entityAsset)
 	end
 
-	local clientModel = entityAsset:WaitForChild("Client"):Clone()
-	clientModel:PivotTo(serverModel:GetPivot())
-	clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
-	clientModel.Parent = serverModel
+	local clientModel
+
+	if not self:isInitialized() then
+		clientModel = entityAsset:WaitForChild("Client"):Clone()
+		clientModel:PivotTo(serverModel:GetPivot())
+		clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
+		clientModel.Parent = serverModel
+	else
+		clientModel = serverModel:WaitForChild("Client")
+	end
+
+	clientModel:AddTag("Ragdoll")
 
 	self.clientEntity = clientModel
 	self.human = self.clientEntity:WaitForChild("Humanoid")
@@ -112,6 +129,8 @@ function AggressiveAI.Init(self: AggressiveAI)
 	sweatFxAsset.Parent = self.clientEntity:WaitForChild("HumanoidRootPart")
 	sweatFxAsset.Enabled = false
 
+	self.serverEntity:SetAttribute("Initialized", true)
+
 	-- for _, child in pairs(self.entity:GetChildren()) do
 	-- 	if not child:IsA("BasePart") or child == self.entity.PrimaryPart then
 	-- 		continue
@@ -162,12 +181,48 @@ function AggressiveAI.Init(self: AggressiveAI)
 
 	self:EquipWeapon()
 
-	task.wait()
+	repeat
+		task.wait()
+	until Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity)
+
 	self.characterFollower = Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity):GetData()
 end
 
+function AggressiveAI.OnDied(self: AggressiveAI)
+	self.characterFollower:Stop()
+
+	self.clientEntity.PrimaryPart.Anchored = false
+	Ragdoller:activateRagdoll(self.clientEntity)
+
+	local root = self.clientEntity:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return
+	end
+
+	local head = self.clientEntity:FindFirstChild("Head")
+	if not head then
+		warn("get jaeymo")
+		return
+	end
+
+	local bv = Instance.new("BodyVelocity")
+	bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+	bv.P = 1e6
+	bv.Velocity = Vector3.new(0, math.random(-15, 15), 0) + (-root.CFrame.LookVector * 100) * -1
+	bv.Parent = head
+
+	task.delay(0.2, function()
+		bv:Destroy()
+	end)
+end
+
 function AggressiveAI.Destroy(self: AggressiveAI)
-	-- self.janitor:Cleanup()
+	self.destroyed = true
+	self.animController:StopAll()
+
+	if self.serverEntity:HasTag("Dead") then
+		self:OnDied()
+	end
 end
 
 function AggressiveAI.Chasing(self: AggressiveAI)
@@ -217,12 +272,20 @@ function AggressiveAI.Idle(self: AggressiveAI)
 
 	self.IdleDelay = task.spawn(function()
 		task.wait(stateDelay)
+
+		if self.destroyed then
+			print(self)
+			return
+		end
+
 		if self.serverEntity:GetAttribute("State") ~= "Idle" then
 			return
 		end
+
 		self.animController:Stop("AggressiveStumbleChase")
 		self.animController:Stop("AggressiveStumble")
 		self.animController:Play("AggressiveStumbleIdle")
+
 		if self.serverEntity:GetAttribute("Recovering") then
 			self.animController:GetTrack("AggressiveStumbleIdle"):AdjustSpeed(2)
 		end
@@ -281,7 +344,9 @@ function AggressiveAI.ExitRecovering(self: AggressiveAI)
 	self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(1)
 end
 
-AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {})
+AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {
+	Nuke = false,
+})
 
 Classy.registerGlobal("AggressiveAI", AggressiveAI.classy)
 

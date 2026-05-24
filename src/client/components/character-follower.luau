@@ -64,6 +64,10 @@ function CharacterFollower.Start(self: CharacterFollower)
 	end))
 end
 
+function CharacterFollower.Stop(self: CharacterFollower)
+	self.janitor:Cleanup()
+end
+
 function CharacterFollower.ChangeLookAtTarget(self: CharacterFollower, newChar: Model)
 	self.lookAtTarget = newChar
 end

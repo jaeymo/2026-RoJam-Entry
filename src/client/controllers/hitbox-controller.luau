@@ -28,25 +28,23 @@ function HitboxController.CreateBox(CFrame, Size)
 end
 
 function HitboxController.CheckForHumanoids(CFrame, Size)
-	local box = HitboxController.CreateBox(CFrame, Size)
-
-	local raytypeparams = Raydar.RayTypes.AimForPlayers.GetParams()
+	local rayTypeParams = Raydar.RayTypes.AimForPlayers.GetParams()
 
 	local params = OverlapParams.new()
-	params.FilterType = raytypeparams.FilterType
-	params.FilterDescendantsInstances = raytypeparams.FilterDescendantsInstances
-	params.CollisionGroup = raytypeparams.CollisionGroup
+	params.FilterType = rayTypeParams.FilterType
+	params.FilterDescendantsInstances = rayTypeParams.FilterDescendantsInstances
+	params.CollisionGroup = rayTypeParams.CollisionGroup
 
 	local touching = workspace:GetPartBoundsInBox(CFrame, Size, params)
-
 	local humans = {}
-	for _, otherpart: BasePart in pairs(touching) do
-		local hasModelParent = otherpart:FindFirstAncestorWhichIsA("Model")
+
+	for _, otherPart: BasePart in pairs(touching) do
+		local hasModelParent = otherPart:FindFirstAncestorWhichIsA("Model")
 		if not hasModelParent then
 			continue
 		end
 
-		local humanoid = otherpart:FindFirstAncestorWhichIsA("Model"):FindFirstChildWhichIsA("Humanoid")
+		local humanoid = (otherPart:FindFirstAncestorWhichIsA("Model") :: Model):FindFirstChildWhichIsA("Humanoid")
 		if not humanoid then
 			continue
 		end
@@ -56,12 +54,14 @@ function HitboxController.CheckForHumanoids(CFrame, Size)
 		end
 		table.insert(humans, humanoid)
 	end
+
 	return humans
 end
 
 function HitboxController.CheckEnemyHitbox(CFrame, Size, hitboxData)
 	local humans = HitboxController.CheckForHumanoids(CFrame, Size)
 	local plrHuman = LocalChar:FindFirstChildWhichIsA("Humanoid")
+
 	for _, human in pairs(humans) do
 		if human == plrHuman then
 			signals.plrHit:Fire(hitboxData)

@@ -70,6 +70,34 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 
 	clientModel.PrimaryPart.Anchored = true
 end
+
+function AggressiveAI.EquipWeapon(self: AggressiveAI)
+	if not self.currentWeapon then
+		return
+	end
+
+	local weaponAsset = ReplicatedStorage.assets.models["npc-weapons"]:FindFirstChild(self.currentWeapon)
+	self.clientEntity.Name = self.currentWeapon
+
+	if not weaponAsset then
+		return
+	end
+
+	local arm = self.clientEntity["Right Arm"]
+
+	weaponAsset = weaponAsset:Clone()
+
+	local motor6D = weaponAsset.PrimaryPart:FindFirstChildWhichIsA("Motor6D")
+	if not motor6D then
+		motor6D = Instance.new("Motor6D")
+		motor6D.Part1 = weaponAsset.PrimaryPart
+		motor6D.Parent = weaponAsset.PrimaryPart
+	end
+
+	motor6D.Part0 = arm
+	weaponAsset.Parent = self.clientEntity
+end
+
 function AggressiveAI.Init(self: AggressiveAI)
 	self:CreateAIModel(self.serverEntity)
 

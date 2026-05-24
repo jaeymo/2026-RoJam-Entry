@@ -2,6 +2,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
+local testCharacters = ReplicatedStorage.assets.entities.test
+
 local EntityFactory = require(script["entity-factory"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local MutationsConfig = require(ReplicatedStorage.shared.configs["mutations-config"])
@@ -42,9 +44,10 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 	local aggressiveAmount = allocatedStates["Aggressive"] or 0
 
 	for _ = 1, passiveAmount do
-		local newEntityModel = EntityFactory:getNewEntityModel("test-a")
+		local newChar = testCharacters:GetChildren()[math.random(1, #testCharacters:GetChildren())].Name
+		local newEntityModel = EntityFactory:getNewEntityModel(newChar)
 		if not newEntityModel then
-			warn(`[{script.Name}] Failed to make new entity: {"test-a"}`)
+			warn(`[{script.Name}] Failed to make new entity: {newChar}`)
 			continue
 		end
 
@@ -77,9 +80,10 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 	end
 
 	for _ = 1, aggressiveAmount do
-		local newEntityModel = EntityFactory:getNewEntityModel("test-a")
+		local newChar = testCharacters:GetChildren()[math.random(1, #testCharacters:GetChildren())].Name
+		local newEntityModel = EntityFactory:getNewEntityModel(newChar)
 		if not newEntityModel then
-			warn(`[{script.Name}] Failed to make new entity: {"test-a"}`)
+			warn(`[{script.Name}] Failed to make new entity: {newChar}`)
 			continue
 		end
 

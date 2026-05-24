@@ -2,13 +2,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local entityAssets = ReplicatedStorage.assets.entities
+local testCharacters = entityAssets.test
 
 local EntityFactory = {}
 
 export type EntityFactory = typeof(EntityFactory)
 
 function EntityFactory.getNewEntityModel(_: EntityFactory, name: string): Model?
-	local entity = entityAssets:FindFirstChild(name)
+	local entity = testCharacters:FindFirstChild(name)
 	if not entity then
 		warn(`[{script.Name}] Failed to find entity by the name of: {name}`)
 		return nil

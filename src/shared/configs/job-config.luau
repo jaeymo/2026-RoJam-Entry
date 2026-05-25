@@ -28,7 +28,7 @@ local JobConfig = {
 	},
 	Nitwit = {
 		Name = "NitWit",
-		Weight = 20,
+		Weight = 3,
 		Vitals = {
 			HealthMultiplier = 1,
 			DamageMultiplier = 1,

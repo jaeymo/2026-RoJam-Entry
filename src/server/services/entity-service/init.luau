@@ -51,9 +51,14 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 	local aggressiveAmount = allocatedStates["Aggressive"] or 0
 
 	for _ = 1, passiveAmount do
-		local newEntityModel = EntityFactory:getNewEntityModel("test-a")
+		local jobData = NpcEmployer:getAJob()
+		if not jobData.Name then
+			warn("Could not assign job")
+			continue
+		end
+		local newEntityModel = EntityFactory:getNewEntityModel(jobData.Name)
 		if not newEntityModel then
-			warn(`[{script.Name}] Failed to make new entity: {"test-a"}`)
+			warn(`[{script.Name}] Failed to make new entity: {jobData.Name}`)
 			continue
 		end
 
@@ -63,11 +68,10 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 
-		local data = NpcEmployer:getAJob()
-		newEntityModel:SetAttribute("JobWeapon", data.Weapon)
-		newEntityModel:SetAttribute("JobName", data.Name)
-		newEntityModel:SetAttribute("DamageMultiplier", data.DamageMultiplier)
-		newEntityModel:SetAttribute("HealthMultiplier", data.HealthMultiplier)
+		newEntityModel:SetAttribute("JobWeapon", jobData.Weapon)
+		newEntityModel:SetAttribute("JobName", jobData.Name)
+		newEntityModel:SetAttribute("DamageMultiplier", jobData.DamageMultiplier)
+		newEntityModel:SetAttribute("HealthMultiplier", jobData.HealthMultiplier)
 
 		newEntityModel.Parent = workspace
 
@@ -87,9 +91,14 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 	end
 
 	for _ = 1, aggressiveAmount do
-		local newEntityModel = EntityFactory:getNewEntityModel("test-a")
+		local jobData = NpcEmployer:getAJob()
+		if not jobData.Name then
+			warn("Could not assign job")
+			continue
+		end
+		local newEntityModel = EntityFactory:getNewEntityModel(jobData.Name)
 		if not newEntityModel then
-			warn(`[{script.Name}] Failed to make new entity: {"test-a"}`)
+			warn(`[{script.Name}] Failed to make new entity: {jobData.Name}`)
 			continue
 		end
 
@@ -100,11 +109,10 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel.Parent = parent
 
-		local data = NpcEmployer:getAJob()
-		newEntityModel:SetAttribute("JobWeapon", data.Weapon)
-		newEntityModel:SetAttribute("JobName", data.Name)
-		newEntityModel:SetAttribute("DamageMultiplier", data.DamageMultiplier)
-		newEntityModel:SetAttribute("HealthMultiplier", data.HealthMultiplier)
+		newEntityModel:SetAttribute("JobWeapon", jobData.Weapon)
+		newEntityModel:SetAttribute("JobName", jobData.Name)
+		newEntityModel:SetAttribute("DamageMultiplier", jobData.DamageMultiplier)
+		newEntityModel:SetAttribute("HealthMultiplier", jobData.HealthMultiplier)
 
 		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")

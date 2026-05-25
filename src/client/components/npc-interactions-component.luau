@@ -271,6 +271,32 @@ local function SetupUI(NPC: Instance)
 	ActiveConfig = GetConfigForNPC(NPC)
 
 	ScreenGui.Enabled = true
+
+	task.spawn(function()
+		local Character = Player.Character or Player.CharacterAdded:Wait()
+		local RootPart = Character:FindFirstChild("HumanoidRootPart")
+
+		while ScreenGui.Enabled and NPC_Interactions.ActiveNPC == NPC do
+			task.wait(0.1)
+
+			if not RootPart or not RootPart.Parent then
+				Character = Player.Character or Player.CharacterAdded:Wait()
+				RootPart = Character:FindFirstChild("HumanoidRootPart")
+			end
+
+			local NPCRoot = NPC:FindFirstChild("HumanoidRootPart") or NPC.PrimaryPart
+			if not NPCRoot or not RootPart then
+				break
+			end
+
+			local Distance = (RootPart.Position - NPCRoot.Position).Magnitude
+
+			if Distance > 15 then
+				RunAction("Exit")
+				break
+			end
+		end
+	end)
 end
 
 local function SetupPrompt(NPC: Instance)

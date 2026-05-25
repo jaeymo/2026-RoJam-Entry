@@ -3,11 +3,12 @@
 --// Services //--
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local ServerScriptService = game:GetService("ServerScriptService")
 
 --// Modules //--
 local Classy = require(ReplicatedStorage.packages.classy)
-local StatsHandler = require(ServerScriptService.domain.leaderstats["stats-handler"])
+local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
+
+local Network = Jaegar:GetNetwork()
 
 --// Main Code //--
 local Dead_NPC = {}
@@ -18,8 +19,9 @@ local function SetupPrompt(NPC: Instance)
 		return
 	end
 
-	local PrimaryPart = NPC:FindFirstChild("HumanoidRootPart") or NPC.PrimaryPart
+	local PrimaryPart = NPC:WaitForChild("Client") and NPC:WaitForChild("Client"):WaitForChild("HumanoidRootPart")
 	if not PrimaryPart then
+		warn(`[{script.Name}] Failed to get primary part for: {NPC:GetFullName()}`)
 		return
 	end
 
@@ -29,24 +31,43 @@ local function SetupPrompt(NPC: Instance)
 
 	local Prompt = Instance.new("ProximityPrompt")
 	Prompt.Name = "DeadPrompt"
-	Prompt.ActionText = ""
+	Prompt.ActionText = "Collect"
 	Prompt.RequiresLineOfSight = false
 	Prompt.Parent = PrimaryPart
 end
 
-ProximityPromptService.PromptTriggered:Connect(function(Prompt: ProximityPrompt, Player: Player)
+local function CollectBody(NPC: Model)
+	print("COLLECTED: ", NPC)
+end
+
+ProximityPromptService.PromptTriggered:Connect(function(Prompt: ProximityPrompt, _: Player)
+	if Prompt:GetAttribute("Collected") then
+		return
+	end
+
 	if Prompt.Name ~= "DeadPrompt" then
 		return
 	end
 
-	Prompt:Destroy()
+	local NPC = Prompt.Parent.Parent.Parent
+	if not NPC then
+		warn(`[{script.Name}] Failed to get NPC for prompt: {Prompt:GetFullName()}`)
+		return
+	end
 
-	StatsHandler.ModifyStat(Player, "Tolls", 1)
+	Prompt:SetAttribute("Collected", true)
+	Network:SendServer("collectDeathToll", NPC)
+	CollectBody(NPC)
+	Prompt:Destroy()
 end)
 
 Classy.create("Dead", function(NPC: Instance)
 	task.spawn(function()
 		SetupPrompt(NPC)
+
+		if NPC:FindFirstChild("NPCPrompt", true) then
+			NPC:FindFirstChild("NPCPrompt", true):Destroy()
+		end
 	end)
 
 	return {

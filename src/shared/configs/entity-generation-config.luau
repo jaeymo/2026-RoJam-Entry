@@ -5,7 +5,7 @@ local ENTITY_GENERATION_CONFIG = {
 
 	-- temporary system
 	getSpawnAmount = function(_: any)
-		return math.random(4, 4)
+		return math.random(4, 8)
 	end,
 }
 

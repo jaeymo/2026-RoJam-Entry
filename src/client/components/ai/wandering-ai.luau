@@ -176,6 +176,12 @@ function WanderingAI.Dialogue(self: WanderingAI)
 	end
 end
 
+function WanderingAI.ExitDialogue(self: WanderingAI)
+	if self.characterFollower then
+		self.characterFollower:ChangeLookAtTarget(nil)
+	end
+end
+
 function WanderingAI.OnDied(self: WanderingAI)
 	self.animController:StopAll()
 	self.characterFollower:Stop()

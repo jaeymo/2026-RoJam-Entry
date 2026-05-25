@@ -210,6 +210,7 @@ local function RunAction(Action: string)
 	NPC_Interactions.Cooldown = true
 
 	Sound:Play()
+	Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
 
 	if Action == "Talk" then
 		RunTalk()
@@ -256,7 +257,6 @@ local function SetupUI(NPC: Instance)
 	local Highest = #Actions + 1
 	NPC_Interactions.ActiveActions = {}
 
-	print(NPC)
 	Network:SendServer("startDialogueConversation", NPC)
 
 	for Index, Action in ipairs(Actions) do

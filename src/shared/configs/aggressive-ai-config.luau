@@ -32,7 +32,7 @@ local AggressiveAiConfig = {
 	Pathfinding = {
 		SightDistance = 50,
 		SearchTimeout = 1,
-		StopDistance = 10,
+		StopDistance = 7,
 	},
 }
 

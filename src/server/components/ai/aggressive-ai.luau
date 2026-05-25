@@ -12,6 +12,7 @@ local AIPathService = require(ServerScriptService.services["ai-path-service"])
 local Raydar = require(ReplicatedStorage.shared.utils.raydar)
 
 local AIConfig = require(ReplicatedStorage.shared.configs["aggressive-ai-config"])
+local InfectedConfig = require(ReplicatedStorage.shared.configs["aggressive-ai-config"])
 
 local AggressiveAI = {}
 AggressiveAI.__index = AggressiveAI
@@ -52,7 +53,6 @@ function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): Aggress
 		targetVisible = false,
 		internalState = "None",
 
-		stamina = math.random(0, AIConfig.Movement.MaxStamina),
 		staminaRecoveryTick = os.clock(),
 		staminaDrainTick = os.clock(),
 
@@ -92,6 +92,12 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self.entity.PrimaryPart:SetNetworkOwner(nil)
 	self.entity.PrimaryPart.CollisionGroup = "Entity"
 
+	self.currentJob = self.entity:GetAttribute("JobName")
+	self.currentWeapon = self.entity:GetAttribute("JobWeapon")
+
+	self:applyJobConfig()
+	stamina = math.random(0, AIConfig.Movement.MaxStamina)
+
 	task.defer(function()
 		if self.destroyed then
 			return
@@ -101,6 +107,8 @@ function AggressiveAI.Init(self: AggressiveAI)
 
 	self:SetState("Hunting")
 end
+
+function AggressiveAI.applyJobConfig(self: AggressiveAI) end
 
 function AggressiveAI.checkForTarget(self: AggressiveAI)
 	-- local desiredTarget = CollectionService:GetTagged("AIAttractor")[1]

@@ -170,8 +170,6 @@ end
 
 function WanderingAI.Dialogue(self: WanderingAI)
 	self.animController:StopAll()
-	self.currentIdle = "ParanoidIdle"
-	self.animController:Play(self.currentIdle, true)
 
 	if self.characterFollower then
 		self.characterFollower:ChangeLookAtTarget(LocalChar)

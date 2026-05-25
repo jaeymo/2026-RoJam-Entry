@@ -1,13 +1,17 @@
 --!strict
 local Players = game:GetService("Players")
-local ServerScriptService = game:GetService("ServerScriptService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local HealthService = require(ServerScriptService.services["health-service"])
+local BackpackComponent = require(ReplicatedStorage.shared.components["backpack-component"])
 
 local PlayerInitialization = {}
 
 local function handlePlayer(player: Player)
 	player:AddTag("Player")
+
+	local component = BackpackComponent.classy:Apply(player)
+	component:GetData():setResource("Garlic", 10)
+	component:GetData():setResource("Emeralds", 10)
 end
 
 for _, player in Players:GetPlayers() do

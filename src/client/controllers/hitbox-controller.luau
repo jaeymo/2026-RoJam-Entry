@@ -15,9 +15,12 @@ local HitboxController = {}
 export type HitboxController = typeof(HitboxController)
 
 local PART_CACHE = Instance.new("Part")
+PART_CACHE.Anchored = true
+PART_CACHE.CastShadow = false
 PART_CACHE.CanCollide = false
 PART_CACHE.CanQuery = false
-PART_CACHE.Transparency = 1
+PART_CACHE.Transparency = 0.5
+PART_CACHE.Color = Color3.fromRGB(255, 0, 0)
 
 function HitboxController.CreateBox(CFrame, Size)
 	local box = PART_CACHE:Clone()
@@ -65,6 +68,10 @@ function HitboxController.CheckEnemyHitbox(CFrame, Size, hitboxData)
 	for _, human in pairs(humans) do
 		if human == plrHuman then
 			signals.plrHit:Fire(hitboxData)
+
+			task.spawn(function()
+				Network:SendServer("sendHit")
+			end)
 		end
 	end
 end

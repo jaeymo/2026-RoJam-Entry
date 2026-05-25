@@ -5,6 +5,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 
 local EntityFactory = require(script["entity-factory"])
 local EntityGenerationConfig = require(ReplicatedStorage.shared.configs["entity-generation-config"])
+local InfectedConfig = require(ReplicatedStorage.shared.configs["infected-config"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local MutationsConfig = require(ReplicatedStorage.shared.configs["mutations-config"])
 local NpcEmployer = require(ReplicatedStorage.shared.utils["npc-employer"])
@@ -14,6 +15,10 @@ local SignalRegistry = require(ServerScriptService["signal-registry"])
 local EntityService = {}
 
 export type EntityService = typeof(EntityService)
+
+local function getRandomInfectedLevel(): number
+	return math.random(0, #InfectedConfig)
+end
 
 function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 	local parent = Instance.new("Folder")
@@ -75,6 +80,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 
+		newEntityModel:SetAttribute("InfectedLevel", getRandomInfectedLevel())
 		newEntityModel:SetAttribute("JobWeapon", jobData.Weapon)
 		newEntityModel:SetAttribute("JobName", jobData.Name)
 		newEntityModel:SetAttribute("DamageMultiplier", jobData.DamageMultiplier)
@@ -114,6 +120,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		local randomIndex = math.random(1, #aggressiveEntitySpawns)
 		local chosenNode = aggressiveEntitySpawns[randomIndex]
 
+		newEntityModel:SetAttribute("InfectedLevel", getRandomInfectedLevel())
 		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel.Parent = parent

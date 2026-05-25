@@ -113,6 +113,9 @@ function AggressiveAI.Init(self: AggressiveAI)
 		self:ChaseLoop()
 	end)
 
+	self.currentJob = self.entity:GetAttribute("JobName")
+	self.currentWeapon = self.entity:GetAttribute("JobWeapon")
+
 	self:SetState("Hunting")
 end
 

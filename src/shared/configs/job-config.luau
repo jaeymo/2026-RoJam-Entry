@@ -19,15 +19,15 @@ local JobConfig = {
 		Weapons = {
 			Torch = {
 				Name = "Torch",
-				Weight = 2,
+				Weight = 20,
 			},
-			PitchFork = {
-				Name = "PitchFork",
-				Weight = 5,
+			Pitchfork = {
+				Name = "Pitchfork",
+				Weight = 50,
 			},
 			Plow = {
 				Name = "Plow",
-				Weight = 5,
+				Weight = 50,
 			},
 			Nothing = {
 				Name = "Nothing",
@@ -37,7 +37,7 @@ local JobConfig = {
 	},
 	NitWit = {
 		Name = "NitWit",
-		Weight = 3,
+		Weight = 13,
 		Vitals = {
 			HealthMultiplier = 1,
 			DamageMultiplier = 1,
@@ -55,15 +55,15 @@ local JobConfig = {
 		Weapons = {
 			Torch = {
 				Name = "Torch",
-				Weight = 2,
+				Weight = 20,
 			},
-			PitchFork = {
-				Name = "PitchFork",
-				Weight = 1,
+			Pitchfork = {
+				Name = "Pitchfork",
+				Weight = 10,
 			},
 			Nothing = {
 				Name = "Nothing",
-				Weight = 10,
+				Weight = 1,
 			},
 		},
 	},
@@ -87,11 +87,11 @@ local JobConfig = {
 		Weapons = {
 			Sword = {
 				Name = "Sword",
-				Weight = 5,
+				Weight = 50,
 			},
-			PitchFork = {
-				Name = "PitchFork",
-				Weight = 1,
+			Pitchfork = {
+				Name = "Pitchfork",
+				Weight = 10,
 			},
 			Nothing = {
 				Name = "Nothing",

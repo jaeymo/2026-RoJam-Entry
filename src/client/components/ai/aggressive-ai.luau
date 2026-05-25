@@ -88,6 +88,40 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 	clientModel.PrimaryPart.Anchored = true
 end
 
+function AggressiveAI.EquipWeapon(self: AggressiveAI)
+	if not self.currentWeapon then
+		return
+	end
+
+	local weaponAsset = ReplicatedStorage.assets.models["npc-weapons"]:FindFirstChild(self.currentWeapon)
+
+	if not weaponAsset then
+		return
+	end
+
+	self.clientEntity.Name = self.currentWeapon
+	local arm = self.clientEntity["Right Arm"]
+
+	weaponAsset = weaponAsset:Clone()
+
+	local motor6D = weaponAsset.PrimaryPart:FindFirstChildWhichIsA("Motor6D")
+	if not motor6D then
+		motor6D = Instance.new("Motor6D")
+		motor6D.Part1 = weaponAsset.PrimaryPart
+		motor6D.Parent = weaponAsset.PrimaryPart
+	end
+
+	motor6D.Name = "Weapon"
+	motor6D.Part0 = arm
+	weaponAsset.Parent = self.clientEntity
+
+	local poseAnim = self.currentWeapon .. "Pose"
+	local animInst = AnimationFolder.weapons:FindFirstChild(poseAnim)
+	if animInst then
+		self.animController:Play(poseAnim)
+	end
+end
+
 function AggressiveAI.Init(self: AggressiveAI)
 	self:CreateAIModel(self.serverEntity)
 
@@ -147,6 +181,11 @@ function AggressiveAI.Init(self: AggressiveAI)
 	if func then
 		func(self)
 	end
+
+	self.currentJob = self.serverEntity:GetAttribute("JobName")
+	self.currentWeapon = self.serverEntity:GetAttribute("JobWeapon")
+
+	self:EquipWeapon()
 
 	repeat
 		task.wait()
@@ -230,7 +269,9 @@ end
 function AggressiveAI.ExitHunting(self: AggressiveAI) end
 
 function AggressiveAI.Idle(self: AggressiveAI)
-	self.characterFollower:ChangeLookAtTarget(LocalChar)
+	if self.characterFollower then
+		self.characterFollower:ChangeLookAtTarget(LocalChar)
+	end
 
 	if self.IdleDelay then
 		task.cancel(self.IdleDelay)
@@ -275,8 +316,14 @@ function AggressiveAI.Attack(self: AggressiveAI)
 		self.characterFollower:ChangeLookAtTarget(LocalChar)
 	end
 
-	self.animController:Play("AttackPunch1")
-	self.animController:GetTrack("AttackPunch1"):GetMarkerReachedSignal("hit"):Wait()
+	local attackAnimName = self.currentWeapon .. "Attack"
+	local animInst = AnimationFolder.weapons:FindFirstChild(attackAnimName)
+
+	if not self.currentWeapon or not animInst then
+		attackAnimName = "AttackPunch1"
+	end
+	self.animController:Play(attackAnimName)
+	self.animController:GetTrack(attackAnimName):GetMarkerReachedSignal("hit"):Wait()
 
 	local dir = (self.serverEntity:GetPivot().Position - LocalChar:GetPivot().Position).Unit
 	self.characterFollower:ShakeOffset({

@@ -1,5 +1,6 @@
 --!nocheck
 local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local assetsFolder = ReplicatedStorage:WaitForChild("assets")
@@ -7,11 +8,12 @@ local AnimationFolder = assetsFolder:WaitForChild("animations")
 local VfxFolder = assetsFolder:WaitForChild("particles")
 local enitityFolder = assetsFolder:WaitForChild("entities")
 
-local AIConfig = require(ReplicatedStorage.shared.configs["wandering-ai-config"])
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
 local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
-local Viewer = require(ReplicatedStorage.packages.viewer)
+
+local Plr = Players.LocalPlayer
+local LocalChar = Plr.Character or Plr.CharacterAdded:Wait()
 
 local WanderingAI = {}
 WanderingAI.__index = WanderingAI
@@ -142,20 +144,18 @@ function WanderingAI.Init(self: WanderingAI)
 		func(self)
 	end
 
-	-- task.wait()
-	-- self.characterFollower = Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity)
-	-- 	and Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity):GetData()
+	repeat
+		task.wait()
+	until Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity)
 
-	-- if not self.characterFollower then
-	-- 	warn(`[{script.Name}] Failed to get characterFollower`)
-
-	-- end
+	self.characterFollower = Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity):GetData()
 end
 
 function WanderingAI.Resting(self: WanderingAI)
 	self.currentIdle = "ParanoidIdle"
 	self.animController:Play(self.currentIdle, true)
 end
+
 function WanderingAI.ExitResting(self: WanderingAI)
 	self.animController:Stop(self.currentIdle)
 end
@@ -166,6 +166,14 @@ end
 
 function WanderingAI.ExitWandering(self: WanderingAI)
 	self.animController:Stop("Walk")
+end
+
+function WanderingAI.Dialogue(self: WanderingAI)
+	self.animController:StopAll()
+
+	if self.characterFollower then
+		self.characterFollower:ChangeLookAtTarget(LocalChar)
+	end
 end
 
 function WanderingAI.OnDied(self: WanderingAI)

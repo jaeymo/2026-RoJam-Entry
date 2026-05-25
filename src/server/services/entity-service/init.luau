@@ -6,6 +6,7 @@ local ServerScriptService = game:GetService("ServerScriptService")
 local testCharacters = ReplicatedStorage.assets.entities.test
 
 local EntityFactory = require(script["entity-factory"])
+local EntityGenerationConfig = require(ReplicatedStorage.shared.configs["entity-generation-config"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local MutationsConfig = require(ReplicatedStorage.shared.configs["mutations-config"])
 local NpcEmployer = require(ReplicatedStorage.shared.utils["npc-employer"])
@@ -42,21 +43,31 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		["Aggressive"] = { Weight = 1, Cost = 1 },
 	})
 
-	local totalEntityCount = math.random(2, 5)
-
+	local totalEntityCount = EntityGenerationConfig:getSpawnAmount()
 	local allocatedStates = entityStateAllocator:Allocate(totalEntityCount)
-	allocatedStates = {
-		["Aggressive"] = totalEntityCount,
-	}
+
+	if EntityGenerationConfig.useOnlyAggressive then
+		allocatedStates = {
+			["Aggressive"] = totalEntityCount,
+		}
+	elseif EntityGenerationConfig.useOnlyPassive then
+		allocatedStates = {
+			["Passive"] = totalEntityCount,
+		}
+	end
 
 	local passiveAmount = allocatedStates["Passive"] or 0
 	local aggressiveAmount = allocatedStates["Aggressive"] or 0
 
 	for _ = 1, passiveAmount do
-		local newChar = testCharacters:GetChildren()[math.random(1, #testCharacters:GetChildren())].Name
-		local newEntityModel = EntityFactory:getNewEntityModel(newChar)
+		local jobData = NpcEmployer:getAJob()
+		if not jobData.Name then
+			warn("Could not assign job")
+			continue
+		end
+		local newEntityModel = EntityFactory:getNewEntityModel(jobData.Name)
 		if not newEntityModel then
-			warn(`[{script.Name}] Failed to make new entity: {newChar}`)
+			warn(`[{script.Name}] Failed to make new entity: {jobData.Name}`)
 			continue
 		end
 
@@ -66,13 +77,12 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 
-		local data = NpcEmployer:getAJob()
-		newEntityModel:SetAttribute("JobWeapon", data.Weapon)
-		newEntityModel:SetAttribute("JobName", data.Name)
-		newEntityModel:SetAttribute("DamageMultiplier", data.DamageMultiplier)
-		newEntityModel:SetAttribute("HealthMultiplier", data.HealthMultiplier)
+		newEntityModel:SetAttribute("JobWeapon", jobData.Weapon)
+		newEntityModel:SetAttribute("JobName", jobData.Name)
+		newEntityModel:SetAttribute("DamageMultiplier", jobData.DamageMultiplier)
+		newEntityModel:SetAttribute("HealthMultiplier", jobData.HealthMultiplier)
 
-		newEntityModel.Parent = workspace
+		newEntityModel.Parent = parent
 
 		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")
@@ -86,14 +96,20 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 
 		-- local tag = math.random() >= 0.5 and "PassiveAI" or "WanderingAI"
 		newEntityModel:AddTag("WanderingAI")
+		newEntityModel:AddTag("Dialogue")
+
 		task.wait(0.1) -- fun lil wait
 	end
 
 	for _ = 1, aggressiveAmount do
-		local newChar = testCharacters:GetChildren()[math.random(1, #testCharacters:GetChildren())].Name
-		local newEntityModel = EntityFactory:getNewEntityModel(newChar)
+		local jobData = NpcEmployer:getAJob()
+		if not jobData.Name then
+			warn("Could not assign job")
+			continue
+		end
+		local newEntityModel = EntityFactory:getNewEntityModel(jobData.Name)
 		if not newEntityModel then
-			warn(`[{script.Name}] Failed to make new entity: {newChar}`)
+			warn(`[{script.Name}] Failed to make new entity: {jobData.Name}`)
 			continue
 		end
 
@@ -104,11 +120,10 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel.Parent = parent
 
-		local data = NpcEmployer:getAJob()
-		newEntityModel:SetAttribute("JobWeapon", data.Weapon)
-		newEntityModel:SetAttribute("JobName", data.Name)
-		newEntityModel:SetAttribute("DamageMultiplier", data.DamageMultiplier)
-		newEntityModel:SetAttribute("HealthMultiplier", data.HealthMultiplier)
+		newEntityModel:SetAttribute("JobWeapon", jobData.Weapon)
+		newEntityModel:SetAttribute("JobName", jobData.Name)
+		newEntityModel:SetAttribute("DamageMultiplier", jobData.DamageMultiplier)
+		newEntityModel:SetAttribute("HealthMultiplier", jobData.HealthMultiplier)
 
 		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")

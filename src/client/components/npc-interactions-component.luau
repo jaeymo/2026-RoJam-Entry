@@ -1,5 +1,9 @@
 --!nocheck
 
+--[[
+	this isnt a component!!!
+]]
+
 --// Services //--
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -10,6 +14,7 @@ local UserInputService = game:GetService("UserInputService")
 --// Modules //--
 local Classy = require(ReplicatedStorage.packages.classy)
 local Config = require(ReplicatedStorage.shared.configs.dialogue)
+local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
 
 --// Variables //--
 local ActiveConfig = {}
@@ -19,6 +24,8 @@ local UsedOutOfMessage = {}
 local UsedInfectionDialogue = {}
 
 local Prompts = {}
+
+local Network = Jaegar:GetNetwork()
 
 local Keybinds = {
 	Enum.KeyCode.One,
@@ -246,8 +253,9 @@ local function SetupUI(NPC: Instance)
 	end
 
 	local Highest = #Actions + 1
-
 	NPC_Interactions.ActiveActions = {}
+
+	Network:SendServer("startDialogueConversation", NPC)
 
 	for Index, Action in ipairs(Actions) do
 		NPC_Interactions.ActiveActions[Keybinds[Index]] = Action
@@ -321,7 +329,7 @@ ProximityPromptService.PromptTriggered:Connect(function(ProximityPrompt: Proximi
 	SetupUI(Model)
 end)
 
-Classy.create("NPC", function(NPC: Instance)
+Classy.create("Dialogue", function(NPC: Instance)
 	task.spawn(function()
 		SetupPrompt(NPC)
 	end)

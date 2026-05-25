@@ -31,6 +31,10 @@ local PACKETS = {
 	playerSlept = Packet.new("playerSlept"),
 
 	spawnEnemyHitbox = Packet.new("spawnEnemyHitbox", CFRAME, VECTOR3_F24),
+
+	startDialogueConversation = Packet.new("startDialogueConversation", INSTANCE),
+	endDialogueConversation = Packet.new("endDialogueConversation", INSTANCE),
+	sendHit = Packet.new("sendHit"),
 }
 
 return table.freeze(PACKETS) :: typeof(PACKETS)

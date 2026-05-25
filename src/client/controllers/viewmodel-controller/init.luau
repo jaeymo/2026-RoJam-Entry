@@ -68,15 +68,15 @@ end
 function ViewmodelController.jaegarInit(self: ViewmodelController)
 	self:_setup()
 
-	SignalRegistry.itemEquipped:Connect(function(_: string)
-		self:getViewmodelObject():enable()
-		-- self:getViewmodelObject():equip(ReplicatedStorage.assets.models["viewmodel-equippables"].template:Clone())
-	end)
+	-- SignalRegistry.itemEquipped:Connect(function(_: string)
+	-- 	self:getViewmodelObject():enable()
+	-- 	-- self:getViewmodelObject():equip(ReplicatedStorage.assets.models["viewmodel-equippables"].template:Clone())
+	-- end)
 
-	SignalRegistry.itemUnequipped:Connect(function(_: string)
-		self:getViewmodelObject():unequip()
-		self:getViewmodelObject():disable()
-	end)
+	-- SignalRegistry.itemUnequipped:Connect(function(_: string)
+	-- 	self:getViewmodelObject():unequip()
+	-- 	self:getViewmodelObject():disable()
+	-- end)
 end
 
 function ViewmodelController._setup(self: ViewmodelController)

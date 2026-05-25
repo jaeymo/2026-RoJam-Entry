@@ -1,8 +1,9 @@
 --!strict
 local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local GenerationConfig = require(script["generation-config"])
+local GenerationConfig = require(ReplicatedStorage.shared.configs["generation-config"])
 local GenerationFactory = require(script["generation-factory"])
 local GenerationTypes = require(script.types)
 local SignalRegistry = require(ServerScriptService["signal-registry"])
@@ -185,9 +186,9 @@ function GenerationService.generateNext(self: GenerationService)
 		spawnCFrame = exitNode.CFrame
 	end
 
+	newRoom:SetAttribute("GUID", HttpService:GenerateGUID(false))
 	newRoom.PrimaryPart = startNode
 	newRoom:PivotTo(spawnCFrame)
-	newRoom:SetAttribute("GUID", HttpService:GenerateGUID(false))
 	newRoom.Parent = GenerationConfig.parent
 
 	self.currentRoomGenerationIndex = nextRoomIndex

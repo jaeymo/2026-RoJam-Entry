@@ -1,11 +1,11 @@
 --!strict
 local ENTITY_GENERATION_CONFIG = {
-	useOnlyAggressive = false,
-	useOnlyPassive = true,
+	useOnlyAggressive = true,
+	useOnlyPassive = false,
 
 	-- temporary system
 	getSpawnAmount = function(_: any)
-		return math.random(1, 1)
+		return math.random(4, 4)
 	end,
 }
 

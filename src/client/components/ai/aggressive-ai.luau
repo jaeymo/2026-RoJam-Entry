@@ -114,6 +114,12 @@ function AggressiveAI.EquipWeapon(self: AggressiveAI)
 	motor6D.Name = "Weapon"
 	motor6D.Part0 = arm
 	weaponAsset.Parent = self.clientEntity
+
+	local poseAnim = self.currentWeapon .. "Pose"
+	local animInst = AnimationFolder.weapons:FindFirstChild(poseAnim)
+	if animInst then
+		self.animController:Play(poseAnim)
+	end
 end
 
 function AggressiveAI.Init(self: AggressiveAI)
@@ -263,7 +269,9 @@ end
 function AggressiveAI.ExitHunting(self: AggressiveAI) end
 
 function AggressiveAI.Idle(self: AggressiveAI)
-	self.characterFollower:ChangeLookAtTarget(LocalChar)
+	if self.characterFollower then
+		self.characterFollower:ChangeLookAtTarget(LocalChar)
+	end
 
 	if self.IdleDelay then
 		task.cancel(self.IdleDelay)
@@ -308,8 +316,14 @@ function AggressiveAI.Attack(self: AggressiveAI)
 		self.characterFollower:ChangeLookAtTarget(LocalChar)
 	end
 
-	self.animController:Play("AttackPunch1")
-	self.animController:GetTrack("AttackPunch1"):GetMarkerReachedSignal("hit"):Wait()
+	local attackAnimName = self.currentWeapon .. "Attack"
+	local animInst = AnimationFolder.weapons:FindFirstChild(attackAnimName)
+
+	if not self.currentWeapon or not animInst then
+		attackAnimName = "AttackPunch1"
+	end
+	self.animController:Play(attackAnimName)
+	self.animController:GetTrack(attackAnimName):GetMarkerReachedSignal("hit"):Wait()
 
 	local dir = (self.serverEntity:GetPivot().Position - LocalChar:GetPivot().Position).Unit
 	self.characterFollower:ShakeOffset({

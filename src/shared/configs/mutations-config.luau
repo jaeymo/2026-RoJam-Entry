@@ -1,7 +1,7 @@
 --!strict
 local MUTATIONS_CONFIG = {
 	MutationChance = 0.25,
-	AggressiveMutationChance = 0.1,
+	AggressiveMutationChance = 0.7,
 
 	Mutations = {
 		Aggressive = {
@@ -11,7 +11,7 @@ local MUTATIONS_CONFIG = {
 		},
 
 		Terminal = {
-			Weight = 1000,
+			Weight = 1,
 			Name = "Terminal",
 			ActivationDelayRange = { 2, 3 },
 		},

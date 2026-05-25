@@ -4,6 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local EntityFactory = require(script["entity-factory"])
+local EntityGenerationConfig = require(ReplicatedStorage.shared.configs["entity-generation-config"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local MutationsConfig = require(ReplicatedStorage.shared.configs["mutations-config"])
 local NpcEmployer = require(ReplicatedStorage.shared.utils["npc-employer"])
@@ -40,12 +41,18 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		["Aggressive"] = { Weight = 1, Cost = 1 },
 	})
 
-	local totalEntityCount = math.random(2, 5)
-
+	local totalEntityCount = EntityGenerationConfig:getSpawnAmount()
 	local allocatedStates = entityStateAllocator:Allocate(totalEntityCount)
-	allocatedStates = {
-		["Aggressive"] = totalEntityCount,
-	}
+
+	if EntityGenerationConfig.useOnlyAggressive then
+		allocatedStates = {
+			["Aggressive"] = totalEntityCount,
+		}
+	elseif EntityGenerationConfig.useOnlyPassive then
+		allocatedStates = {
+			["Passive"] = totalEntityCount,
+		}
+	end
 
 	local passiveAmount = allocatedStates["Passive"] or 0
 	local aggressiveAmount = allocatedStates["Aggressive"] or 0
@@ -69,7 +76,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:SetAttribute("DamageMultiplier", data.DamageMultiplier)
 		newEntityModel:SetAttribute("HealthMultiplier", data.HealthMultiplier)
 
-		newEntityModel.Parent = workspace
+		newEntityModel.Parent = parent
 
 		newEntityModel:AddTag("Ragdoll")
 		newEntityModel:AddTag("Entity")
@@ -83,6 +90,8 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 
 		-- local tag = math.random() >= 0.5 and "PassiveAI" or "WanderingAI"
 		newEntityModel:AddTag("WanderingAI")
+		newEntityModel:AddTag("Dialogue")
+
 		task.wait(0.1) -- fun lil wait
 	end
 

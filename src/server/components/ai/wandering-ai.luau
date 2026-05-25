@@ -28,11 +28,8 @@ export type WanderingAI = typeof(setmetatable(
 		staminaRecoveryConnection: RBXScriptConnection,
 
 		targetVisible: boolean,
-
 		internalState: string,
-
 		wanderLoopConnection: thread?,
-
 		pathData: { Path: Path, Waypoints: { PathWaypoint }, Completed: boolean }?,
 	},
 	WanderingAI
@@ -61,10 +58,16 @@ function WanderingAI.cleanEntityModel(self: WanderingAI, entityModel: Model)
 	entityModel.PrimaryPart = entityModel.HumanoidRootPart
 	entityModel.PrimaryPart.Anchored = true
 	entityModel.PrimaryPart.Transparency = 0.5
-
 	entityModel.PrimaryPart.CollisionGroup = "PassiveEntity"
+
 	self.human.HipHeight = 2
-	entityModel.Client:Destroy()
+
+	if entityModel:FindFirstChild("Client") then
+		entityModel:FindFirstChild("Client"):Destroy()
+	end
+
+	entityModel.PrimaryPart.Anchored = false
+
 	-- for _, child in pairs(entityModel:GetChildren()) do
 	-- 	if child.Name == "HumanoidRootPart" then
 	-- 		child.Transparency = 0.5
@@ -75,7 +78,6 @@ function WanderingAI.cleanEntityModel(self: WanderingAI, entityModel: Model)
 
 	-- 	child:Destroy()
 	-- end
-	entityModel.PrimaryPart.Anchored = false
 end
 
 function WanderingAI.init(self: WanderingAI)
@@ -123,6 +125,10 @@ function WanderingAI.checkForTargetNodes(self: WanderingAI)
 	local GUID = self.entity.Parent.Name
 
 	for _, room in CollectionService:GetTagged("Room") do
+		if room:IsDescendantOf(ReplicatedStorage) then
+			continue
+		end
+
 		if room:GetAttribute("GUID") ~= GUID then
 			continue
 		end
@@ -130,7 +136,7 @@ function WanderingAI.checkForTargetNodes(self: WanderingAI)
 		desiredTargets = room:FindFirstChild("EntitySpawns", true):GetChildren()
 	end
 
-	if not desiredTargets then
+	if #desiredTargets <= 0 then
 		error("NoTarg")
 	end
 

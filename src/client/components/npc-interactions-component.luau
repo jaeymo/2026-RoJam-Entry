@@ -1,5 +1,9 @@
 --!nocheck
 
+--[[
+	this isnt a component!!!
+]]
+
 --// Services //--
 local Players = game:GetService("Players")
 local ProximityPromptService = game:GetService("ProximityPromptService")
@@ -321,7 +325,7 @@ ProximityPromptService.PromptTriggered:Connect(function(ProximityPrompt: Proximi
 	SetupUI(Model)
 end)
 
-Classy.create("NPC", function(NPC: Instance)
+Classy.create("Dialogue", function(NPC: Instance)
 	task.spawn(function()
 		SetupPrompt(NPC)
 	end)

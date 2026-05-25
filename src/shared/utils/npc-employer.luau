@@ -8,8 +8,8 @@ local Lucky = require("./lucky")
 export type NpcEmployer = typeof(NpcEmployer)
 
 function NpcEmployer.getAJob(_: NpcEmployer)
-	local jobResult = Lucky:chooseWeighted(JobConfig) :: JobConfig.JobConfig
-	local jobWeapon = Lucky:chooseWeighted(jobResult.Weapons)
+	local jobResult = Lucky:chooseWeighted(JobConfig) :: JobConfig.JobConfigEntry
+	local jobWeapon = Lucky:chooseWeighted(jobResult.Weapons :: any)
 
 	return {
 		Name = jobResult.Name,

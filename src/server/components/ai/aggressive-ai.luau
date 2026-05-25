@@ -267,7 +267,11 @@ function AggressiveAI.Attack(self: AggressiveAI)
 	self.internalState = "attacking"
 	self.attackTick = os.clock()
 	self.stamina = math.clamp(self.stamina - attackCost, 0, maxStam)
-	Network:Broadcast("spawnEnemyHitbox", self.entity:GetPivot(), Vector3.one * 4)
+
+	local pivot = self.entity.PrimaryPart.CFrame
+	local forward = pivot.LookVector * 5
+
+	Network:Broadcast("spawnEnemyHitbox", pivot + forward, Vector3.new(6, 5, 8))
 
 	self:SetSpeed(AIConfig.Movement.DefaultWalkSpeed * AIConfig.Attacks.AttackMovementSpeedMultiplier)
 	task.wait(1)

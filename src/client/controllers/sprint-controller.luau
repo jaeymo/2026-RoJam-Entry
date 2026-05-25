@@ -61,23 +61,8 @@ local function SetSprint(State: boolean)
 		return
 	end
 
-	if State then
-		if CurrentStamina <= 0 then
-			return
-		end
-
-		local RootPart = CharacterState:getRoot()
-		local MoveDirection = CharacterState:getMoveDirection()
-
-		if not RootPart or MoveDirection.Magnitude <= 0 then
-			return
-		end
-
-		local Forward = RootPart.CFrame.LookVector:Dot(MoveDirection.Unit)
-
-		if Forward <= 0 then
-			return
-		end
+	if State and CurrentStamina <= 0 then
+		return
 	end
 
 	if Sprinting == State then
@@ -134,27 +119,6 @@ end)
 
 RunService.PreRender:Connect(function(DeltaTime: number)
 	if not Sprinting then
-		return
-	end
-
-	local RootPart = CharacterState:getRoot()
-	local MoveDirection = CharacterState:getMoveDirection()
-
-	if not RootPart or MoveDirection.Magnitude <= 0 then
-		SetSprint(false)
-
-		HandleRegen()
-
-		return
-	end
-
-	local Forward = RootPart.CFrame.LookVector:Dot(MoveDirection.Unit)
-
-	if Forward <= 0 then
-		SetSprint(false)
-
-		HandleRegen()
-
 		return
 	end
 

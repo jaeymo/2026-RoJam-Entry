@@ -53,6 +53,7 @@ function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): Aggress
 		targetVisible = false,
 		internalState = "None",
 
+		stamina = AIConfig.Movement.MaxStamina,
 		staminaRecoveryTick = os.clock(),
 		staminaDrainTick = os.clock(),
 

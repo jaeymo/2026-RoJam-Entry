@@ -73,7 +73,8 @@
         "StarterPlayer": {
             "$className": "StarterPlayer",
             "$properties": {
-                "CameraMode": "LockFirstPerson"
+                "CameraMode": "LockFirstPerson",
+                "EnableMouseLockOption": false
             },
             "StarterPlayerScripts": {
                 "$className": "StarterPlayerScripts",

@@ -283,13 +283,39 @@ local function SetupUI(NPC: Instance)
 	ScreenGui.Enabled = true
 
 	task.spawn(function()
-		while NPC_Interactions.ActiveNPC do
+		while NPC_Interactions.ActiveNPC == NPC do
 			if NPC_Interactions.ActiveNPC:HasTag("Dead") then
 				task.spawn(function()
-					CloseUI()
+					RunAction("Exit")
 				end)
 			end
 			task.wait()
+		end
+	end)
+
+	task.spawn(function()
+		local Character = Player.Character or Player.CharacterAdded:Wait()
+		local RootPart = Character:FindFirstChild("HumanoidRootPart")
+
+		while ScreenGui.Enabled and NPC_Interactions.ActiveNPC == NPC do
+			task.wait(0.1)
+
+			if not RootPart or not RootPart.Parent then
+				Character = Player.Character or Player.CharacterAdded:Wait()
+				RootPart = Character:FindFirstChild("HumanoidRootPart")
+			end
+
+			local NPCRoot = NPC:FindFirstChild("HumanoidRootPart") or NPC.PrimaryPart
+			if not NPCRoot or not RootPart then
+				break
+			end
+
+			local Distance = (RootPart.Position - NPCRoot.Position).Magnitude
+
+			if Distance > 15 then
+				RunAction("Exit")
+				break
+			end
 		end
 	end)
 end

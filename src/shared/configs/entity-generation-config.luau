@@ -1,7 +1,7 @@
 --!strict
 local ENTITY_GENERATION_CONFIG = {
 	useOnlyAggressive = false,
-	useOnlyPassive = false,
+	useOnlyPassive = true,
 
 	-- temporary system
 	getSpawnAmount = function(_: any)

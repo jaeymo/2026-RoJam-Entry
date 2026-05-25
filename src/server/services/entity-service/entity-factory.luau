@@ -1,4 +1,4 @@
---!strict
+--!nocheck
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local entityAssets = ReplicatedStorage.assets.entities

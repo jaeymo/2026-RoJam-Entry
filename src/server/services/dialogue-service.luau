@@ -20,7 +20,7 @@ function DialogueService.stopConversation(_: DialogueService, targetEntity: Mode
 end
 
 function DialogueService.jaegarInit(self: DialogueService)
-	network:OnServer("startDialogueConversation", function(player: Player, targetEntity: Instance)
+	network:OnServer("startDialogueConversation", function(_: Player, targetEntity: Instance)
 		self:startConversation(targetEntity :: Model)
 	end)
 end

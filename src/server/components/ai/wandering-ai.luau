@@ -313,6 +313,11 @@ function WanderingAI.CancelLoop(self: WanderingAI)
 		task.cancel(self.wanderLoopConnection)
 		self.wanderLoopConnection = nil
 	end
+	self.human:MoveTo(self.entity.PrimaryPart.Position)
+end
+
+function WanderingAI.Destroy(self: WanderingAI)
+	self:CancelLoop()
 end
 
 WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {
@@ -325,12 +330,16 @@ WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {
 Classy.registerGlobal("WanderingAI", WanderingAI.classy)
 
 SignalRegistry.conversationStarted:Connect(function(entityModel: Model)
-	WanderingAI.classy:GetApplied(entityModel):GetData():CancelLoop()
-	WanderingAI.classy:GetApplied(entityModel):GetData():SetState("Dialogue")
+	if WanderingAI.classy:GetApplied(entityModel) ~= nil then
+		WanderingAI.classy:GetApplied(entityModel):GetData():CancelLoop()
+		WanderingAI.classy:GetApplied(entityModel):GetData():SetState("Dialogue")
+	end
 end)
 
 SignalRegistry.conversationEnded:Connect(function(entityModel: Model)
-	WanderingAI.classy:GetApplied(entityModel):GetData():WanderLoop()
+	if WanderingAI.classy:GetApplied(entityModel) ~= nil then
+		WanderingAI.classy:GetApplied(entityModel):GetData():WanderLoop()
+	end
 end)
 
 return WanderingAI

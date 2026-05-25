@@ -1,7 +1,8 @@
 --!nocheck
 
 --[[
-	this isnt a component!!!
+	this isnt a component!!! f u maxx
+	-- jaeymo btw
 ]]
 
 --// Services //--
@@ -51,7 +52,7 @@ local Sound = ScreenGui:WaitForChild("List"):WaitForChild("Sounds"):WaitForChild
 local NPC_Interactions = {}
 
 NPC_Interactions.Cooldown = false
-NPC_Interactions.ActiveNPC = nil
+NPC_Interactions.ActiveNPC = nil :: Model?
 NPC_Interactions.ActiveActions = {}
 
 function NPC_Interactions.SystemMessage(Model: Model, Text: string)
@@ -255,6 +256,7 @@ local function SetupUI(NPC: Instance)
 	local Highest = #Actions + 1
 	NPC_Interactions.ActiveActions = {}
 
+	print(NPC)
 	Network:SendServer("startDialogueConversation", NPC)
 
 	for Index, Action in ipairs(Actions) do
@@ -281,6 +283,17 @@ local function SetupUI(NPC: Instance)
 	ScreenGui.Enabled = true
 
 	task.spawn(function()
+		while NPC_Interactions.ActiveNPC == NPC do
+			if NPC_Interactions.ActiveNPC:HasTag("Dead") then
+				task.spawn(function()
+					RunAction("Exit")
+				end)
+			end
+			task.wait()
+		end
+	end)
+
+	task.spawn(function()
 		local Character = Player.Character or Player.CharacterAdded:Wait()
 		local RootPart = Character:FindFirstChild("HumanoidRootPart")
 
@@ -299,7 +312,7 @@ local function SetupUI(NPC: Instance)
 
 			local Distance = (RootPart.Position - NPCRoot.Position).Magnitude
 
-			if Distance > 15 then
+			if Distance > 12 then
 				RunAction("Exit")
 				break
 			end
@@ -312,8 +325,9 @@ local function SetupPrompt(NPC: Instance)
 		return
 	end
 
-	local PrimaryPart = NPC:FindFirstChild("HumanoidRootPart") or NPC.PrimaryPart
+	local PrimaryPart = NPC:WaitForChild("Client") and NPC:WaitForChild("Client"):WaitForChild("HumanoidRootPart")
 	if not PrimaryPart then
+		warn(`[{script.Name}] Failed to get primary part for: {NPC:GetFullName()}`)
 		return
 	end
 
@@ -347,8 +361,12 @@ ProximityPromptService.PromptTriggered:Connect(function(ProximityPrompt: Proximi
 		return
 	end
 
-	local Model = ProximityPrompt:FindFirstAncestorOfClass("Model")
+	local Model = ProximityPrompt.Parent and ProximityPrompt.Parent.Parent and ProximityPrompt.Parent.Parent.Parent
 	if not Model or not Model.PrimaryPart then
+		return
+	end
+
+	if Model:HasTag("Dead") then
 		return
 	end
 

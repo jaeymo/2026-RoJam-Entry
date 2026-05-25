@@ -96,7 +96,6 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self.currentWeapon = self.entity:GetAttribute("JobWeapon")
 
 	self:applyJobConfig()
-	stamina = math.random(0, AIConfig.Movement.MaxStamina)
 
 	task.defer(function()
 		if self.destroyed then
@@ -108,7 +107,10 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self:SetState("Hunting")
 end
 
-function AggressiveAI.applyJobConfig(self: AggressiveAI) end
+function AggressiveAI.applyJobConfig(self: AggressiveAI)
+	local jobName = self.currentJob
+	print(jobName)
+end
 
 function AggressiveAI.checkForTarget(self: AggressiveAI)
 	-- local desiredTarget = CollectionService:GetTagged("AIAttractor")[1]

@@ -14,13 +14,12 @@ local COLLISION_GROUPS = {
 		CanCollide = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision", "IgnoreEntities" },
 	},
 	PassiveEntity = {
-		CanCollide = { "PlayerCharacter", "BarrierCollision", "EntityCollision", "PathWall" },
+		CanCollide = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision", "PathWall" },
 		CannotCollide = { "PassiveEntity" },
 	},
 	Entity = {
-		CanCollide = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision", "PathWall" },
+		CanCollide = { "Entity", "PlayerCharacter", "BarrierCollision", "EntityCollision", "PathWall", "PassiveEntity" },
 	},
-
 	MapMesh = {
 		CanCollide = {},
 	},
@@ -53,9 +52,9 @@ for name, collisionData in COLLISION_GROUPS do
 
 	local canCollideData = collisionData.CanCollide
 	for _, canCollideName in canCollideData do
-		if name == "Entity" then
-			print(name, canCollideName)
-		end
+		-- if name == "Entity" then
+		-- 	print(name, canCollideName)
+		-- end
 		PhysicsService:CollisionGroupSetCollidable(name, canCollideName, true)
 		collided[canCollideName] = true
 	end

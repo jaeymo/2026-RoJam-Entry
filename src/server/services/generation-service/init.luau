@@ -1,4 +1,5 @@
 --!strict
+local HttpService = game:GetService("HttpService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local GenerationConfig = require(script["generation-config"])
@@ -186,6 +187,7 @@ function GenerationService.generateNext(self: GenerationService)
 
 	newRoom.PrimaryPart = startNode
 	newRoom:PivotTo(spawnCFrame)
+	newRoom:SetAttribute("GUID", HttpService:GenerateGUID(false))
 	newRoom.Parent = GenerationConfig.parent
 
 	self.currentRoomGenerationIndex = nextRoomIndex
@@ -282,17 +284,17 @@ function GenerationService.unloadAllBefore(self: GenerationService, generationIn
 end
 
 function GenerationService.jaegarInit(self: GenerationService)
-	task.delay(2, function()
+	SignalRegistry.roomExitReached:Connect(function()
+		self:initializeNext()
+
+		local nextRoom = self.roomChain[self.roomInitializedIndex]
+		if nextRoom then
+			SignalRegistry.roomEntered:Fire(nextRoom)
+		end
+	end)
+
+	task.delay(3.25, function()
 		self:initiateGenerationProcess()
-
-		SignalRegistry.roomExitReached:Connect(function()
-			self:initializeNext()
-
-			local nextRoom = self.roomChain[self.roomInitializedIndex]
-			if nextRoom then
-				SignalRegistry.roomEntered:Fire(nextRoom)
-			end
-		end)
 	end)
 
 	SignalRegistry.playerSlept:Connect(function()

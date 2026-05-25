@@ -7,15 +7,14 @@ local AnimationFolder = assetsFolder:WaitForChild("animations")
 local VfxFolder = assetsFolder:WaitForChild("particles")
 local enitityFolder = assetsFolder:WaitForChild("entities")
 
+local AIConfig = require(ReplicatedStorage.shared.configs["wandering-ai-config"])
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
-
-local AIConfig = require(ReplicatedStorage.shared.configs["wandering-ai-config"])
+local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
+local Viewer = require(ReplicatedStorage.packages.viewer)
 
 local WanderingAI = {}
 WanderingAI.__index = WanderingAI
-
-local stateDelay = 0.25 -- optional
 
 export type WanderingAI = typeof(setmetatable(
 	{} :: {
@@ -24,6 +23,7 @@ export type WanderingAI = typeof(setmetatable(
 
 		currentState: string,
 		animController: BetterAnimation.BetterAnimation?,
+		human: Humanoid,
 
 		sweatFx: { ParticleEmitter },
 
@@ -41,15 +41,27 @@ function WanderingAI.new(entity: Instance, janitor: Classy.Janitor): WanderingAI
 	}, WanderingAI)
 end
 
+function WanderingAI.isInitialized(self: WanderingAI): boolean
+	return self.serverEntity:GetAttribute("Initialized")
+end
+
 function WanderingAI.CreateAIModel(self: WanderingAI, serverModel: Model)
 	local entityAsset = enitityFolder:FindFirstChild(serverModel.Name, true)
 	if not entityAsset then
 		warn(serverModel, entityAsset)
 	end
 
-	local clientModel = entityAsset:WaitForChild("Client"):Clone()
-	clientModel:PivotTo(serverModel:GetPivot())
-	clientModel.Parent = serverModel
+	local clientModel
+	if not self:isInitialized() then
+		clientModel = entityAsset:WaitForChild("Client"):Clone()
+		clientModel:PivotTo(serverModel:GetPivot())
+		clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
+		clientModel.Parent = serverModel
+	else
+		clientModel = serverModel:WaitForChild("Client")
+	end
+
+	clientModel:AddTag("Ragdoll")
 
 	self.clientEntity = clientModel
 	self.human = self.clientEntity:WaitForChild("Humanoid")
@@ -58,10 +70,14 @@ function WanderingAI.CreateAIModel(self: WanderingAI, serverModel: Model)
 	objVal.Name = "TargetModel"
 	objVal.Value = serverModel
 	objVal.Parent = clientModel
+
+	clientModel.PrimaryPart.Anchored = true
 end
 
 function WanderingAI.Init(self: WanderingAI)
 	self:CreateAIModel(self.serverEntity)
+
+	self.clientEntity:AddTag("CharacterFollower")
 
 	self.animController = BetterAnimation.new(HttpService:GenerateGUID()) :: BetterAnimation.BetterAnimation
 	self.animController:RegisterAnimator(self.human:WaitForChild("Animator"))
@@ -70,6 +86,8 @@ function WanderingAI.Init(self: WanderingAI)
 	local sweatFxAsset = VfxFolder:WaitForChild("Sweat"):Clone()
 	sweatFxAsset.Parent = self.clientEntity:WaitForChild("HumanoidRootPart")
 	sweatFxAsset.Enabled = false
+
+	self.serverEntity:SetAttribute("Initialized", true)
 
 	-- for _, child in pairs(self.entity:GetChildren()) do
 	-- 	if not child:IsA("BasePart") or child == self.entity.PrimaryPart then
@@ -123,10 +141,15 @@ function WanderingAI.Init(self: WanderingAI)
 	if func then
 		func(self)
 	end
-end
 
-function WanderingAI.Destroy(self: WanderingAI)
-	self.janitor:Cleanup()
+	-- task.wait()
+	-- self.characterFollower = Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity)
+	-- 	and Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity):GetData()
+
+	-- if not self.characterFollower then
+	-- 	warn(`[{script.Name}] Failed to get characterFollower`)
+
+	-- end
 end
 
 function WanderingAI.Resting(self: WanderingAI)
@@ -145,7 +168,46 @@ function WanderingAI.ExitWandering(self: WanderingAI)
 	self.animController:Stop("Walk")
 end
 
-WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {})
+function WanderingAI.OnDied(self: WanderingAI)
+	self.animController:StopAll()
+	self.characterFollower:Stop()
+
+	self.clientEntity.PrimaryPart.Anchored = false
+	Ragdoller:activateRagdoll(self.clientEntity)
+
+	local root = self.clientEntity:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return
+	end
+
+	local head = self.clientEntity:FindFirstChild("Head")
+	if not head then
+		warn("get jaeymo")
+		return
+	end
+
+	local bv = Instance.new("BodyVelocity")
+	bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+	bv.P = 1e6
+	bv.Velocity = Vector3.new(0, math.random(-15, 15), 0) + (-root.CFrame.LookVector * 100) * -1
+	bv.Parent = head
+
+	task.delay(0.2, function()
+		bv:Destroy()
+	end)
+end
+
+function WanderingAI.Destroy(self: WanderingAI)
+	self.animController:StopAll()
+
+	if self.serverEntity:HasTag("Dead") then
+		self:OnDied()
+	end
+end
+
+WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {
+	Nuke = false,
+})
 
 Classy.registerGlobal("WanderingAI", WanderingAI.classy)
 

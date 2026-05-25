@@ -69,6 +69,7 @@ export type ViewmodelObject = typeof(setmetatable(
 			model: Model?,
 			motor: Motor6D?,
 		},
+		animator: Animator,
 		rightArm: BasePart,
 		leftArm: BasePart,
 		delta: Vector2,
@@ -95,7 +96,7 @@ local function handleOcclusion(rig: Model, tweenTransparency: number, duration: 
 			continue
 		end
 
-		if v:IsA("BasePart") then
+		if v:IsA("BasePart") or v:IsA("MeshPart") then
 			TweenService:Create(v, info, { Transparency = tweenTransparency }):Play()
 		end
 	end
@@ -109,6 +110,7 @@ function ViewmodelObject.new(): ViewmodelObject
 		root = rig:FindFirstChild("Root") :: BasePart,
 		rightArm = (rig:FindFirstChild("Static/Meshes") :: Folder):FindFirstChild("RightArm") :: BasePart,
 		leftArm = (rig:FindFirstChild("Static/Meshes") :: Folder):FindFirstChild("LeftArm") :: BasePart,
+		animator = ((rig:WaitForChild("Humanoid") :: Humanoid):WaitForChild("Animator")) :: Animator,
 		item = {},
 		delta = Vector2.zero,
 		bobbleClock = 0,
@@ -146,6 +148,7 @@ function ViewmodelObject.equip(self: ViewmodelObject, itemModel: Model)
 	end
 
 	local motor = Instance.new("Motor6D")
+	motor.Name = "ItemRoot"
 	motor.Part0 = self.root
 	motor.Part1 = itemModel.PrimaryPart
 	motor.Parent = self.root

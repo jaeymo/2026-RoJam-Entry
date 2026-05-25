@@ -25,7 +25,7 @@ local RegenDebounce = false
 local MaxStamina = 100
 local CurrentStamina = MaxStamina
 
-local SprintSpeed = 20
+local SprintSpeed = 28
 local WalkSpeed = 16
 
 local DrainRate = 20
@@ -100,7 +100,6 @@ end
 
 UserInputService.InputBegan:Connect(function(Input: InputObject, GPE: boolean)
 	if not GPE then
-		warn("GPE")
 		return
 	end
 

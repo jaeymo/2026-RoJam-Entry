@@ -9,6 +9,12 @@ local CLIENT_SIGNAL_REGISTRY = {
 	jumped = Signal.new() :: Signal<Model>,
 	landed = Signal.new() :: Signal<Model, number>, -- the amount of time in the air
 
+	itemEquipped = Signal.new() :: Signal<string>,
+	itemUnequipped = Signal.new() :: Signal<string>,
+	itemPrimary = Signal.new() :: Signal<string>,
+
+	m1 = Signal.new() :: Signal<string>,
+
 	plrHit = Signal.new() :: Signal<any>,
 }
 

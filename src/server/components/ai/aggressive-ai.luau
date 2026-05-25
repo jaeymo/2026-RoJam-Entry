@@ -11,8 +11,10 @@ local Network = Jaegar:GetNetwork()
 local AIPathService = require(ServerScriptService.services["ai-path-service"])
 local Raydar = require(ReplicatedStorage.shared.utils.raydar)
 
-local AIConfig = require(ReplicatedStorage.shared.configs["aggressive-ai-config"])
-local InfectedConfig = require(ReplicatedStorage.shared.configs["aggressive-ai-config"])
+local Configs = ReplicatedStorage.shared.configs
+local AIConfig = require(Configs["aggressive-ai-config"])
+local InfectedConfig = require(Configs["infected-config"])
+local JobConfig = require(Configs["job-config"])
 
 local AggressiveAI = {}
 AggressiveAI.__index = AggressiveAI
@@ -30,8 +32,15 @@ export type AggressiveAI = typeof(setmetatable(
 		staminaRecoveryTick: number?,
 		searchStartTick: number?,
 
-		stamina: number,
 		maxStamina: number,
+		maxHealth: number,
+		staminaRecoveryRate: number,
+		staminaRecoveryTime: number,
+
+		exhaustedSpeed: number,
+		defaultWalkSpeed: number,
+		chasingSpeed: number,
+
 		staminaRecoveryConnection: RBXScriptConnection,
 
 		targetVisible: boolean,
@@ -109,7 +118,23 @@ end
 
 function AggressiveAI.applyJobConfig(self: AggressiveAI)
 	local jobName = self.currentJob
-	print(jobName)
+	local jobMod = JobConfig[jobName]
+
+	if not jobMod then
+		warn(jobName)
+		return
+	end
+
+	self.maxStamina = math.ceil(AIConfig.Movement.MaxStamina * jobMod.Movement.StaminaMultiplier)
+	self.stamina = math.random(0, self.maxStamina)
+
+	self.maxHealth = math.ceil(AIConfig.Vitals.MaxHealth * jobMod.Vitals.HealthMultiplier)
+	self.staminaRecoveryRate = AIConfig.Movement.StaminaRecoveryRate * jobMod.Movement.StaminaRecoveryRateMultiplier
+	self.staminaRecoveryTime = AIConfig.Movement.StaminaRecoveryRate * jobMod.Movement.StaminaRecoveryTimeMultiplier
+
+	self.exhaustedSpeed = AIConfig.Movement.ExhaustedSpeed * jobMod.Movement.SpeedMultiplier
+	self.defaultWalkSpeed = AIConfig.Movement.DefaultWalkSpeed * jobMod.Movement.SpeedMultiplier
+	self.chasingSpeed = AIConfig.Movement.ChasingSpeed * jobMod.Movement.SpeedMultiplier
 end
 
 function AggressiveAI.checkForTarget(self: AggressiveAI)
@@ -193,7 +218,7 @@ function AggressiveAI.DecreaseStamina(self: AggressiveAI)
 	local elapsedTick = os.clock() - self.staminaDrainTick
 
 	local staminaDrain = AIConfig.Movement.StaminaDrain
-	local maxStamina = AIConfig.Movement.MaxStamina
+	local maxStamina = self.maxStamina
 
 	if elapsedTick >= 0.5 then
 		self.stamina = math.clamp(self.stamina - staminaDrain, 0, maxStamina)
@@ -202,9 +227,9 @@ function AggressiveAI.DecreaseStamina(self: AggressiveAI)
 end
 
 function AggressiveAI.IncreaseStamina(self: AggressiveAI)
-	local staminaRecoveryRate = AIConfig.Movement.StaminaRecoveryRate
+	local staminaRecoveryRate = self.staminaRecoveryRate
 	local staminaHeal = AIConfig.Movement.StaminaHeal
-	local maxStamina = AIConfig.Movement.MaxStamina
+	local maxStamina = self.maxStamina
 
 	local elapsedTick = os.clock() - self.staminaRecoveryTick
 
@@ -221,11 +246,11 @@ function AggressiveAI.RecoverStamina(self: AggressiveAI)
 
 	self:SetState("ExhaustedWalk")
 	self.entity:SetAttribute("Recovering", true)
-	self:SetSpeed(AIConfig.Movement.ExhaustedSpeed)
+	self:SetSpeed(self.exhaustedSpeed)
 
-	local staminaRecoveryTime = AIConfig.Movement.StaminaRecoveryTime
-	local staminaRecoveryRate = AIConfig.Movement.StaminaRecoveryRate
-	local maxStamina = AIConfig.Movement.MaxStamina
+	local staminaRecoveryTime = self.staminaRecoveryTime
+	local staminaRecoveryRate = self.staminaRecoveryRate
+	local maxStamina = self.maxStamina
 
 	local recoveryTick = os.clock()
 	local healTick = os.clock()
@@ -277,7 +302,7 @@ function AggressiveAI.Attack(self: AggressiveAI)
 		return false
 	end
 
-	local maxStam = AIConfig.Movement.MaxStamina
+	local maxStam = self.maxStamina
 	local attackCost = AIConfig.Attacks.MainAttackStaminaCost
 
 	self:SetState("Attack")
@@ -290,12 +315,12 @@ function AggressiveAI.Attack(self: AggressiveAI)
 
 	Network:Broadcast("spawnEnemyHitbox", pivot + forward, Vector3.new(6, 5, 8))
 
-	self:SetSpeed(AIConfig.Movement.DefaultWalkSpeed * AIConfig.Attacks.AttackMovementSpeedMultiplier)
+	self:SetSpeed(self.defaultWalkSpeed * AIConfig.Attacks.AttackMovementSpeedMultiplier)
 	task.wait(1)
 	if self.entity:GetAttribute("Recovering") then
-		self:SetSpeed(AIConfig.Movement.ExhaustedSpeed)
+		self:SetSpeed(self.exhaustedSpeed)
 	else
-		self:SetSpeed(AIConfig.Movement.DefaultWalkSpeed)
+		self:SetSpeed(self.defaultWalkSpeed)
 	end
 	self.internalState = "None"
 	return true
@@ -330,7 +355,7 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 				self.targetVisible = true
 				break
 			end
-			if self.stamina < AIConfig.Movement.MaxStamina and self.entity:GetAttribute("State") == "ExhaustedWalk" then
+			if self.stamina < self.maxStamina and self.entity:GetAttribute("State") == "ExhaustedWalk" then
 				self:RecoverStamina()
 			else
 				self:IncreaseStamina()
@@ -373,9 +398,9 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 					self:RecoverStamina()
 				else
 					if self.entity:GetAttribute("Recovering") then
-						self:SetSpeed(AIConfig.Movement.ExhaustedSpeed)
+						self:SetSpeed(self.exhaustedSpeed)
 					else
-						self:SetSpeed(AIConfig.Movement.ChasingSpeed)
+						self:SetSpeed(self.chasingSpeed)
 					end
 					if self.internalState == "closeChase" then
 						if not self:Attack() then
@@ -409,7 +434,7 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 				if self.stamina == 0 or self.entity:GetAttribute("State") == "ExhaustedWalk" then
 					self:RecoverStamina()
 				else
-					self:SetSpeed(AIConfig.Movement.ChasingSpeed)
+					self:SetSpeed(self.chasingSpeed)
 					self:SetState("Chasing")
 					self:DecreaseStamina()
 				end
@@ -426,7 +451,7 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 			if not self.staminaRecoveryConnection and self.entity:GetAttribute("State") == "ExhaustedWalk" then
 				self:RecoverStamina()
 			else
-				self:SetSpeed(AIConfig.Movement.DefaultWalkSpeed)
+				self:SetSpeed(self.defaultWalkSpeed)
 				self:SetState("Hunting")
 			end
 

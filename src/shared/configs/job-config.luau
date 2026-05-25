@@ -35,7 +35,7 @@ local JobConfig = {
 			},
 		},
 	},
-	Nitwit = {
+	NitWit = {
 		Name = "NitWit",
 		Weight = 3,
 		Vitals = {

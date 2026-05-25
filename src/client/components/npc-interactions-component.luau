@@ -312,7 +312,7 @@ local function SetupUI(NPC: Instance)
 
 			local Distance = (RootPart.Position - NPCRoot.Position).Magnitude
 
-			if Distance > 15 then
+			if Distance > 12 then
 				RunAction("Exit")
 				break
 			end

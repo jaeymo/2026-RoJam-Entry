@@ -49,7 +49,8 @@ function CharacterFollower.Start(self: CharacterFollower)
 		local lookAtPos
 
 		if self.lookAtTarget then
-			lookAtPos = self.lookAtTarget:GetPivot().Position
+			local origin = self.lookAtTarget:GetPivot().Position
+			lookAtPos = Vector3.new(origin.X, self.taggedModel:GetPivot().Position.Y, origin.Z)
 		end
 
 		local targetCFrame

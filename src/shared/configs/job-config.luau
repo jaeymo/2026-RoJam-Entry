@@ -75,4 +75,19 @@ local JobConfig = {
 
 export type JobConfig = typeof(JobConfig)
 
+export type JobConfigEntry = {
+	Name: string,
+	Weight: number,
+	Vitals: {
+		HealthMultiplier: number,
+		DamageMultiplier: number,
+	},
+	Weapons: {
+		[string]: {
+			Name: string,
+			Weight: number,
+		},
+	},
+}
+
 return table.freeze(JobConfig)

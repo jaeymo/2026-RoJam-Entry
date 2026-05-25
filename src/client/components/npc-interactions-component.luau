@@ -14,6 +14,7 @@ local UserInputService = game:GetService("UserInputService")
 --// Modules //--
 local Classy = require(ReplicatedStorage.packages.classy)
 local Config = require(ReplicatedStorage.shared.configs.dialogue)
+local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
 
 --// Variables //--
 local ActiveConfig = {}
@@ -23,6 +24,8 @@ local UsedOutOfMessage = {}
 local UsedInfectionDialogue = {}
 
 local Prompts = {}
+
+local Network = Jaegar:GetNetwork()
 
 local Keybinds = {
 	Enum.KeyCode.One,
@@ -250,8 +253,9 @@ local function SetupUI(NPC: Instance)
 	end
 
 	local Highest = #Actions + 1
-
 	NPC_Interactions.ActiveActions = {}
+
+	Network:SendServer("startDialogueConversation", NPC)
 
 	for Index, Action in ipairs(Actions) do
 		NPC_Interactions.ActiveActions[Keybinds[Index]] = Action

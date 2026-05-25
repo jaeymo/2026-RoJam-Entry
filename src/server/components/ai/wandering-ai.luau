@@ -5,12 +5,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local Classy = require(ReplicatedStorage.packages.classy)
-
-local AIPathService = require(ServerScriptService.services["ai-path-service"])
-local Raydar = require(ReplicatedStorage.shared.utils.raydar)
-
 local AIConfig = require(ReplicatedStorage.shared.configs["wandering-ai-config"])
+local AIPathService = require(ServerScriptService.services["ai-path-service"])
+local Classy = require(ReplicatedStorage.packages.classy)
+local Raydar = require(ReplicatedStorage.shared.utils.raydar)
+local SignalRegistry = require(ServerScriptService["signal-registry"])
 
 local WanderingAI = {}
 WanderingAI.__index = WanderingAI
@@ -324,5 +323,14 @@ WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {
 })
 
 Classy.registerGlobal("WanderingAI", WanderingAI.classy)
+
+SignalRegistry.conversationStarted:Connect(function(entityModel: Model)
+	WanderingAI.classy:GetApplied(entityModel):GetData():CancelLoop()
+	WanderingAI.classy:GetApplied(entityModel):GetData():SetState("Dialogue")
+end)
+
+SignalRegistry.conversationEnded:Connect(function(entityModel: Model)
+	WanderingAI.classy:GetApplied(entityModel):GetData():WanderLoop()
+end)
 
 return WanderingAI

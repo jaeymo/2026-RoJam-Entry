@@ -27,6 +27,7 @@ function AggressiveMutation.new(instance: Instance, janitor: Classy.Janitor): Ag
 end
 
 function AggressiveMutation.init(self: AggressiveMutation)
+	print("AGGRESSIVE MUTATION")
 	MutationService:initializeEntityMutation("Aggressive", self.instance)
 
 	local activationDelayRange = MutationConfig.Mutations.Aggressive.ActivationDelayRange

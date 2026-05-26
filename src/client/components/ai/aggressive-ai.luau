@@ -370,6 +370,19 @@ function AggressiveAI.Attack(self: AggressiveAI)
 	})
 end
 
+function AggressiveAI.Stunned(self: AggressiveAI)
+	if self.characterFollower then
+		self.characterFollower:ChangeLookAtTarget(nil)
+	end
+
+	local anims = {
+		"StunDown",
+		"StunPoke",
+	}
+
+	self.animController:Play(anims[math.random(1, #anims)])
+end
+
 function AggressiveAI.ExitAttack(self: AggressiveAI) end
 
 function AggressiveAI.Recovering(self: AggressiveAI)

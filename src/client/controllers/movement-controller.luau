@@ -119,6 +119,10 @@ function MovementController.jaegarInit(self: MovementController)
 
 	(humanoid :: Humanoid).UseJumpPower = false
 	(humanoid :: Humanoid).JumpHeight = 0
+
+	SignalRegistry.localCharacterDied:Connect(function()
+		(humanoid :: Humanoid).WalkSpeed = 0
+	end)
 end
 
 return MovementController

@@ -90,6 +90,12 @@ function HealthService.jaegarInit(self: HealthService)
 		instance:RemoveTag("AggressiveAI")
 		instance:RemoveTag("AggressiveMutation")
 		instance:RemoveTag("TerminalMutation")
+
+		if instance:IsA("Model") and instance.PrimaryPart and not instance:HasTag("Character") then
+			instance.PrimaryPart.CanCollide = false
+			instance.PrimaryPart.CanQuery = false
+			instance.PrimaryPart.CanTouch = false
+		end
 	end)
 
 	SignalRegistry.mutationFinished:Connect(function(mutation: string, entityModel: Model)

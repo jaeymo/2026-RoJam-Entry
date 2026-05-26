@@ -2,7 +2,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local FindFirstAncestorWithTag = require(ReplicatedStorage.shared.utils["find-first-ancestor-with-tag"])
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 
@@ -13,14 +12,9 @@ local CombatService = {}
 export type CombatService = typeof(CombatService)
 
 function CombatService.jaegarInit(_: CombatService)
-	network:OnServer("processScepterHits", function(_: Player, hits: { Humanoid })
+	network:OnServer("processScepterHits", function(_: Player, hits: { Model })
 		for _, hit in hits do
-			local entity = FindFirstAncestorWithTag(hit, "Entity")
-			if not entity then
-				continue
-			end
-
-			SignalRegistry.hitEntity:Fire(entity :: Model)
+			SignalRegistry.hitEntity:Fire(hit :: Model, "Poke")
 		end
 	end)
 end

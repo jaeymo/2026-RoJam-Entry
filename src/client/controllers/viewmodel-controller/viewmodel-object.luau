@@ -52,8 +52,6 @@ function ViewmodelObject.init(self: ViewmodelObject)
 	self:_makeSpring("pitch", 15, 0.5)
 	self:_makeSpring("yaw", 11, 0.45)
 	self:_makeSpring("roll", 12, 1)
-	self:_makeSpring("jumpV", 1, 1)
-	self:_makeSpring("jumpH", 1, 1)
 end
 
 local function makeFirstCapital(str: string): string
@@ -72,7 +70,7 @@ function ViewmodelObject.setArmVisible(self: ViewmodelObject, armName: string)
 	end
 
 	local meshes = self.rig:FindFirstChild("Static/Meshes") :: Folder
-	arm.Transparency = 0
+	-- arm.Transparency = 0
 
 	for _, v in (meshes:FindFirstChild(makeFirstCapital(armName)) :: Folder):GetDescendants() do
 		if not v:IsA("BasePart") or not v:IsA("MeshPart") then
@@ -91,7 +89,7 @@ function ViewmodelObject.setArmInvisible(self: ViewmodelObject, armName: string)
 	end
 
 	local meshes = self.rig:FindFirstChild("Static/Meshes") :: Folder
-	arm.Transparency = 0
+	-- arm.Transparency = 0
 
 	for _, v in (meshes:FindFirstChild(makeFirstCapital(armName)) :: Folder):GetDescendants() do
 		if not v:IsA("BasePart") or not v:IsA("MeshPart") then

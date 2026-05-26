@@ -8,6 +8,13 @@
     ],
     "tree": {
         "$className": "DataModel",
+
+        "Lighting": {
+            "$properties": {
+                "LightingStyle": "Realistic"
+            }
+        },
+
         "ReplicatedStorage": {
             "$className": "ReplicatedStorage",
             "$ignoreUnknownInstances": true,

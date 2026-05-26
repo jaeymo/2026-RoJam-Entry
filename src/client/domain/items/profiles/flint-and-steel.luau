@@ -9,7 +9,6 @@ local FlintAndSteel = {}
 export type FlintAndSteel = typeof(FlintAndSteel)
 
 function FlintAndSteel.equip(self: FlintAndSteel)
-	print(self)
 	ViewmodelController.animationObject:Play("ViewModelFNSIdle")
 	ViewmodelController:getViewmodel():setArmVisible("left")
 end
@@ -20,7 +19,7 @@ function FlintAndSteel.unequip(self: FlintAndSteel)
 end
 
 function FlintAndSteel.primary(self: FlintAndSteel)
-	print(self)
+	ViewmodelController.animationObject:Play("ViewModelFNSSpark")
 end
 
 function FlintAndSteel.jaegarInit(_: FlintAndSteel)

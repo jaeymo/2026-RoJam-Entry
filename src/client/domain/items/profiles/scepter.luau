@@ -3,6 +3,7 @@ local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local CharacterState = require(ReplicatedStorage.client.domain.character["character-state"])
+local FindFirstAncestorWithTag = require(ReplicatedStorage.shared.utils["find-first-ancestor-with-tag"])
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
 
 local ViewmodelController
@@ -15,12 +16,14 @@ local Scepter = {}
 
 export type Scepter = typeof(Scepter)
 
-function Scepter.equip(self: Scepter)
-	-- print(self)
+function Scepter.equip(_: Scepter)
+	ViewmodelController.animationObject:Play("ViewModelScepterIdle")
+	ViewmodelController:getViewmodel():setArmInvisible("left")
 end
 
-function Scepter.unequip(self: Scepter)
-	-- print(self)
+function Scepter.unequip(_: Scepter)
+	ViewmodelController:getViewmodel():setArmVisible("left")
+	ViewmodelController.animationObject:Stop("ViewModelScepterIdle")
 end
 
 local lastSelected: string? = nil
@@ -48,10 +51,12 @@ local function getRandomAttackName(): string
 end
 
 function Scepter.primary(self: Scepter)
+	ViewmodelController:getViewmodel():setArmVisible("left")
+
 	local scopedId = HttpService:GenerateGUID(false)
 	randomAttackId = scopedId
 
-	task.delay(3, function()
+	task.delay(2, function()
 		if randomAttackId == scopedId then
 			lastSelected = nil
 		end
@@ -68,17 +73,25 @@ function Scepter.attack(_: Scepter, attackName: string)
 		return
 	end
 
-	ViewmodelController.animationObject:Play(`ViewModel{attackName}`, false)
+	ViewmodelController.animationObject:Play(`ViewModel{attackName}`)
 
 	local root = CharacterState:getRoot() :: BasePart
 	local cf = root.CFrame + (camera.CFrame.LookVector * 5)
 
-	local hits = HitboxController.CheckForHumanoids(cf, Vector3.one * 5)
+	local hits = HitboxController.CheckForHumanoids(cf, Vector3.one * 5, true)
 	if not next(hits) then
 		return
 	end
 
-	network:SendServer("processScepterHits", hits)
+	local valid = {}
+	for _, hit in hits do
+		local entity = FindFirstAncestorWithTag(hit, "Entity")
+		if entity then
+			table.insert(valid, entity)
+		end
+	end
+
+	network:SendServer("processScepterHits", valid)
 end
 
 function Scepter.jaegarInit(_: Scepter)

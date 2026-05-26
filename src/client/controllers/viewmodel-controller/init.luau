@@ -64,13 +64,13 @@ function ViewmodelController.jaegarInit(self: ViewmodelController)
 		self:getViewmodel():updateMouseDelta(Vector2.new(input.Delta.X, input.Delta.Y))
 	end)
 
-	SignalRegistry.jumped:Connect(function()
-		self:getViewmodel():onJump()
-	end)
+	-- SignalRegistry.jumped:Connect(function()
+	-- 	self:getViewmodel():onJump()
+	-- end)
 
-	SignalRegistry.landed:Connect(function()
-		self:getViewmodel():onLand()
-	end)
+	-- SignalRegistry.landed:Connect(function()
+	-- 	self:getViewmodel():onLand()
+	-- end)
 end
 
 return ViewmodelController

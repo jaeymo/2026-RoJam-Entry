@@ -97,6 +97,11 @@ function HealthService.jaegarInit(self: HealthService)
 			self:killEntity(entityModel)
 		end
 	end)
+
+	SignalRegistry.hitEntity:Connect(function(entityModel: Model, attackName: string)
+		print(entityModel)
+		self:killEntity(entityModel)
+	end)
 end
 
 return HealthService

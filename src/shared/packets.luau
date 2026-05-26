@@ -33,6 +33,7 @@ local PACKETS = {
 	collectDeathToll = Packet.new("collectDeathToll", INSTANCE),
 	startDialogueConversation = Packet.new("startDialogueConversation", INSTANCE),
 	endDialogueConversation = Packet.new("endDialogueConversation", INSTANCE),
+	processScepterHits = Packet.new("processScepterHits", ANY),
 	sendHit = Packet.new("sendHit"),
 }
 

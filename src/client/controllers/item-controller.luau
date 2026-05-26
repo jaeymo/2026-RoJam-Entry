@@ -26,12 +26,12 @@ end
 
 function ItemController.toggleEquip(self: ItemController, newHeldItem: string)
 	if self.currentlyHeldItem == newHeldItem then
-		self:unequipCurrent()
+		self:unequipCurrent(false)
 		return
 	end
 
 	if self.currentlyHeldItem ~= nil then
-		self:unequipCurrent()
+		self:unequipCurrent(true)
 		self:equip(newHeldItem)
 		return
 	end
@@ -45,14 +45,14 @@ function ItemController.equip(self: ItemController, itemName: string)
 	ItemProfileHandler:getProfile(itemName):equip()
 end
 
-function ItemController.unequipCurrent(self: ItemController)
+function ItemController.unequipCurrent(self: ItemController, isEquippingNext: boolean)
 	if not self.currentlyHeldItem then
 		return
 	end
 
 	local old = self.currentlyHeldItem
 	self.currentlyHeldItem = nil
-	SignalRegistry.itemUnequipped:Fire(old)
+	SignalRegistry.itemUnequipped:Fire(old, isEquippingNext)
 	ItemProfileHandler:getProfile(old):unequip()
 end
 

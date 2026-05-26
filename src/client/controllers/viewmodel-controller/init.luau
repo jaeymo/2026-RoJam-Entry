@@ -27,9 +27,10 @@ do
 	ViewmodelController.viewmodelObject:init()
 
 	local scepter = (viewmodelItems:FindFirstChild("Scepter") :: Model):Clone()
-	-- local flintAndSteel = (viewmodelItems:FindFirstChild("FlintAndSteel") :: Model):Clone()
+	local flintAndSteel = (viewmodelItems:FindFirstChild("FlintNSteel") :: Model):Clone()
 
 	ViewmodelController.cachedItems["Scepter"] = scepter
+	ViewmodelController.cachedItems["FlintAndSteel"] = flintAndSteel
 end
 
 function ViewmodelController.getViewmodel(self: ViewmodelController): ViewmodelObject.ViewmodelObject
@@ -37,44 +38,22 @@ function ViewmodelController.getViewmodel(self: ViewmodelController): ViewmodelO
 end
 
 function ViewmodelController.jaegarInit(self: ViewmodelController)
-	self:getViewmodel():enable()
-
-	-- task.delay(3, function()
-	-- 	self:getViewmodel():equip(scepter)
-
-	-- 	local index = 1
-	-- 	while task.wait(2.25) do
-	-- 		local animations = {
-	-- 			"ViewModelBatter",
-	-- 			"ViewModelBonk",
-	-- 			"ViewModelPoke",
-	-- 			"ViewModelPeck",
-	-- 		}
-
-	-- 		self.animationObject:Play(animations[index], false)
-
-	-- 		index += 1
-	-- 		if index > 4 then
-	-- 			index = 1
-	-- 		end
-	-- 	end
-	-- end)
-
 	SignalRegistry.itemEquipped:Connect(function(itemName: string)
 		local model = self.cachedItems[itemName]
 		if not model then
 			return
 		end
 
-		if itemName == "Scepter" then
-			self:getViewmodel():setArmInvisible("left")
-		end
-
+		self:getViewmodel():enable()
 		self:getViewmodel():equip(model)
 	end)
 
-	SignalRegistry.itemUnequipped:Connect(function(itemName: string)
+	SignalRegistry.itemUnequipped:Connect(function(itemName: string, isEquippingNext: boolean)
 		self:getViewmodel():unequip()
+
+		if not isEquippingNext then
+			self:getViewmodel():disable()
+		end
 	end)
 
 	UserInputService.InputChanged:Connect(function(input: InputObject, _: boolean)
@@ -85,13 +64,13 @@ function ViewmodelController.jaegarInit(self: ViewmodelController)
 		self:getViewmodel():updateMouseDelta(Vector2.new(input.Delta.X, input.Delta.Y))
 	end)
 
-	SignalRegistry.jumped:Connect(function()
-		self:getViewmodel():onJump()
-	end)
+	-- SignalRegistry.jumped:Connect(function()
+	-- 	self:getViewmodel():onJump()
+	-- end)
 
-	SignalRegistry.landed:Connect(function()
-		self:getViewmodel():onLand()
-	end)
+	-- SignalRegistry.landed:Connect(function()
+	-- 	self:getViewmodel():onLand()
+	-- end)
 end
 
 return ViewmodelController

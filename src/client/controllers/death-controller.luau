@@ -5,6 +5,7 @@ local TweenService = game:GetService("TweenService")
 
 --// Modules //--
 local CharacterState = require(ReplicatedStorage.client.domain.character["character-state"])
+local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
 --// Variables //--
@@ -69,6 +70,7 @@ local function SetupHover(Button: TextButton)
 end
 
 local function handleDeath()
+	SignalRegistry.localCharacterDied:Fire()
 	Player.CameraMode = Enum.CameraMode.Classic
 
 	Tween(DeathFrame, {

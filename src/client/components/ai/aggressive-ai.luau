@@ -103,9 +103,6 @@ function AggressiveAI.ApplyInfectedEffects(self: AggressiveAI)
 	if infectionLvl == 1 then
 		local effect = bubonicEmission:Clone()
 		effect.Parent = self.clientEntity.PrimaryPart
-
-		effect = flies:Clone()
-		effect.Parent = self.clientEntity.PrimaryPart
 	elseif infectionLvl == 2 then
 		local effect = bubonicEmission:Clone()
 		effect.Parent = self.clientEntity.PrimaryPart

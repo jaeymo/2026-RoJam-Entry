@@ -77,22 +77,26 @@ function AggressiveAI.cleanEntityModel(self: AggressiveAI, entityModel: Model)
 
 	self.human.HipHeight = 2
 
-	entityModel.HumanoidRootPart.Transparency = 0.5
+	entityModel.HumanoidRootPart.Transparency = 1
+
+	local collisionBall = Instance.new("Part")
+	collisionBall.Transparency = 0.8
+	collisionBall.Shape = Enum.PartType.Ball
+	collisionBall.Size = Vector3.one * 4
+	collisionBall.Position = entityModel.PrimaryPart.Position
+	collisionBall.CollisionGroup = "CollisionHitbox"
+
+	local w = Instance.new("WeldConstraint")
+	w.Part0 = entityModel.HumanoidRootPart
+	w.Part1 = collisionBall
+	w.Parent = collisionBall
+
+	collisionBall.Parent = entityModel
 
 	if entityModel:FindFirstChild("Client") then
 		entityModel:FindFirstChild("Client"):Destroy()
 	end
 
-	-- for _, child in pairs(entityModel:GetChildren()) do
-	-- 	if child.Name == "HumanoidRootPart" then
-	-- 		child.Transparency = 0.5
-	-- 		continue
-	-- 	elseif not child:IsA("Accessory") and not child:IsA("BasePart") then
-	-- 		continue
-	-- 	end
-
-	-- 	child:Destroy()
-	-- end
 	entityModel.PrimaryPart.Anchored = false
 end
 

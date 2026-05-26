@@ -19,7 +19,12 @@ local function SetupPrompt(NPC: Instance)
 		return
 	end
 
-	local PrimaryPart = NPC:WaitForChild("Client") and NPC:WaitForChild("Client"):WaitForChild("HumanoidRootPart")
+	local Client = NPC:FindFirstChild("Client") or NPC:WaitForChild("Client", 10)
+	if not Client then
+		return
+	end
+
+	local PrimaryPart = Client:FindFirstChild("HumanoidRootPart") or Client.PrimaryPart
 	if not PrimaryPart then
 		warn(`[{script.Name}] Failed to get primary part for: {NPC:GetFullName()}`)
 		return

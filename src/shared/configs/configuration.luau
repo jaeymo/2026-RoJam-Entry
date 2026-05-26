@@ -18,6 +18,11 @@ return {
 		Damage_PerHit = 5,
 	},
 
+	Items = {
+		[Enum.KeyCode.One] = "Scepter",
+		[Enum.KeyCode.Two] = "FlintAndSteel",
+	},
+
 	--// idk what a spawn node is supposed to contain
 	SpawnNode = {},
 }

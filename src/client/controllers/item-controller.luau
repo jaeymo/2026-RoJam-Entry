@@ -7,6 +7,7 @@ local domain = ReplicatedStorage.client.domain
 local ItemProfileHandler = require(domain.items["item-profile-handler"])
 local Janitor = require(ReplicatedStorage.packages.janitor)
 local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
+local config = require(ReplicatedStorage.shared.configs.configuration)
 
 local ItemController = {
 	currentlyHeldItem = nil :: string?,
@@ -74,10 +75,9 @@ function ItemController.watchInputs(self: ItemController)
 			self:primary()
 		end
 
-		if input.KeyCode == Enum.KeyCode.One then
-			self:toggleEquip("Scepter")
-		elseif input.KeyCode == Enum.KeyCode.Two then
-			self:toggleEquip("FlintAndSteel")
+		local itemName = config.Items[input.KeyCode]
+		if itemName then
+			self:toggleEquip(itemName)
 		end
 	end))
 end

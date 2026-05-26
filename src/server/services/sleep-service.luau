@@ -14,8 +14,8 @@ local SleepService = {
 
 export type SleepService = typeof(SleepService)
 
-function SleepService.initiateSleepProcess(_: SleepService)
-	network:Broadcast("playerSlept")
+function SleepService.initiateSleepProcess(self: SleepService)
+	network:Broadcast("playerSlept", self.sleepCount)
 end
 
 function SleepService.finishSleepProcess(self: SleepService)

@@ -5,7 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --// Modules //--
 local Config = require(ReplicatedStorage.shared.configs.configuration)
 local Janitor = require(ReplicatedStorage.packages.janitor)
-local SignalRegistery = require(ReplicatedStorage.client["client-signal-registry"])
+local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
 
 --// Variables //--
 local Player = Players.LocalPlayer
@@ -53,17 +53,17 @@ function UiHotbar:createSlots()
 	Template.Visible = false
 end
 
-function UiHotbar:watchSignals()
-	self.janitor:Add(SignalRegistery.itemEquipped:Connect(function(ItemName: string)
+function UiHotbar.watchSignals(self: UiHotbar)
+	self.janitor:Add(SignalRegistry.itemEquipped:Connect(function(ItemName: string)
 		self:setActive(ItemName)
 	end))
 
-	self.janitor:Add(SignalRegistery.itemUnequipped:Connect(function(ItemName: string)
+	self.janitor:Add(SignalRegistry.itemUnequipped:Connect(function(ItemName: string)
 		self:clearActive(ItemName)
 	end))
 end
 
-function UiHotbar:setActive(itemName: string)
+function UiHotbar.setActive(self: UiHotbar, itemName: string)
 	if self.currentlyActive then
 		self:clearActive(self.currentlyActive)
 	end
@@ -79,7 +79,7 @@ function UiHotbar:setActive(itemName: string)
 	self:setSlotActive(slot, true)
 end
 
-function UiHotbar:clearActive(itemName: string)
+function UiHotbar.clearActive(self: UiHotbar, itemName: string)
 	local slot = self.slots[itemName]
 
 	if not slot then
@@ -91,14 +91,14 @@ function UiHotbar:clearActive(itemName: string)
 	self:setSlotActive(slot, false)
 end
 
-function UiHotbar:setSlotActive(slot: Frame, state: boolean)
+function UiHotbar.setSlotActive(_: UiHotbar, slot: Frame, state: boolean)
 	local activeFrame = slot:FindFirstChild("Active")
 	if activeFrame then
 		activeFrame.Enabled = state
 	end
 end
 
-function UiHotbar:destroy(self: UiHotbar)
+function UiHotbar.destroy(self: UiHotbar)
 	self.janitor:Cleanup()
 end
 

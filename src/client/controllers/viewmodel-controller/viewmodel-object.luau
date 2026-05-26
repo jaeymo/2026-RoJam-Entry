@@ -6,6 +6,8 @@ local CharacterState = require(ReplicatedStorage.client.domain.character["charac
 local Janitor = require(ReplicatedStorage.packages.janitor)
 local Spring = require(ReplicatedStorage.packages.spring)
 
+local YAW_MAX_ANGLE = 3.5
+local PITCH_MAX_ANGLE = 2
 local MAX_ROLL_ANGLE = 2.25
 local SCALE = 0.2
 
@@ -18,6 +20,8 @@ export type ViewmodelObject = typeof(setmetatable(
 		rig: Model,
 		root: BasePart,
 		mouseDelta: Vector2,
+		left: BasePart,
+		right: BasePart,
 		janitor: Janitor.Janitor,
 		springs: { [string]: Spring.Spring<number> },
 		item: {
@@ -33,6 +37,8 @@ function ViewmodelObject.new(rig: Model): ViewmodelObject
 		camera = workspace.CurrentCamera,
 		rig = rig,
 		root = rig.PrimaryPart :: BasePart,
+		left = rig:FindFirstChild("LeftArm") :: BasePart,
+		right = rig:FindFirstChild("RightArm") :: BasePart,
 		janitor = Janitor.new(),
 		mouseDelta = Vector2.zero,
 		springs = {},
@@ -43,11 +49,57 @@ end
 function ViewmodelObject.init(self: ViewmodelObject)
 	self.rig:ScaleTo(SCALE)
 
-	self:_makeSpring("pitch", 1, 1)
-	self:_makeSpring("yaw", 1, 1)
+	self:_makeSpring("pitch", 15, 0.5)
+	self:_makeSpring("yaw", 11, 0.45)
 	self:_makeSpring("roll", 12, 1)
 	self:_makeSpring("jumpV", 1, 1)
 	self:_makeSpring("jumpH", 1, 1)
+end
+
+local function makeFirstCapital(str: string): string
+	if str == "" then
+		return str
+	end
+
+	return string.upper(string.sub(str, 1, 1)) .. string.sub(str, 2)
+end
+
+function ViewmodelObject.setArmVisible(self: ViewmodelObject, armName: string)
+	local arm = self[armName] :: BasePart?
+	if not arm then
+		warn(`[{script.Name}] Failed to get arm: {armName}`)
+		return
+	end
+
+	local meshes = self.rig:FindFirstChild("Static/Meshes") :: Folder
+	arm.Transparency = 0
+
+	for _, v in (meshes:FindFirstChild(makeFirstCapital(armName)) :: Folder):GetDescendants() do
+		if not v:IsA("BasePart") or not v:IsA("MeshPart") then
+			continue
+		end
+
+		v.Transparency = 0
+	end
+end
+
+function ViewmodelObject.setArmInvisible(self: ViewmodelObject, armName: string)
+	local arm = self[armName] :: BasePart?
+	if not arm then
+		warn(`[{script.Name}] Failed to get arm: {armName}`)
+		return
+	end
+
+	local meshes = self.rig:FindFirstChild("Static/Meshes") :: Folder
+	arm.Transparency = 0
+
+	for _, v in (meshes:FindFirstChild(makeFirstCapital(armName)) :: Folder):GetDescendants() do
+		if not v:IsA("BasePart") or not v:IsA("MeshPart") then
+			continue
+		end
+
+		v.Transparency = 1
+	end
 end
 
 function ViewmodelObject.enable(self: ViewmodelObject)
@@ -77,7 +129,7 @@ function ViewmodelObject.updateMouseDelta(self: ViewmodelObject, mouseDelta: Vec
 end
 
 function ViewmodelObject.update(self: ViewmodelObject, dt: number)
-	self.rig:PivotTo(self.camera.CFrame * self:getRoll() * self:getSway() * self:getJump())
+	self.rig:PivotTo(self.camera.CFrame * self:getSway(dt) * self:getRoll())
 end
 
 function ViewmodelObject.equip(self: ViewmodelObject, item: Model)
@@ -93,14 +145,26 @@ function ViewmodelObject.equip(self: ViewmodelObject, item: Model)
 	motor.Parent = self.root
 
 	if item.Name == "Scepter" then
-		motor.C0 = CFrame.new(Vector3.new(1.163, -1.676, -2.185)) * CFrame.Angles(0, math.rad(-90), 0)
+		motor.C0 = CFrame.new(Vector3.new(0.235, -0.315, -0.435)) * CFrame.Angles(0, math.rad(-90), 0)
 	end
 
 	self.item.motor = motor
 	self.item.model = item
 
+	item:ScaleTo(SCALE)
 	item.Parent = self.rig
-	self.rig:ScaleTo(SCALE)
+end
+
+function ViewmodelObject.unequip(self: ViewmodelObject)
+	if self.item.model then
+		self.item.model.Parent = nil
+	end
+
+	if self.item.motor then
+		self.item.motor:Destroy()
+	end
+
+	table.clear(self.item)
 end
 
 function ViewmodelObject.getRoll(self: ViewmodelObject): CFrame
@@ -120,12 +184,21 @@ function ViewmodelObject.getRoll(self: ViewmodelObject): CFrame
 	return CFrame.Angles(0, 0, self.springs["roll"].Position)
 end
 
-function ViewmodelObject.getSway(self: ViewmodelObject): CFrame
-	return CFrame.new()
-end
+function ViewmodelObject.getSway(self: ViewmodelObject, dt: number): CFrame
+	local pitchSpring = self.springs["pitch"]
+	local yawSpring = self.springs["yaw"]
 
-function ViewmodelObject.getJump(self: ViewmodelObject): CFrame
-	return CFrame.new()
+	local yawAngleRad = math.rad(YAW_MAX_ANGLE)
+	local yawTarget = math.clamp(-self.mouseDelta.X * 0.0008 * yawAngleRad / dt, -yawAngleRad, yawAngleRad)
+
+	local pitchAngleRad = math.rad(PITCH_MAX_ANGLE)
+	local pitchTarget = math.clamp(-self.mouseDelta.Y * 0.004 * pitchAngleRad / dt, -pitchAngleRad, pitchAngleRad)
+
+	yawSpring.Target = yawTarget
+	pitchSpring.Target = pitchTarget
+
+	self.mouseDelta = Vector2.zero
+	return CFrame.Angles(pitchSpring.Position, yawSpring.Position, 0)
 end
 
 function ViewmodelObject._makeSpring(self: ViewmodelObject, springName: string, speed: number, damper: number)

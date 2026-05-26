@@ -64,6 +64,12 @@ ProximityPromptService.PromptTriggered:Connect(function(Prompt: ProximityPrompt,
 	Network:SendServer("collectDeathToll", NPC)
 	CollectBody(NPC)
 	Prompt:Destroy()
+
+	for _, v in NPC:GetDescendants() do
+		if v:IsA("ParticleEmitter") then
+			v.Enabled = false
+		end
+	end
 end)
 
 Classy.create("Dead", function(NPC: Instance)

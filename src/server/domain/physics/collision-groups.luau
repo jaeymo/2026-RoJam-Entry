@@ -24,7 +24,7 @@ local COLLISION_GROUPS = {
 		CanCollide = {},
 	},
 	IgnoreEntities = {
-		CanCollide = { "EntityCollision", "PlayerCharacter" },
+		CanCollide = { "EntityCollision", "PlayerCharacter", "PathWall" },
 	},
 	IgnoreCharacters = {
 		CanCollide = { "EntityCollision" },
@@ -34,7 +34,7 @@ local COLLISION_GROUPS = {
 		CanCollide = { "PathCast" },
 	},
 	PathWall = {
-		CanCollide = { "Entity", "PassiveEntity", "PathCast" },
+		CanCollide = { "Entity", "PassiveEntity", "PathCast", "IgnoreEntities" },
 	},
 	PathCast = {
 		CanCollide = { "EntityCollision", "PathNode", "PathWall" },

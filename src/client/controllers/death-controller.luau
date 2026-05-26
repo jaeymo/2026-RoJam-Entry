@@ -5,6 +5,7 @@ local TweenService = game:GetService("TweenService")
 
 --// Modules //--
 local CharacterState = require(ReplicatedStorage.client.domain.character["character-state"])
+local Viewer = require(ReplicatedStorage.packages.viewer)
 
 --// Variables //--
 local Player = Players.LocalPlayer
@@ -69,13 +70,15 @@ local function SetupHover(Button: TextButton)
 	end)
 end
 
-Humanoid.Died:Connect(function()
+local function handleDeath()
+	print("DEAD")
 	Player.CameraMode = Enum.CameraMode.Classic
 
 	Tween(DeathFrame, {
 		GroupTransparency = 0,
 	}, TweenInfo.new(2)):Play()
 
+	print(3)
 	task.wait(1.5)
 
 	local YouHaveTween = Tween(YouHave, {
@@ -88,12 +91,16 @@ Humanoid.Died:Connect(function()
 
 	Died.Position = UDim2.fromScale(0.602, 0.5)
 
+	print(2)
 	task.spawn(function()
 		local Amplitude = 5
 		local Frequency = 70
 		local OriginalPosition = Died.Position
 
-		while Humanoid.Health <= 0 do
+		while
+			CharacterState:getCharacter()
+			and ((CharacterState:getCharacter() :: Model):GetAttribute("Health") :: number) <= 0
+		do
 			local xOffset = math.sin(tick() * Frequency) * Amplitude
 			local yOffset = math.sin(tick() * Frequency * 1.3) * Amplitude
 
@@ -106,6 +113,7 @@ Humanoid.Died:Connect(function()
 
 			task.wait(0.01)
 		end
+		print("DONE")
 	end)
 
 	local DiedTween = Tween(Died, {
@@ -115,6 +123,7 @@ Humanoid.Died:Connect(function()
 	DiedTween:Play()
 	DiedTween.Completed:Wait()
 
+	print(2)
 	task.wait(1)
 
 	local ReturnTween = Tween(Return, {
@@ -127,11 +136,25 @@ Humanoid.Died:Connect(function()
 		TextTransparency = 0,
 	})
 
+	print(3)
+
 	ReturnTween:Play()
 	RetryTween:Play()
 
 	SetupHover(Return)
 	SetupHover(Retry)
-end)
+end
+
+function DeathController.jaegarInit(self: typeof(DeathController))
+	repeat
+		task.wait()
+	until CharacterState:getCharacter()
+
+	Viewer.WatchAttribute(CharacterState:getCharacter() :: Model, "Health", function(health: number)
+		if health <= 0 then
+			handleDeath()
+		end
+	end)
+end
 
 return DeathController

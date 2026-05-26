@@ -19,11 +19,11 @@ function Scepter.primary(self: Scepter)
 		"ViewModelBatter",
 		"ViewModelBonk",
 		"ViewModelPoke",
+		"ViewModelPeck",
 	}
 
 	local selection = names[math.random(1, #names)]
-	print(selection)
-	x.animationObject:Play(selection)
+	x.animationObject:Play(selection, false)
 end
 
 return Scepter

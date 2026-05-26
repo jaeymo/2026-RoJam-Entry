@@ -217,6 +217,13 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self:ApplyInfectedEffects()
 	self:EquipWeapon()
 
+	self.human:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+
 	repeat
 		task.wait()
 	until Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity)
@@ -244,7 +251,7 @@ function AggressiveAI.OnDied(self: AggressiveAI)
 	local bv = Instance.new("BodyVelocity")
 	bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
 	bv.P = 1e6
-	bv.Velocity = Vector3.new(0, math.random(-15, 15), 0) + (-root.CFrame.LookVector * 100) * -1
+	bv.Velocity = Vector3.new(0, math.random(-15, 15), 0) + (-root.CFrame.LookVector * 15) * -1
 	bv.Parent = head
 
 	task.delay(0.2, function()

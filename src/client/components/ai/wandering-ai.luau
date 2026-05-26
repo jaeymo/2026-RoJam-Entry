@@ -144,6 +144,13 @@ function WanderingAI.Init(self: WanderingAI)
 		func(self)
 	end
 
+	self.human:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Climbing, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	self.human:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+
 	repeat
 		task.wait()
 	until Classy.getGloballyRegistered("CharacterFollower"):GetApplied(self.clientEntity)

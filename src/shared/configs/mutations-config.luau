@@ -1,7 +1,7 @@
 --!strict
 local MUTATIONS_CONFIG = {
-	MutationChance = 0,
-	AggressiveMutationChance = 0,
+	MutationChance = 0.25,
+	AggressiveMutationChance = 0.1,
 
 	Mutations = {
 		Aggressive = {

@@ -3,7 +3,7 @@ local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local testCharacters = ReplicatedStorage.assets.entities.test
+local testCharacters = ReplicatedStorage.assets.entities:FindFirstChild("test") :: Folder
 
 local EntityFactory = require(script["entity-factory"])
 local EntityGenerationConfig = require(ReplicatedStorage.shared.configs["entity-generation-config"])

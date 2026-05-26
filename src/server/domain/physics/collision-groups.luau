@@ -46,6 +46,7 @@ local COLLISION_GROUPS = {
 	},
 	PathWall = {
 		CanCollide = { "Entity", "PassiveEntity", "PathCast", "IgnoreEntities" },
+		CanCollide = { "Entity", "PassiveEntity", "PathCast", "IgnoreEntities" },
 	},
 	PathCast = {
 		CanCollide = { "EntityCollision", "PathNode", "PathWall" },

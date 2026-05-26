@@ -19,7 +19,12 @@ local function SetupPrompt(NPC: Instance)
 		return
 	end
 
-	local PrimaryPart = NPC:WaitForChild("Client") and NPC:WaitForChild("Client"):WaitForChild("HumanoidRootPart")
+	local Client = NPC:FindFirstChild("Client") or NPC:WaitForChild("Client", 10)
+	if not Client then
+		return
+	end
+
+	local PrimaryPart = Client:FindFirstChild("HumanoidRootPart") or Client.PrimaryPart
 	if not PrimaryPart then
 		warn(`[{script.Name}] Failed to get primary part for: {NPC:GetFullName()}`)
 		return
@@ -59,9 +64,19 @@ ProximityPromptService.PromptTriggered:Connect(function(Prompt: ProximityPrompt,
 	Network:SendServer("collectDeathToll", NPC)
 	CollectBody(NPC)
 	Prompt:Destroy()
+
+	for _, v in NPC:GetDescendants() do
+		if v:IsA("ParticleEmitter") then
+			v.Enabled = false
+		end
+	end
 end)
 
 Classy.create("Dead", function(NPC: Instance)
+	if NPC:HasTag("Character") then
+		return
+	end
+
 	task.spawn(function()
 		SetupPrompt(NPC)
 

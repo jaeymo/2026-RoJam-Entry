@@ -88,6 +88,39 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 	clientModel.PrimaryPart.Anchored = true
 end
 
+function AggressiveAI.ApplyInfectedEffects(self: AggressiveAI)
+	local infectionLvl = self.serverEntity:GetAttribute("InfectedLevel")
+	if not infectionLvl then
+		return
+	end
+
+	local flies = assetsFolder.particles.Flies
+	local bubonicAura = assetsFolder.particles.BubonicAura
+	local bubonicEmission = assetsFolder.particles.BubonicEmission
+	local sweatDrips = assetsFolder.particles.SweatDrips
+
+	-- if infectionLvl == 0 then
+	if infectionLvl == 1 then
+		local effect = bubonicEmission:Clone()
+		effect.Parent = self.clientEntity.PrimaryPart
+
+		effect = flies:Clone()
+		effect.Parent = self.clientEntity.PrimaryPart
+	elseif infectionLvl == 2 then
+		local effect = bubonicEmission:Clone()
+		effect.Parent = self.clientEntity.PrimaryPart
+
+		effect = bubonicAura:Clone()
+		effect.Parent = self.clientEntity.PrimaryPart
+
+		effect = flies:Clone()
+		effect.Parent = self.clientEntity.PrimaryPart
+
+		effect = sweatDrips:Clone()
+		effect.Parent = self.clientEntity.PrimaryPart
+	end
+end
+
 function AggressiveAI.EquipWeapon(self: AggressiveAI)
 	if not self.currentWeapon then
 		return
@@ -99,7 +132,6 @@ function AggressiveAI.EquipWeapon(self: AggressiveAI)
 		return
 	end
 
-	self.clientEntity.Name = self.currentWeapon
 	local arm = self.clientEntity["Right Arm"]
 
 	weaponAsset = weaponAsset:Clone()
@@ -185,6 +217,7 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self.currentJob = self.serverEntity:GetAttribute("JobName")
 	self.currentWeapon = self.serverEntity:GetAttribute("JobWeapon")
 
+	self:ApplyInfectedEffects()
 	self:EquipWeapon()
 
 	repeat

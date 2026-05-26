@@ -5,6 +5,7 @@ local InfectedConfig = {
 
 		StaminaMultiplier = 1,
 		DamageMultiplier = 1,
+		SpeedMultiplier = 1,
 
 		ParanoiaLevel = 1,
 		ChanceOfClarifyingSymptoms = 0,
@@ -14,6 +15,7 @@ local InfectedConfig = {
 
 		StaminaMultiplier = 0.6,
 		DamageMultiplier = 1.2,
+		SpeedMultiplier = 0.8,
 
 		ParanoiaLevel = 3,
 		ChanceOfClarifyingSymptoms = 0.2,
@@ -23,6 +25,7 @@ local InfectedConfig = {
 
 		StaminaMultiplier = 0.4,
 		DamageMultiplier = 1.5,
+		SpeedMultiplier = 0.5,
 
 		ParanoiaLevel = 5,
 		ChanceOfClarifyingSymptoms = 0.5,

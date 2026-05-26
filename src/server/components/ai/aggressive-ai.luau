@@ -105,6 +105,7 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self.currentWeapon = self.entity:GetAttribute("JobWeapon")
 
 	self:applyJobConfig()
+	self:applyInfectedConfig()
 
 	task.defer(function()
 		if self.destroyed then
@@ -112,9 +113,6 @@ function AggressiveAI.Init(self: AggressiveAI)
 		end
 		self:ChaseLoop()
 	end)
-
-	self.currentJob = self.entity:GetAttribute("JobName")
-	self.currentWeapon = self.entity:GetAttribute("JobWeapon")
 
 	self:SetState("Hunting")
 end
@@ -133,11 +131,31 @@ function AggressiveAI.applyJobConfig(self: AggressiveAI)
 
 	self.maxHealth = math.ceil(AIConfig.Vitals.MaxHealth * jobMod.Vitals.HealthMultiplier)
 	self.staminaRecoveryRate = AIConfig.Movement.StaminaRecoveryRate * jobMod.Movement.StaminaRecoveryRateMultiplier
-	self.staminaRecoveryTime = AIConfig.Movement.StaminaRecoveryRate * jobMod.Movement.StaminaRecoveryTimeMultiplier
+	self.staminaRecoveryTime = AIConfig.Movement.StaminaRecoveryTime * jobMod.Movement.StaminaRecoveryTimeMultiplier
 
 	self.exhaustedSpeed = AIConfig.Movement.ExhaustedSpeed * jobMod.Movement.SpeedMultiplier
 	self.defaultWalkSpeed = AIConfig.Movement.DefaultWalkSpeed * jobMod.Movement.SpeedMultiplier
 	self.chasingSpeed = AIConfig.Movement.ChasingSpeed * jobMod.Movement.SpeedMultiplier
+end
+
+function AggressiveAI.applyInfectedConfig(self: AggressiveAI)
+	local level = self.entity:GetAttribute("InfectedLevel")
+	local levelConfig = InfectedConfig[level]
+
+	if not levelConfig then
+		warn(level)
+		return
+	end
+
+	self.maxStamina = math.ceil(AIConfig.Movement.MaxStamina * levelConfig.StaminaMultiplier)
+	self.stamina = math.random(0, self.maxStamina)
+
+	self.staminaRecoveryRate = AIConfig.Movement.StaminaRecoveryRate * levelConfig.StaminaMultiplier
+	self.staminaRecoveryTime = AIConfig.Movement.StaminaRecoveryTime * levelConfig.StaminaMultiplier
+
+	self.exhaustedSpeed = AIConfig.Movement.ExhaustedSpeed * levelConfig.SpeedMultiplier
+	self.defaultWalkSpeed = AIConfig.Movement.DefaultWalkSpeed * levelConfig.SpeedMultiplier
+	self.chasingSpeed = AIConfig.Movement.ChasingSpeed * levelConfig.SpeedMultiplier
 end
 
 function AggressiveAI.checkForTarget(self: AggressiveAI)

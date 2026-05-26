@@ -62,6 +62,10 @@ ProximityPromptService.PromptTriggered:Connect(function(Prompt: ProximityPrompt,
 end)
 
 Classy.create("Dead", function(NPC: Instance)
+	if NPC:HasTag("Character") then
+		return
+	end
+
 	task.spawn(function()
 		SetupPrompt(NPC)
 

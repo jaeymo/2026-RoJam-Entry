@@ -14,12 +14,33 @@ local NpcEmployer = require(ReplicatedStorage.shared.utils["npc-employer"])
 local ResourceAllocator = require(ReplicatedStorage.packages["resource-allocator"])
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 
+local INFECTED_WEIGHTS = {
+	["0"] = {
+		Weight = InfectedConfig[0].Weight,
+		Name = "0",
+	},
+	["1"] = {
+		Weight = InfectedConfig[1].Weight,
+		Name = "1",
+	},
+	["2"] = {
+		Weight = InfectedConfig[2].Weight,
+		Name = "2",
+	},
+}
+
 local EntityService = {}
 
 export type EntityService = typeof(EntityService)
 
 local function getRandomInfectedLevel(): number
-	return math.random(0, #InfectedConfig)
+	local randomSelection = Lucky:chooseWeighted(INFECTED_WEIGHTS) :: { Name: string, Weight: number }
+	if not randomSelection then
+		warn(`[{script.Name}] Failed to select random infected weight`)
+		return math.random(1, 3) - 1
+	end
+
+	return tonumber(randomSelection.Name) :: number
 end
 
 function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)

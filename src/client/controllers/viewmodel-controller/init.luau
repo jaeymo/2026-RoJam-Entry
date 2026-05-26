@@ -1,94 +1,96 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
-local Janitor = require(ReplicatedStorage.packages.janitor)
 local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
 local ViewmodelObject = require(script["viewmodel-object"])
 
-local object = ViewmodelObject.new()
-object:init()
+local rig = ReplicatedStorage.assets.viewmodel:FindFirstChild("rig") :: Model
+local viewmodelItems = ReplicatedStorage.assets.models:FindFirstChild("viewmodel-models") :: Folder
 
 local ViewmodelController = {
-	janitor = Janitor.new(),
-	isActive = false,
-	viewmodelObject = object,
 	animationObject = BetterAnimation.new("viewmodel"),
+	viewmodelObject = ViewmodelObject.new(rig),
+	cachedItems = {},
 }
-
-do
-	ViewmodelController.animationObject:RegisterAnimator(object.animator)
-
-	ViewmodelController.animationObject:RegisterAnimationsFromInstance(
-		(ReplicatedStorage.assets:FindFirstChild("animations") :: any):FindFirstChild("viewmodel"),
-		workspace:WaitForChild("runtime")
-	)
-end
 
 export type ViewmodelController = typeof(ViewmodelController)
 
-function ViewmodelController.enable(self: ViewmodelController)
-	if self.isActive then
-		return
-	end
+do
+	local animator = rig:WaitForChild("Humanoid"):WaitForChild("Animator") :: Animator
+	ViewmodelController.animationObject:RegisterAnimator(animator)
+	ViewmodelController.animationObject:RegisterAnimationsFromInstance(
+		(ReplicatedStorage.assets:FindFirstChild("animations") :: Folder):FindFirstChild("viewmodel") :: Folder
+	)
 
-	self.viewmodelObject:enable()
-	self.isActive = true
+	ViewmodelController.viewmodelObject:init()
 
-	self.janitor:Add(RunService.RenderStepped:Connect(function(dt: number)
-		self.viewmodelObject:update(dt)
-	end))
+	local scepter = (viewmodelItems:FindFirstChild("Scepter") :: Model):Clone()
+	-- local flintAndSteel = (viewmodelItems:FindFirstChild("FlintAndSteel") :: Model):Clone()
 
-	self.janitor:Add(UserInputService.InputChanged:Connect(function(input: InputObject)
-		if input.UserInputType ~= Enum.UserInputType.MouseMovement then
-			return
-		end
-
-		self.viewmodelObject:updateDelta(Vector2.new(input.Delta.X, input.Delta.Y))
-	end))
+	ViewmodelController.cachedItems["Scepter"] = scepter
 end
 
-function ViewmodelController.disable(self: ViewmodelController)
-	if not self.isActive then
-		return
-	end
-
-	self.isActive = false
-	self.viewmodelObject:disable()
-
-	self.janitor:Cleanup()
-end
-
-function ViewmodelController.getViewmodelObject(self: ViewmodelController)
+function ViewmodelController.getViewmodel(self: ViewmodelController): ViewmodelObject.ViewmodelObject
 	return self.viewmodelObject
 end
 
 function ViewmodelController.jaegarInit(self: ViewmodelController)
-	self:_setup()
+	self:getViewmodel():enable()
 
-	-- SignalRegistry.itemEquipped:Connect(function(_: string)
-	-- 	self:getViewmodelObject():enable()
-	-- 	-- self:getViewmodelObject():equip(ReplicatedStorage.assets.models["viewmodel-equippables"].template:Clone())
+	-- task.delay(3, function()
+	-- 	self:getViewmodel():equip(scepter)
+
+	-- 	local index = 1
+	-- 	while task.wait(2.25) do
+	-- 		local animations = {
+	-- 			"ViewModelBatter",
+	-- 			"ViewModelBonk",
+	-- 			"ViewModelPoke",
+	-- 			"ViewModelPeck",
+	-- 		}
+
+	-- 		self.animationObject:Play(animations[index], false)
+
+	-- 		index += 1
+	-- 		if index > 4 then
+	-- 			index = 1
+	-- 		end
+	-- 	end
 	-- end)
 
-	-- SignalRegistry.itemUnequipped:Connect(function(_: string)
-	-- 	self:getViewmodelObject():unequip()
-	-- 	self:getViewmodelObject():disable()
-	-- end)
-end
+	SignalRegistry.itemEquipped:Connect(function(itemName: string)
+		local model = self.cachedItems[itemName]
+		if not model then
+			return
+		end
 
-function ViewmodelController._setup(self: ViewmodelController)
-	self:enable()
-	self.viewmodelObject:disable()
+		if itemName == "Scepter" then
+			self:getViewmodel():setArmInvisible("left")
+		end
+
+		self:getViewmodel():equip(model)
+	end)
+
+	SignalRegistry.itemUnequipped:Connect(function(itemName: string)
+		self:getViewmodel():unequip()
+	end)
+
+	UserInputService.InputChanged:Connect(function(input: InputObject, _: boolean)
+		if input.UserInputType ~= Enum.UserInputType.MouseMovement then
+			return
+		end
+
+		self:getViewmodel():updateMouseDelta(Vector2.new(input.Delta.X, input.Delta.Y))
+	end)
 
 	SignalRegistry.jumped:Connect(function()
-		self.viewmodelObject:onLand({ vertical = 1, horizontal = 1 }) -- multipliers if needed
+		self:getViewmodel():onJump()
 	end)
 
 	SignalRegistry.landed:Connect(function()
-		self.viewmodelObject:onJump({ vertical = 1, horizontal = 1 })
+		self:getViewmodel():onLand()
 	end)
 end
 

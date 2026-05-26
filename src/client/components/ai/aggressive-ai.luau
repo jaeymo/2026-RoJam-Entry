@@ -372,6 +372,17 @@ end
 
 function AggressiveAI.ExitAttack(self: AggressiveAI) end
 
+function AggressiveAI.Stun(self: AggressiveAI)
+	self.characterFollower:ChangeLookAtTarget(nil)
+
+	local anims = {
+		"StunPoke",
+		"StunDown",
+	}
+
+	self.animController:Play(anims[math.random(1, #anims)])
+end
+
 function AggressiveAI.Recovering(self: AggressiveAI)
 	for _, fx in pairs(self.sweatFx) do
 		fx.Enabled = true

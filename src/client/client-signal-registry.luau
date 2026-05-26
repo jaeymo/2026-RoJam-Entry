@@ -10,7 +10,7 @@ local CLIENT_SIGNAL_REGISTRY = {
 	landed = Signal.new() :: Signal<Model, number>, -- the amount of time in the air
 
 	itemEquipped = Signal.new() :: Signal<string>,
-	itemUnequipped = Signal.new() :: Signal<string>,
+	itemUnequipped = Signal.new() :: Signal<string, boolean>,
 	itemPrimary = Signal.new() :: Signal<string>,
 
 	m1 = Signal.new() :: Signal<string>,

@@ -22,8 +22,6 @@ local Return = DeathFrame:WaitForChild("Return")
 
 local Sounds = DeathFrame:WaitForChild("Sounds")
 
-local Humanoid = CharacterState:getHumanoid()
-
 local TweenInfoFast = TweenInfo.new(2.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 local TweenInfoHover = TweenInfo.new(0.15, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 
@@ -71,14 +69,12 @@ local function SetupHover(Button: TextButton)
 end
 
 local function handleDeath()
-	print("DEAD")
 	Player.CameraMode = Enum.CameraMode.Classic
 
 	Tween(DeathFrame, {
 		GroupTransparency = 0,
 	}, TweenInfo.new(2)):Play()
 
-	print(3)
 	task.wait(1.5)
 
 	local YouHaveTween = Tween(YouHave, {
@@ -91,7 +87,6 @@ local function handleDeath()
 
 	Died.Position = UDim2.fromScale(0.602, 0.5)
 
-	print(2)
 	task.spawn(function()
 		local Amplitude = 5
 		local Frequency = 70
@@ -113,7 +108,6 @@ local function handleDeath()
 
 			task.wait(0.01)
 		end
-		print("DONE")
 	end)
 
 	local DiedTween = Tween(Died, {
@@ -123,7 +117,6 @@ local function handleDeath()
 	DiedTween:Play()
 	DiedTween.Completed:Wait()
 
-	print(2)
 	task.wait(1)
 
 	local ReturnTween = Tween(Return, {
@@ -135,8 +128,6 @@ local function handleDeath()
 		Position = UDim2.fromScale(0.4, 0.625),
 		TextTransparency = 0,
 	})
-
-	print(3)
 
 	ReturnTween:Play()
 	RetryTween:Play()

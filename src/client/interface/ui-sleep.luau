@@ -3,6 +3,7 @@ local Players = game:GetService("Players")
 local ProceduralBehaviorSchedulerService = game:GetService("ProceduralBehaviorSchedulerService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
 
 --// Modules //--
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
@@ -91,13 +92,20 @@ local function Sleep(OldDay: number)
 	CurrentDay.Position = UDim2.fromScale(0.576, 0.5)
 	NewDay.Position = UDim2.fromScale(0.576, 0.432)
 
+	if OldDay > 1 then
+		TextLabel.Text = "Days:"
+	end
+
 	CurrentDay.Text = tostring(OldDay)
 	NewDay.Text = tostring(OldDay + 1)
+
+	UserInputService.MouseIconEnabled = false
 
 	local Black = Tween(SleepFrame, 2, { BackgroundTransparency = 0 })
 	Black.Completed:Wait()
 
 	Player.CameraMode = Enum.CameraMode.Classic
+	UserInputService.MouseIconEnabled = true
 
 	Network:SendServer("playerSlept")
 
@@ -114,8 +122,31 @@ local function Sleep(OldDay: number)
 	local NewTween = Tween(NewDay, 1, { Position = UDim2.fromScale(0.576, 0.5), TextTransparency = 0 })
 	NewTween.Completed:Wait()
 
-	Tween(Continue, 0.5, { TextTransparency = 0 })
-	Tween(Leave, 0.5, { TextTransparency = 0 })
+	if OldDay < 10 then
+		Leave.Visible = false
+		Leave.Active = false
+		Leave.AutoButtonColor = false
+
+		Continue.Position = UDim2.fromScale(0.485, 0.625)
+
+		Tween(Continue, 0.5, {
+			TextTransparency = 0,
+		})
+	else
+		Leave.Visible = true
+		Leave.Active = true
+		Leave.AutoButtonColor = true
+
+		Continue.Position = UDim2.fromScale(0.33, 0.625)
+
+		Tween(Continue, 0.5, {
+			TextTransparency = 0,
+		})
+
+		Tween(Leave, 0.5, {
+			TextTransparency = 0,
+		})
+	end
 end
 
 function UiSleep.jaegarInit()

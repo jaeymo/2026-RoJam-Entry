@@ -7,6 +7,15 @@ local JobConfig = {
 			HealthMultiplier = 1,
 			DamageMultiplier = 1.25,
 		},
+		Movement = {
+			StaminaMultiplier = 1,
+			DamageMultiplier = 1.25,
+
+			StaminaRecoveryRateMultiplier = 1.25,
+			StaminaRecoveryTimeMultiplier = 1.5,
+
+			SpeedMultiplier = 1.1,
+		},
 		Weapons = {
 			Torch = {
 				Name = "Torch",
@@ -26,12 +35,22 @@ local JobConfig = {
 			},
 		},
 	},
-	Nitwit = {
+	NitWit = {
 		Name = "NitWit",
 		Weight = 13,
 		Vitals = {
 			HealthMultiplier = 1,
 			DamageMultiplier = 1,
+		},
+
+		Movement = {
+			StaminaMultiplier = 1,
+			DamageMultiplier = 1,
+
+			StaminaRecoveryRateMultiplier = 1,
+			StaminaRecoveryTimeMultiplier = 1,
+
+			SpeedMultiplier = 1,
 		},
 		Weapons = {
 			Torch = {
@@ -55,6 +74,15 @@ local JobConfig = {
 		Vitals = {
 			HealthMultiplier = 2,
 			DamageMultiplier = 1.5,
+		},
+		Movement = {
+			StaminaMultiplier = 3,
+			DamageMultiplier = 1.5,
+
+			StaminaRecoveryRateMultiplier = 2,
+			StaminaRecoveryTimeMultiplier = 1.5,
+
+			SpeedMultiplier = 1.5,
 		},
 		Weapons = {
 			Sword = {

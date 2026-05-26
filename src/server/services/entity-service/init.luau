@@ -7,15 +7,41 @@ local testCharacters = ReplicatedStorage.assets.entities:FindFirstChild("test") 
 
 local EntityFactory = require(script["entity-factory"])
 local EntityGenerationConfig = require(ReplicatedStorage.shared.configs["entity-generation-config"])
+local InfectedConfig = require(ReplicatedStorage.shared.configs["infected-config"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local MutationsConfig = require(ReplicatedStorage.shared.configs["mutations-config"])
 local NpcEmployer = require(ReplicatedStorage.shared.utils["npc-employer"])
 local ResourceAllocator = require(ReplicatedStorage.packages["resource-allocator"])
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 
+local INFECTED_WEIGHTS = {
+	["0"] = {
+		Weight = InfectedConfig[0].Weight,
+		Name = "0",
+	},
+	["1"] = {
+		Weight = InfectedConfig[1].Weight,
+		Name = "1",
+	},
+	["2"] = {
+		Weight = InfectedConfig[2].Weight,
+		Name = "2",
+	},
+}
+
 local EntityService = {}
 
 export type EntityService = typeof(EntityService)
+
+local function getRandomInfectedLevel(): number
+	local randomSelection = Lucky:chooseWeighted(INFECTED_WEIGHTS) :: { Name: string, Weight: number }
+	if not randomSelection then
+		warn(`[{script.Name}] Failed to select random infected weight`)
+		return math.random(1, 3) - 1
+	end
+
+	return tonumber(randomSelection.Name) :: number
+end
 
 function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 	local parent = Instance.new("Folder")
@@ -77,6 +103,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 
+		newEntityModel:SetAttribute("InfectedLevel", getRandomInfectedLevel())
 		newEntityModel:SetAttribute("JobWeapon", jobData.Weapon)
 		newEntityModel:SetAttribute("JobName", jobData.Name)
 		newEntityModel:SetAttribute("DamageMultiplier", jobData.DamageMultiplier)
@@ -116,6 +143,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		local randomIndex = math.random(1, #aggressiveEntitySpawns)
 		local chosenNode = aggressiveEntitySpawns[randomIndex]
 
+		newEntityModel:SetAttribute("InfectedLevel", getRandomInfectedLevel())
 		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel.Parent = parent

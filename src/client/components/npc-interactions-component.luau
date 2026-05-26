@@ -16,6 +16,7 @@ local UserInputService = game:GetService("UserInputService")
 local Classy = require(ReplicatedStorage.packages.classy)
 local Config = require(ReplicatedStorage.shared.configs.dialogue)
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
+local Viewer = require(ReplicatedStorage.packages.viewer)
 
 --// Variables //--
 local ActiveConfig = {}
@@ -28,28 +29,26 @@ local Prompts = {}
 
 local Network = Jaegar:GetNetwork()
 
-local Keybinds = {
-	Enum.KeyCode.One,
-	Enum.KeyCode.Two,
-	Enum.KeyCode.Three,
-	Enum.KeyCode.Four,
-}
-
 local Player = Players.LocalPlayer
 
 local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local ScreenGui = PlayerGui:WaitForChild("ui-assets"):WaitForChild("NPCInteraction")
 
-local List = ScreenGui:WaitForChild("List")
-local Gird = List:WaitForChild("Gird")
+local FirstList = ScreenGui:WaitForChild("FirstList") :: Frame
 
-local TradeFrame = Gird:WaitForChild("Trade")
-local TalkFrame = Gird:WaitForChild("Talk")
-local CureFrame = Gird:WaitForChild("Cure")
-local ExitFrame = List:WaitForChild("Exit")
+local TalkFrame = FirstList:WaitForChild("Talk") :: Frame
+local TreatmentFrame = FirstList:WaitForChild("Treatment") :: Frame
 
-local Sound = List:WaitForChild("Sounds"):WaitForChild("Select")
+local SecondList = ScreenGui:WaitForChild("SecondList") :: Frame
+
+local GarlicFrame = SecondList:WaitForChild("Garlic") :: Frame
+local EmeraldsFrame = SecondList:WaitForChild("Emeralds") :: Frame
+local ExitFrame = SecondList:WaitForChild("Exit") :: Frame
+
+local Sound = ScreenGui:WaitForChild("Sounds"):WaitForChild("Select") :: Sound
+
+local Character = Player.Character or Player.CharacterAdded:Wait()
 
 --// Main Code //--
 local NPC_Interactions = {}
@@ -187,8 +186,30 @@ local function RunInfectedInteraction()
 	NPC_Interactions.SystemMessage(NPC, Message)
 end
 
+local function RunTreatment()
+	FirstList.Visible = false
+	SecondList.Visible = true
+
+	GarlicFrame.Amount.Text = tostring(Player:GetAttribute("Garlic") or 0)
+	EmeraldsFrame.Amount.Text = tostring(Player:GetAttribute("Emeralds") or 0)
+
+	table.clear(NPC_Interactions.ActiveActions)
+
+	NPC_Interactions.ActiveActions[Enum.KeyCode.One] = "Garlic"
+	NPC_Interactions.ActiveActions[Enum.KeyCode.Two] = "Emeralds"
+	NPC_Interactions.ActiveActions[Enum.KeyCode.Three] = "Exit"
+
+	GarlicFrame.Keybind.Text = "1"
+	EmeraldsFrame.Keybind.Text = "2"
+	ExitFrame.Keybind.Text = "3"
+end
+
 local function CloseUI()
 	ScreenGui.Enabled = false
+
+	FirstList.Visible = true
+	SecondList.Visible = false
+
 	NPC_Interactions.ActiveNPC = nil
 	NPC_Interactions.Cooldown = false
 
@@ -205,25 +226,58 @@ local function SetPromptsState(State: boolean)
 end
 
 local function RunAction(Action: string)
-	if NPC_Interactions.Cooldown then
-		return
-	end
-
-	SetPromptsState(false)
-	NPC_Interactions.Cooldown = true
-
 	Sound:Play()
 
 	if Action == "Talk" then
+		if NPC_Interactions.Cooldown then
+			return
+		end
+
+		NPC_Interactions.Cooldown = true
+
+		SetPromptsState(false)
+
 		RunTalk()
 		CloseUI()
+
+		task.delay(3, function()
+			NPC_Interactions.Cooldown = false
+			SetPromptsState(true)
+		end)
+	elseif Action == "Treatment" then
+		RunTreatment()
+	elseif Action == "Garlic" then
+		print("Garlic Treatment")
+	elseif Action == "Emeralds" then
+		print("Emeralds Treatment")
 	elseif Action == "Exit" then
+		if NPC_Interactions.Cooldown then
+			return
+		end
+
+		NPC_Interactions.Cooldown = true
+
+		SetPromptsState(false)
+
 		if NPC_Interactions.ActiveNPC and NPC_Interactions.ActiveNPC:GetAttribute("Infected") then
 			RunInfectedInteraction()
 		end
 
 		CloseUI()
+
+		task.delay(3, function()
+			NPC_Interactions.Cooldown = false
+			SetPromptsState(true)
+		end)
 	else
+		if NPC_Interactions.Cooldown then
+			return
+		end
+
+		NPC_Interactions.Cooldown = true
+
+		SetPromptsState(false)
+
 		local Functions = ActiveConfig.Functions
 
 		if Functions and Functions[Action] then
@@ -231,54 +285,34 @@ local function RunAction(Action: string)
 		end
 
 		CloseUI()
-	end
 
-	task.delay(3, function()
-		NPC_Interactions.Cooldown = false
-		SetPromptsState(true)
-	end)
+		task.delay(3, function()
+			NPC_Interactions.Cooldown = false
+			SetPromptsState(true)
+		end)
+	end
 end
 
 local function SetupUI(NPC: Instance)
-	TradeFrame.Visible = false
-	TalkFrame.Visible = false
-	CureFrame.Visible = false
+	SecondList.Visible = false
+	FirstList.Visible = true
 
-	local Actions = {}
+	TalkFrame.Visible = true
+	TreatmentFrame.Visible = true
 
-	if NPC:GetAttribute("CanTrade") then
-		table.insert(Actions, "Trade")
-	end
-
-	table.insert(Actions, "Talk")
-
-	if not NPC:HasTag("Plague_Doctor") then
-		table.insert(Actions, "Cure")
-	end
-
-	local Highest = #Actions + 1
 	NPC_Interactions.ActiveActions = {}
 
-	print(NPC)
 	Network:SendServer("startDialogueConversation", NPC)
 
-	for Index, Action in ipairs(Actions) do
-		NPC_Interactions.ActiveActions[Keybinds[Index]] = Action
+	NPC_Interactions.ActiveActions[Enum.KeyCode.One] = "Talk"
+	NPC_Interactions.ActiveActions[Enum.KeyCode.Two] = "Treatment"
 
-		if Action == "Trade" then
-			TradeFrame.Visible = true
-			TradeFrame.Keybind.Text = tostring(Index)
-		elseif Action == "Talk" then
-			TalkFrame.Visible = true
-			TalkFrame.Keybind.Text = tostring(Index)
-		elseif Action == "Cure" then
-			CureFrame.Visible = true
-			CureFrame.Keybind.Text = tostring(Index)
-		end
-	end
+	TalkFrame.Keybind.Text = "1"
+	TreatmentFrame.Keybind.Text = "2"
 
-	NPC_Interactions.ActiveActions[Keybinds[Highest]] = "Exit"
-	ExitFrame.Keybind.Text = tostring(Highest)
+	ExitFrame.Keybind.Text = "3"
+
+	NPC_Interactions.ActiveActions[Enum.KeyCode.Three] = "Exit"
 
 	NPC_Interactions.ActiveNPC = NPC
 	ActiveConfig = GetConfigForNPC(NPC)
@@ -374,6 +408,12 @@ ProximityPromptService.PromptTriggered:Connect(function(ProximityPrompt: Proximi
 	end
 
 	SetupUI(Model)
+end)
+
+Viewer.WatchAttribute(Character, "Health", function(_)
+	if ScreenGui.Enabled then
+		RunAction("Exit")
+	end
 end)
 
 Classy.create("Dialogue", function(NPC: Instance)

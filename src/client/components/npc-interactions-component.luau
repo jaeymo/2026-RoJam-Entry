@@ -41,12 +41,15 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 
 local ScreenGui = PlayerGui:WaitForChild("ui-assets"):WaitForChild("NPCInteraction")
 
-local TradeFrame = ScreenGui:WaitForChild("List"):WaitForChild("Gird"):WaitForChild("Trade")
-local TalkFrame = ScreenGui:WaitForChild("List"):WaitForChild("Gird"):WaitForChild("Talk")
-local CureFrame = ScreenGui:WaitForChild("List"):WaitForChild("Gird"):WaitForChild("Cure")
-local ExitFrame = ScreenGui:WaitForChild("List"):WaitForChild("Exit")
+local List = ScreenGui:WaitForChild("List")
+local Gird = List:WaitForChild("Gird")
 
-local Sound = ScreenGui:WaitForChild("List"):WaitForChild("Sounds"):WaitForChild("Select")
+local TradeFrame = Gird:WaitForChild("Trade")
+local TalkFrame = Gird:WaitForChild("Talk")
+local CureFrame = Gird:WaitForChild("Cure")
+local ExitFrame = List:WaitForChild("Exit")
+
+local Sound = List:WaitForChild("Sounds"):WaitForChild("Select")
 
 --// Main Code //--
 local NPC_Interactions = {}

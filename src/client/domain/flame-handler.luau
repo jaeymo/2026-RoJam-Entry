@@ -8,6 +8,8 @@ local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
+local assetsFolder = ReplicatedStorage.assets
+
 local AncestorUtil = require(ReplicatedStorage.shared.utils["find-first-ancestor-with-tag"])
 
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
@@ -262,6 +264,53 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 			end
 
 			local hitEntity = AncestorUtil(Part, "Entity") or AncestorUtil(Part, "Dead")
+
+			if hitEntity and hitEntity:HasTag("Dead") then
+				local clientEntity = hitEntity.Client
+				local bodyAura = clientEntity.Torso:FindFirstChild("AuraBodyFlame")
+					or assetsFolder.particles.AuraBodyFlame:Clone()
+				local bodyFloat = clientEntity.Torso:FindFirstChild("FloatBodyFlame")
+					or assetsFolder.particles.FloatBodyFlame:Clone()
+				local bodySmoke = clientEntity.Torso:FindFirstChild("FloatBodySmoke")
+					or assetsFolder.particles.FloatBodySmoke:Clone()
+
+				bodyAura.Parent = clientEntity.Torso
+				bodyFloat.Parent = clientEntity.Torso
+				bodySmoke.Parent = clientEntity.Torso
+
+				bodyAura.Enabled = true
+				bodyFloat.Enabled = true
+				bodySmoke.Enabled = true
+
+				local flameLightPart = clientEntity.Torso:FindFirstChild("FlameLighting")
+					or assetsFolder.FlameLighting:Clone()
+				flameLightPart.Position = clientEntity.Torso.Position
+				flameLightPart.WeldConstraint.Part1 = clientEntity.Torso
+				flameLightPart.Parent = clientEntity.Torso
+
+				for _, light in pairs(flameLightPart:GetDescendants()) do
+					if not light:IsA("Light") then
+						continue
+					end
+
+					light.Enabled = true
+				end
+				local bodyColor = clientEntity["Body Colors"]
+				local h, s, v = bodyColor.HeadColor3:ToHSV()
+
+				local num = 100
+				for i = 1, num do
+					local newV = math.lerp(v, 0, i / num)
+
+					bodyColor.HeadColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.TorsoColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.RightArmColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.LeftArmColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.RightLegColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.LeftLegColor3 = Color3.fromHSV(h, s, newV)
+					task.wait()
+				end
+			end
 
 			if hitEntity then
 				FlameHandler:DamageHumanoid(hitEntity)

@@ -42,10 +42,7 @@ local function SetupPrompt(NPC: Instance)
 	Prompt.Parent = PrimaryPart
 
 	if not Prompt.Enabled then
-		print("nah")
 		NPC:GetAttributeChangedSignal("Burned"):Once(function()
-			print("ok")
-
 			Prompt.Enabled = true
 		end)
 	end

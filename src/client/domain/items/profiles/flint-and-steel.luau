@@ -19,7 +19,6 @@ end
 
 function FlintAndSteel.unequip(self: FlintAndSteel)
 	ViewmodelController.animationObject:Stop("ViewModelFNSIdle")
-	print(self)
 end
 
 function FlintAndSteel.primary(self: FlintAndSteel)

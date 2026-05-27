@@ -1,6 +1,7 @@
 --// Services //--
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 --// Modules //--
 local Config = require(ReplicatedStorage.shared.configs.configuration)
@@ -14,43 +15,62 @@ local PlayerGui = Player.PlayerGui
 local Main = PlayerGui:WaitForChild("ui-assets"):WaitForChild("Main")
 
 local Inventory = Main:WaitForChild("Inventory") :: Frame
-local Template = Inventory:WaitForChild("Template") :: Frame
 
 --// Main Coce //--
 local UiHotbar = {
 	janitor = Janitor.new(),
 	slots = {},
 	currentlyActive = nil,
+	hideThread = nil,
 }
 
 export type UiHotbar = typeof(UiHotbar)
 
-function UiHotbar:createSlots()
-	for KeyCode, ItemName in Config.Items do
-		local Clone = Template:Clone()
+local function Tween(Object: Instance, Time: number, Properties: {})
+	local TweenObject =
+		TweenService:Create(Object, TweenInfo.new(Time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), Properties)
 
-		Clone.Visible = true
-		Clone.Name = ItemName
+	TweenObject:Play()
 
-		local ItemNameLabel = Clone:WaitForChild("TextLabel")
-		local Keybind = Clone:WaitForChild("Keybind")
+	return TweenObject
+end
 
-		local Number =
-			KeyCode.Name:gsub("One", "1"):gsub("Two", "2"):gsub("Three", "3"):gsub("Four", "4"):gsub("Five", "5")
+local function TweenSlotOut(Slot: Frame)
+	local Label = Slot:FindFirstChild("TextLabel")
 
-		ItemNameLabel.Text = ItemName
+	Tween(Slot, 0.35, { Position = UDim2.fromScale(0, Slot.Position.Y.Scale) })
 
-		Keybind.Text = Number
-		Clone.LayoutOrder = tonumber(Number)
-
-		self:setSlotActive(Clone, false)
-
-		Clone.Parent = Inventory
-
-		self.slots[ItemName] = Clone
+	if Label then
+		Tween(Label, 0.175, { TextColor3 = Color3.fromRGB(255, 0, 0) })
 	end
+end
 
-	Template.Visible = false
+local function TweenSlotIn(Slot: Frame, Active: boolean?)
+	local Label = Slot:FindFirstChild("TextLabel")
+
+	Tween(Slot, 0.35, { Position = UDim2.fromScale(0.5, Slot.Position.Y.Scale) })
+
+	if Label and not Active then
+		Tween(Label, 0.175, { TextColor3 = Color3.fromRGB(255, 255, 255) })
+	end
+end
+
+function UiHotbar:createSlots()
+	for _, ItemName in Config.Items do
+		local Slot = Inventory:FindFirstChild(ItemName)
+		if not Slot then
+			continue
+		end
+
+		self.slots[ItemName] = Slot
+
+		Slot.Position = UDim2.fromScale(0.5, Slot.Position.Y.Scale)
+
+		local Label: TextLabel = Slot:FindFirstChild("TextLabel")
+		if Label then
+			Label.TextColor3 = Color3.fromRGB(255, 255, 255)
+		end
+	end
 end
 
 function UiHotbar:watchSignals()
@@ -64,38 +84,50 @@ function UiHotbar:watchSignals()
 end
 
 function UiHotbar:setActive(itemName: string)
-	if self.currentlyActive then
-		self:clearActive(self.currentlyActive)
+	local NewSlot = self.slots[itemName]
+	if not NewSlot then
+		return
 	end
 
-	local slot = self.slots[itemName]
+	if self.hideThread then
+		task.cancel(self.hideThread)
+		self.hideThread = nil
+	end
 
-	if not slot then
-		return
+	if self.currentlyActive then
+		local OldSlot = self.slots[self.currentlyActive]
+		if OldSlot then
+			TweenSlotIn(OldSlot)
+		end
 	end
 
 	self.currentlyActive = itemName
 
-	self:setSlotActive(slot, true)
+	TweenSlotOut(NewSlot)
+
+	self.hideThread = task.delay(5, function()
+		if self.currentlyActive ~= itemName then
+			return
+		end
+
+		TweenSlotIn(NewSlot, true)
+	end)
 end
 
 function UiHotbar:clearActive(itemName: string)
-	local slot = self.slots[itemName]
-
-	if not slot then
+	local Slot = self.slots[itemName]
+	if not Slot then
 		return
+	end
+
+	if self.hideThread then
+		task.cancel(self.hideThread)
+		self.hideThread = nil
 	end
 
 	self.currentlyActive = nil
 
-	self:setSlotActive(slot, false)
-end
-
-function UiHotbar:setSlotActive(slot: Frame, state: boolean)
-	local activeFrame = slot:FindFirstChild("Active")
-	if activeFrame then
-		activeFrame.Enabled = state
-	end
+	TweenSlotIn(Slot)
 end
 
 function UiHotbar:destroy(self: UiHotbar)

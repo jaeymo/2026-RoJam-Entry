@@ -1,6 +1,5 @@
 --// Services //--
 local Players = game:GetService("Players")
-local ProceduralBehaviorSchedulerService = game:GetService("ProceduralBehaviorSchedulerService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
@@ -26,8 +25,6 @@ local Leave = SleepFrame:WaitForChild("Leave") :: TextButton
 
 --// Main Code //--
 local UiSleep = {}
-
-local Hovering = false
 
 local function Tween(Object: Instance, Time: number, Properties: {})
 	local TweenObject =

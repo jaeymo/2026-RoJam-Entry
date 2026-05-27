@@ -38,7 +38,14 @@ local function SetupPrompt(NPC: Instance)
 	Prompt.Name = "DeadPrompt"
 	Prompt.ActionText = "Collect"
 	Prompt.RequiresLineOfSight = false
+	Prompt.Enabled = Client.Parent:GetAttribute("Burned")
 	Prompt.Parent = PrimaryPart
+
+	if not Prompt.Enabled then
+		NPC:GetAttributeChangedSignal("Burned"):Once(function()
+			Prompt.Enabled = true
+		end)
+	end
 end
 
 local function CollectBody(NPC: Model)

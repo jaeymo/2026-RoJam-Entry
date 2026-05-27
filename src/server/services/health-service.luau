@@ -134,6 +134,9 @@ function HealthService.jaegarInit(self: HealthService)
 
 	SignalRegistry.hitEntity:Connect(function(entityModel: Model, damage: number)
 		self:removeHealthFrom(entityModel, damage)
+		if entityModel:GetAttribute("State") == "Burning" then
+			entityModel:SetAttribute("Burned", true)
+		end
 	end)
 end
 

@@ -31,6 +31,9 @@ local COLLISION_GROUPS = {
 	MapMesh = {
 		CanCollide = {},
 	},
+	IgnorePlayers = {
+		CanCollide = { "EntityCollision", "Entity", "PathWall", "CollisionHitbox" },
+	},
 	IgnoreEntities = {
 		CanCollide = { "EntityCollision", "PlayerCharacter", "PathWall", "CollisionHitbox" },
 	},
@@ -45,7 +48,6 @@ local COLLISION_GROUPS = {
 		CanCollide = { "PathCast" },
 	},
 	PathWall = {
-		CanCollide = { "Entity", "PassiveEntity", "PathCast", "IgnoreEntities" },
 		CanCollide = { "Entity", "PassiveEntity", "PathCast", "IgnoreEntities" },
 	},
 	PathCast = {

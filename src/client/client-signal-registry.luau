@@ -12,6 +12,8 @@ local CLIENT_SIGNAL_REGISTRY = {
 	itemEquipped = Signal.new() :: Signal<string>,
 	itemUnequipped = Signal.new() :: Signal<string, boolean>,
 	itemPrimary = Signal.new() :: Signal<string>,
+	itemSecondary = Signal.new() :: Signal<string>,
+
 	m1 = Signal.new() :: Signal<string>,
 	plrHit = Signal.new() :: Signal<any>,
 }

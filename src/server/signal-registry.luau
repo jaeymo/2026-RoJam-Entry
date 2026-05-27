@@ -14,7 +14,7 @@ local SIGNAL_REGISTRY = {
 	roomInitialized = Signal.new() :: Signal<Model>,
 	roomEntered = Signal.new() :: Signal<Model>,
 	roomExitReached = Signal.new() :: Signal<>,
-	hitEntity = Signal.new() :: Signal<Model, string>,
+	hitEntity = Signal.new() :: Signal<Model, number>,
 	playerSlept = Signal.new() :: Signal<>,
 }
 

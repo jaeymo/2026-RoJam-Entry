@@ -66,6 +66,8 @@ function Scepter.primary(self: Scepter)
 	self:attack(randomAttackName)
 end
 
+function Scepter.secondary() end
+
 function Scepter.attack(_: Scepter, attackName: string)
 	local track = ViewmodelController.animationObject:GetTrack(`ViewModel{attackName}`)
 	if not track then

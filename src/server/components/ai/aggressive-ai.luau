@@ -11,6 +11,8 @@ local Network = Jaegar:GetNetwork()
 local AIPathService = require(ServerScriptService.services["ai-path-service"])
 local Raydar = require(ReplicatedStorage.shared.utils.raydar)
 
+local HealthService = require(ServerScriptService.services["health-service"])
+
 local Configs = ReplicatedStorage.shared.configs
 local AIConfig = require(Configs["aggressive-ai-config"])
 local InfectedConfig = require(Configs["infected-config"])
@@ -288,6 +290,16 @@ function AggressiveAI.RecoverStamina(self: AggressiveAI)
 		local elapsedHealTick = os.clock() - healTick
 		local heal_t = elapsedHealTick / staminaRecoveryTime
 
+		if self.entity:GetAttribute("State") == "Burning" then
+			self.staminaRecoveryConnection:Disconnect()
+			self.staminaRecoveryConnection = nil
+
+			self.entity:SetAttribute("Recovering", false)
+			self.attackTick = os.clock()
+			self:RecoverBurning()
+			return
+		end
+
 		if heal_t >= staminaRecoveryRate then
 			self.stamina = math.clamp(recover_t * maxStamina, 0, maxStamina)
 			healTick = os.clock()
@@ -310,6 +322,47 @@ function AggressiveAI.RecoverStamina(self: AggressiveAI)
 			end
 
 			self.attackTick = os.clock()
+
+			return
+		end
+	end)
+end
+
+function AggressiveAI.RecoverBurning(self: AggressiveAI)
+	if self.burningRecoveryConnection then
+		return
+	end
+
+	self:SetState("Burning")
+	self.internalState = "burning"
+	self:SetSpeed(self.exhaustedSpeed)
+
+	local maxBurnTime = 5
+	local currentBurnTick = os.clock()
+	local burnTickRate = 0.2
+	local burnDamage = 0.5
+
+	self.burningRecoveryConnection = RunService.Heartbeat:Connect(function()
+		local initialBurnTick = self.entity:GetAttribute("BurnTick")
+		local totalTick = os.clock() - initialBurnTick
+		local elapsedTick = os.clock() - currentBurnTick
+		if elapsedTick < burnTickRate then
+			return
+		end
+
+		currentBurnTick = os.clock()
+
+		HealthService:removeHealthFrom(self.entity, burnDamage)
+		if HealthService:getHealth(self.entity) <= 0 then
+			self.entity:SetAttribute("Burned", true)
+		end
+
+		if totalTick >= maxBurnTime then
+			self.burningRecoveryConnection:Disconnect()
+			self.burningRecoveryConnection = nil
+			self.internalState = "followTarget"
+			self:SetState("Hunting")
+			self:SetSpeed(self.defaultWalkSpeed)
 
 			return
 		end
@@ -342,7 +395,17 @@ function AggressiveAI.Attack(self: AggressiveAI)
 	Network:Broadcast("spawnEnemyHitbox", pivot + forward, Vector3.new(6, 5, 8))
 
 	self:SetSpeed(self.defaultWalkSpeed * AIConfig.Attacks.AttackMovementSpeedMultiplier)
-	task.wait(1)
+
+	local startTime = os.clock()
+	repeat
+		task.wait()
+
+		if self.entity:GetAttribute("State") == "Burning" then
+			self:RecoverBurning()
+			return
+		end
+	until (os.clock() - startTime) > 1
+
 	if self.entity:GetAttribute("Recovering") then
 		self:SetSpeed(self.exhaustedSpeed)
 	else
@@ -374,6 +437,11 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 	local function followPath()
 		for _, point: PathWaypoint in pairs(self.pathData.Waypoints) do
+			if self.entity:GetAttribute("State") == "Burning" then
+				self:RecoverBurning()
+				return
+			end
+
 			local peepTarget = self:PeepTarget()
 			local foundTarget = peepTarget and peepTarget.Instance:IsDescendantOf(self.target)
 
@@ -400,8 +468,13 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 	self.chaseLoopConnection = task.spawn(function()
 		while true do
-			if self.internalState == "attacking" then
+			if self.internalState == "attacking" or self.internalState == "burning" then
 				task.wait()
+				continue
+			end
+			if self.entity:GetAttribute("State") == "Burning" then
+				self:RecoverBurning()
+				self.internalState = "burning"
 				continue
 			end
 			local peepTarget = self:PeepTarget()

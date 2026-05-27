@@ -382,6 +382,94 @@ function AggressiveAI.Stunned(self: AggressiveAI)
 
 	self.animController:Play(anims[math.random(1, #anims)])
 end
+function AggressiveAI.Burning(self: AggressiveAI)
+	if self.characterFollower then
+		self.characterFollower:ChangeLookAtTarget(nil)
+	end
+
+	self.animController:Play("Burning")
+	self.animController:GetTrack("Burning").TimePosition = math.random(
+		0,
+		self.animController:GetTrack("Burning").Length * 10
+	) / 100
+
+	local anims = {
+		"StunDown",
+		"StunPoke",
+	}
+
+	local bodyAura = self.clientEntity.Torso:FindFirstChild("AuraBodyFlame")
+		or assetsFolder.particles.AuraBodyFlame:Clone()
+	local bodyFloat = self.clientEntity.Torso:FindFirstChild("FloatBodyFlame")
+		or assetsFolder.particles.FloatBodyFlame:Clone()
+	local bodySmoke = self.clientEntity.Torso:FindFirstChild("FloatBodySmoke")
+		or assetsFolder.particles.FloatBodySmoke:Clone()
+
+	bodyAura.Parent = self.clientEntity.Torso
+	bodyFloat.Parent = self.clientEntity.Torso
+	bodySmoke.Parent = self.clientEntity.Torso
+
+	bodyAura.Enabled = true
+	bodyFloat.Enabled = true
+	bodySmoke.Enabled = true
+
+	local flameLightPart = self.clientEntity.Torso:FindFirstChild("FlameLighting") or assetsFolder.FlameLighting:Clone()
+	flameLightPart.Position = self.clientEntity.Torso.Position
+	flameLightPart.WeldConstraint.Part1 = self.clientEntity.Torso
+	flameLightPart.Parent = self.clientEntity.Torso
+
+	for _, light in pairs(flameLightPart:GetDescendants()) do
+		if not light:IsA("Light") then
+			continue
+		end
+
+		light.Enabled = true
+	end
+
+	self.animController:Play(anims[math.random(1, #anims)])
+
+	self.burningConnection = task.spawn(function()
+		while task.wait() do
+			local bodyColor = self.clientEntity["Body Colors"]
+
+			local h, s, v = bodyColor.HeadColor3:ToHSV()
+			v = math.lerp(v, 0, 0.005)
+
+			bodyColor.HeadColor3 = Color3.fromHSV(h, s, v)
+			bodyColor.TorsoColor3 = Color3.fromHSV(h, s, v)
+			bodyColor.RightArmColor3 = Color3.fromHSV(h, s, v)
+			bodyColor.LeftArmColor3 = Color3.fromHSV(h, s, v)
+			bodyColor.RightLegColor3 = Color3.fromHSV(h, s, v)
+			bodyColor.LeftLegColor3 = Color3.fromHSV(h, s, v)
+		end
+	end)
+end
+
+function AggressiveAI.ExitBurning(self: AggressiveAI)
+	local bodyAura = self.clientEntity.Torso:FindFirstChild("AuraBodyFlame")
+	local bodyFloat = self.clientEntity.Torso:FindFirstChild("FloatBodyFlame")
+	local bodySmoke = self.clientEntity.Torso:FindFirstChild("FloatBodySmoke")
+
+	if self.burningConnection then
+		task.cancel(self.burningConnection)
+	end
+
+	bodyAura.Enabled = false
+	bodyFloat.Enabled = false
+	bodySmoke.Enabled = false
+
+	self.animController:Stop("Burning")
+
+	local flameLightPart = self.clientEntity.Torso:FindFirstChild("FlameLighting")
+
+	for _, light in pairs(flameLightPart:GetDescendants()) do
+		if not light:IsA("Light") then
+			continue
+		end
+
+		light.Enabled = false
+	end
+end
 
 function AggressiveAI.ExitAttack(self: AggressiveAI) end
 

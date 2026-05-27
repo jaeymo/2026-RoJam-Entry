@@ -5,6 +5,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local CharacterState = require(ReplicatedStorage.client.domain.character["character-state"])
 local FindFirstAncestorWithTag = require(ReplicatedStorage.shared.utils["find-first-ancestor-with-tag"])
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
+local ScepterConfig = require(ReplicatedStorage.shared.configs["scepter-config"])
 
 local ViewmodelController
 local HitboxController
@@ -38,6 +39,10 @@ local function getRandomAttackName(): string
 	}
 
 	if lastSelected then
+		if lastSelected == "Batter" and math.random() >= ScepterConfig.chanceToFollowUpBatterWithPoke then
+			return "Poke"
+		end
+
 		local index = table.find(names, lastSelected)
 		if index then
 			table.remove(names, index)
@@ -63,10 +68,11 @@ function Scepter.primary(self: Scepter)
 	end)
 
 	local randomAttackName = getRandomAttackName()
-	self:attack(randomAttackName)
+	local attackData = ScepterConfig.attacks[randomAttackName]
+	self:attack(randomAttackName, attackData)
 end
 
-function Scepter.attack(_: Scepter, attackName: string)
+function Scepter.attack(_: Scepter, attackName: string, attackData: ScepterConfig.AttackData)
 	local track = ViewmodelController.animationObject:GetTrack(`ViewModel{attackName}`)
 	if not track then
 		warn(`[{script.Name}] No track with the name: ViewModel{attackName}`)
@@ -76,9 +82,10 @@ function Scepter.attack(_: Scepter, attackName: string)
 	ViewmodelController.animationObject:Play(`ViewModel{attackName}`)
 
 	local root = CharacterState:getRoot() :: BasePart
-	local cf = root.CFrame + (camera.CFrame.LookVector * 5)
+	local hitboxCFrame = root.CFrame + (camera.CFrame.LookVector * 5)
+	local debugFlag = true
 
-	local hits = HitboxController.CheckForHumanoids(cf, Vector3.one * 5, true)
+	local hits = HitboxController.CheckForHumanoids(hitboxCFrame, attackData.HitboxSize, debugFlag)
 	if not next(hits) then
 		return
 	end
@@ -91,7 +98,7 @@ function Scepter.attack(_: Scepter, attackName: string)
 		end
 	end
 
-	network:SendServer("processScepterHits", valid)
+	network:SendServer("processScepterHits", valid, attackName)
 end
 
 function Scepter.jaegarInit(_: Scepter)

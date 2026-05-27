@@ -78,7 +78,7 @@ Classy.create("Dead", function(NPC: Instance)
 	end
 
 	task.spawn(function()
-		SetupPrompt(NPC)
+		-- SetupPrompt(NPC)
 
 		if NPC:FindFirstChild("NPCPrompt", true) then
 			NPC:FindFirstChild("NPCPrompt", true):Destroy()

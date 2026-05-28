@@ -1,4 +1,10 @@
 --!strict
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
+
+local network = Jaegar:GetNetwork()
+
 local InfectedController = {}
 
 local TREATMENT_MAP = {

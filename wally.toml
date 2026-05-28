@@ -6,6 +6,7 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
+camera-shaker = "brittonfischer/camerashaker@0.1.0"
 better-animation = "jaeymo/better-animation@1.0.0"
 resource-allocator = "jaeymo/resource-allocator@0.1.1"
 typed-promise = "howmanysmall/typed-promise@4.0.6"

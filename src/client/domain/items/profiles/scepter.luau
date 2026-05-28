@@ -93,7 +93,11 @@ function Scepter.attack(_: Scepter, attackName: string, attackData: ScepterConfi
 	local valid = {}
 	for _, hit in hits do
 		local entity = FindFirstAncestorWithTag(hit, "Entity")
+
 		if entity then
+			if entity:HasTag("Character") then
+				continue
+			end
 			table.insert(valid, entity)
 		end
 	end

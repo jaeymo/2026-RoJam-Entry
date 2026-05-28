@@ -9,6 +9,7 @@ local Classy = require(ReplicatedStorage.packages.classy)
 local FlowerConfig = require(ReplicatedStorage.shared.configs["flower-config"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local SignalRegistry = require(ServerScriptService["signal-registry"])
+local Viewer = require(ReplicatedStorage.packages.viewer)
 local PlayerHitController
 
 local REVERSED_COLOR_MAP = {} :: { [string]: string } -- color to name
@@ -77,7 +78,7 @@ function FlowerService.generateFlowersIntoMap(self: FlowerService, nodesFromRoom
 
 	local amountNodes = #nodesFromRoom
 	if amountNodes <= 0 then
-		warn(`[{script.Name}] No flower nodes for room`)
+		-- warn(`[{script.Name}] No flower nodes for room`)
 		return
 	end
 
@@ -160,18 +161,23 @@ end
 function FlowerService.jaegarInit(self: FlowerService)
 	PlayerHitController = require(ServerScriptService.domain.player["playerhit-controller"])
 
-	SignalRegistry.roomInitialized:Connect(function(roomModel: Model)
-		local nodes = {} :: { BasePart }
+	SignalRegistry.roomSpawned:Connect(function(roomModel: Model)
+		task.defer(function()
+			task.wait(1.5)
+			print(roomModel)
+			print("SPAWNING FLOWERS")
+			local nodes = {} :: { BasePart }
 
-		for _, v in roomModel:GetDescendants() do
-			if not v:HasTag("FlowerSpawnNode") then
-				continue
+			for _, v in roomModel:GetDescendants() do
+				if not v:HasTag("FlowerSpawnNode") then
+					continue
+				end
+
+				table.insert(nodes, v :: BasePart)
 			end
 
-			table.insert(nodes, v :: BasePart)
-		end
-
-		self:generateFlowersIntoMap(nodes)
+			self:generateFlowersIntoMap(nodes)
+		end)
 	end)
 
 	SignalRegistry.playerHealthColorChanged:Connect(function(color: Color3)

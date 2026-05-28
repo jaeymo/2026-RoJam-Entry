@@ -129,6 +129,7 @@ function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterCo
 				if entity:HasTag("Plague_Doctor") then
 					continue
 				end
+
 				if entity:HasTag("Character") then
 					continue
 				end

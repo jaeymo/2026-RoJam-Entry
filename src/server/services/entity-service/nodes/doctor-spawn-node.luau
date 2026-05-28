@@ -19,7 +19,7 @@ Viewer.WatchTag("DoctorSpawnNode", false, function(instance: Instance)
 		return
 	end
 
-	newDoctorModel:PivotTo((instance :: BasePart).CFrame * CFrame.new(0, 5, 0))
+	newDoctorModel:PivotTo((instance :: BasePart).CFrame * CFrame.new(0, 3, 0))
 	newDoctorModel:AddTag("Ragdoll")
 	newDoctorModel:AddTag("Entity")
 	newDoctorModel:AddTag("Plague_Doctor")

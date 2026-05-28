@@ -7,7 +7,6 @@ local testCharacters = ReplicatedStorage.assets.entities:FindFirstChild("test") 
 
 local EntityFactory = require(script["entity-factory"])
 local EntityGenerationConfig = require(ReplicatedStorage.shared.configs["entity-generation-config"])
-local GenerationConfig = require(ReplicatedStorage.shared.configs["generation-config"])
 local InfectedConfig = require(ReplicatedStorage.shared.configs["infected-config"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local MutationsConfig = require(ReplicatedStorage.shared.configs["mutations-config"])
@@ -65,8 +64,6 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 	end
 
 	local generatedWeights = EntityGenerationConfig.getEntitySpawnWeights()
-	print(generatedWeights)
-
 	local entityStateAllocator = ResourceAllocator.new()
 
 	entityStateAllocator:BatchAddItems({
@@ -96,6 +93,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 			warn("Could not assign job")
 			continue
 		end
+
 		local newEntityModel = EntityFactory:getNewEntityModel(jobData.Name)
 		if not newEntityModel then
 			warn(`[{script.Name}] Failed to make new entity: {jobData.Name}`)

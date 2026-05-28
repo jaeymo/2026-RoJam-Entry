@@ -67,6 +67,7 @@ function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): Aggress
 		stamina = AIConfig.Movement.MaxStamina,
 		staminaRecoveryTick = os.clock(),
 		staminaDrainTick = os.clock(),
+		-- cantAttack = false,
 
 		human = character:FindFirstChildWhichIsA("Humanoid") :: Humanoid,
 		janitor = janitor,
@@ -118,10 +119,16 @@ function AggressiveAI.Init(self: AggressiveAI)
 		if self.destroyed then
 			return
 		end
+
 		self:ChaseLoop()
 	end)
 
-	self:SetState("Hunting")
+	if self.entity:GetAttribute("InitialTransitionState") then
+		self.attackTick = os.clock()
+		self:SetState(self.entity:GetAttribute("InitialTransitionState"))
+	else
+		self:SetState("Hunting")
+	end
 end
 
 function AggressiveAI.applyJobConfig(self: AggressiveAI)

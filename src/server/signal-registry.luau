@@ -6,6 +6,7 @@ local Signal = require(ReplicatedStorage.packages.signal)
 export type Signal<T...> = Signal.Signal<T...>
 
 local SIGNAL_REGISTRY = {
+	hitPassive = Signal.new() :: Signal<Model>,
 	conversationStarted = Signal.new() :: Signal<Model>, -- entityModel
 	conversationEnded = Signal.new() :: Signal<Model>,
 	playerHealthColorChanged = Signal.new() :: Signal<Color3>,

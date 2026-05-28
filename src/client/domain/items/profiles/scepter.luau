@@ -132,6 +132,7 @@ function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterCo
 			end
 		end
 
+		print(valid)
 		network:SendServer("processScepterHits", valid, attackName)
 	end)
 

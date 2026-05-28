@@ -6,15 +6,15 @@ local GENERATION_CONFIG = {
 	gamePhases = {
 		early = {
 			name = "early",
-			length = 50,
+			length = 10000,
 
 			safezones = {
 				enabled = true,
 
-				minSpacing = 4,
+				minSpacing = 2,
 				maxSpacing = 7,
 
-				guaranteedAtEnd = true,
+				guaranteedAtEnd = false,
 			},
 		},
 		middle = {

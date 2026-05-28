@@ -227,7 +227,6 @@ end
 
 local function RunAction(Action: string)
 	Sound:Play()
-	Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
 
 	if Action == "Talk" then
 		if NPC_Interactions.Cooldown then
@@ -249,9 +248,15 @@ local function RunAction(Action: string)
 		RunTreatment()
 	elseif Action == "Garlic" then
 		print("Garlic Treatment")
+		Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
+		ReplicatedStorage["global-data"].isInDialogue.Value = false
 	elseif Action == "Emeralds" then
 		print("Emeralds Treatment")
+		ReplicatedStorage["global-data"].isInDialogue.Value = false
+		Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
 	elseif Action == "Exit" then
+		Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
+		ReplicatedStorage["global-data"].isInDialogue.Value = false
 		if NPC_Interactions.Cooldown then
 			return
 		end
@@ -304,6 +309,7 @@ local function SetupUI(NPC: Instance)
 	NPC_Interactions.ActiveActions = {}
 
 	Network:SendServer("startDialogueConversation", NPC)
+	ReplicatedStorage["global-data"].isInDialogue.Value = true
 
 	NPC_Interactions.ActiveActions[Enum.KeyCode.One] = "Talk"
 	NPC_Interactions.ActiveActions[Enum.KeyCode.Two] = "Treatment"
@@ -375,6 +381,7 @@ local function SetupPrompt(NPC: Instance)
 
 	local Prompt = Instance.new("ProximityPrompt")
 	Prompt.Name = "NPCPrompt"
+	Prompt.ClickablePrompt = false
 	Prompt.ActionText = ""
 	Prompt.RequiresLineOfSight = false
 	Prompt.Parent = PrimaryPart

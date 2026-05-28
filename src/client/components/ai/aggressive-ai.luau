@@ -46,6 +46,8 @@ function AggressiveAI.new(entity: Instance, janitor: Classy.Janitor): Aggressive
 
 	return setmetatable({
 		serverEntity = entity :: Model,
+		currentWeapon = entity:GetAttribute("JobWeapon"),
+		currentJob = entity:GetAttribute("JobName"),
 		animController = animController,
 		sweatFx = {},
 		destroyed = false,
@@ -152,6 +154,9 @@ function AggressiveAI.EquipWeapon(self: AggressiveAI)
 end
 
 function AggressiveAI.Init(self: AggressiveAI)
+	if self.serverEntity:FindFirstChild("NPCPrompt", true) then
+		self.serverEntity:FindFirstChild("NPCPrompt", true):Destroy()
+	end
 	self:CreateAIModel(self.serverEntity)
 
 	self.clientEntity:AddTag("CharacterFollower")
@@ -211,9 +216,6 @@ function AggressiveAI.Init(self: AggressiveAI)
 		func(self)
 	end
 
-	self.currentJob = self.serverEntity:GetAttribute("JobName")
-	self.currentWeapon = self.serverEntity:GetAttribute("JobWeapon")
-
 	self:ApplyInfectedEffects()
 	self:EquipWeapon()
 
@@ -223,6 +225,12 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self.human:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
 	self.human:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
 	self.human:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+
+	if self.serverEntity:GetAttribute("InitialTransitionState") then
+		task.spawn(function()
+			self:Stunned()
+		end)
+	end
 
 	repeat
 		task.wait()
@@ -352,16 +360,22 @@ function AggressiveAI.Attack(self: AggressiveAI)
 		self.characterFollower:ChangeLookAtTarget(LocalChar)
 	end
 
+	if not self.currentWeapon then
+		print("NO: ", self)
+	end
+
 	local attackAnimName = self.currentWeapon .. "Attack"
 	local animInst = AnimationFolder.weapons:FindFirstChild(attackAnimName)
 
 	if not self.currentWeapon or not animInst then
 		attackAnimName = "AttackPunch1"
 	end
+
 	self.animController:Play(attackAnimName)
 	self.animController:GetTrack(attackAnimName):GetMarkerReachedSignal("hit"):Wait()
 
 	local dir = (self.serverEntity:GetPivot().Position - LocalChar:GetPivot().Position).Unit
+
 	self.characterFollower:ShakeOffset({
 		Duration = 0.25,
 		Direction = -dir,

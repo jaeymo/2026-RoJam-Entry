@@ -8,6 +8,20 @@ local FLOWER_CONFIG = {
 		Red = Color3.fromRGB(219, 43, 43),
 	},
 
+	GuiColors = {
+		Purple = {
+			Primary = Color3.fromRGB(75, 2, 111),
+			Secondary = Color3.fromRGB(216, 138, 255),
+			Tertiary = Color3.fromRGB(56, 23, 86),
+		},
+		-- Yellow = Color3.fromRGB(255, 255, 0),
+		Red = {
+			Primary = Color3.fromRGB(130, 22, 22),
+			Secondary = Color3.fromRGB(234, 106, 106),
+			Tertiary = Color3.fromRGB(73, 1, 1),
+		},
+	},
+
 	models = {
 		Red = (ReplicatedStorage.assets.models:FindFirstChild("props") :: Folder):FindFirstChild("RoseBush"),
 		Purple = (ReplicatedStorage.assets.models:FindFirstChild("props") :: Folder):FindFirstChild("LavenderBush"),

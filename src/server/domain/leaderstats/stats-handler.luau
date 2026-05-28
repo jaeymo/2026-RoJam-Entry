@@ -6,6 +6,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --// Modules //--
 local Config = require(ReplicatedStorage.shared.configs.configuration)
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
+local Viewer = require(ReplicatedStorage.packages.viewer)
 local Network = Jaegar:GetNetwork()
 
 --// Datastore //--
@@ -33,40 +34,38 @@ local function SetupStats(Player)
 		return
 	end
 
-	local Humanoid = Character:FindFirstChild("Humanoid") or Character:WaitForChild("Humanoid", 10)
-	if not Humanoid then
-		return
-	end
+	Viewer.WatchAttribute(Character, "Health", function(NewValue)
+		if NewValue <= 0 then
+			local Tolls = Player:GetAttribute("Tolls") or 0
 
-	Humanoid.Died:Connect(function()
-		local Tolls = Player:GetAttribute("Tolls") or 0
+			local CureSuccess = Player:GetAttribute("Cured_Success") or 0
+			local CureFail = Player:GetAttribute("Cured_Fail") or 0
 
-		local CureSuccess = Player:GetAttribute("Cured_Success") or 0
-		local CureFail = Player:GetAttribute("Cured_Fail") or 0
+			local UserId = tostring(Player.UserId)
 
-		local UserId = tostring(Player.UserId)
+			pcall(function()
+				Leaderboard:UpdateAsync(UserId, function(OldData)
+					OldData = OldData
+						or {
+							Name = Player.Name,
+							UserId = Player.UserId,
 
-		pcall(function()
-			Leaderboard:UpdateAsync(UserId, function(OldData)
-				OldData = OldData
-					or {
-						Name = Player.Name,
+							Total_Tolls = 0,
+							Total_Cures_Success = 0,
+							Total_Cures_Fail = 0,
+							Total_Currency = 0,
+						}
 
-						Total_Tolls = 0,
-						Total_Cures_Success = 0,
-						Total_Cures_Fail = 0,
-						Total_Currency = 0,
-					}
+					OldData.Name = Player.Name
 
-				OldData.Name = Player.Name
+					OldData.Total_Tolls += Tolls
+					OldData.Total_Cures_Success += CureSuccess
+					OldData.Total_Cures_Fail += CureFail
 
-				OldData.Total_Tolls += Tolls
-				OldData.Total_Cures_Success += CureSuccess
-				OldData.Total_Cures_Fail += CureFail
-
-				return OldData
+					return OldData
+				end)
 			end)
-		end)
+		end
 	end)
 end
 
@@ -84,6 +83,7 @@ local function UpdateLeaderboard(
 			OldData = OldData
 				or {
 					Name = Player.Name,
+					UserId = Player.UserId,
 
 					Total_Tolls = 0,
 					Total_Cures_Success = 0,
@@ -170,6 +170,34 @@ Network:OnInvoke("trade", function(Player: Player, Item: string)
 	Player:SetAttribute(Item, CurrentAmount + 1)
 
 	return true
+end)
+
+Network:OnInvoke("getLeaderboard", function(_: Player)
+	local Pages = Leaderboard:ListKeysAsync()
+
+	local Data = {}
+
+	while true do
+		local CurrentPage = Pages:GetCurrentPage()
+
+		for _, KeyInfo in CurrentPage do
+			local Success, StoredData = pcall(function()
+				return Leaderboard:GetAsync(KeyInfo.KeyName)
+			end)
+
+			if Success and StoredData then
+				table.insert(Data, StoredData)
+			end
+		end
+
+		if Pages.IsFinished then
+			break
+		end
+
+		Pages:AdvanceToNextPageAsync()
+	end
+
+	return Data
 end)
 
 return StatsHandler

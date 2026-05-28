@@ -265,6 +265,7 @@ local function RunAction(Action: string, Prompt: ProximityPrompt)
 			NPC_Interactions.ActiveNPC:GetAttribute("InfectedLevel"),
 			Action
 		)
+		RunAction("Exit")
 	elseif Action == "Exit" then
 		if NPC_Interactions.Cooldown then
 			return

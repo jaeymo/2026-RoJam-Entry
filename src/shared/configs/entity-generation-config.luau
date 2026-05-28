@@ -1,5 +1,6 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local ENTITY_GENERATION_CONFIG = {
 	useOnlyAggressive = false,
 	useOnlyPassive = false,
@@ -11,4 +12,4 @@ local ENTITY_GENERATION_CONFIG = {
 	end,
 }
 
-return table.freeze(ENTITY_GENERATION_CONFIG) :: typeof(ENTITY_GENERATION_CONFIG)
+return ENTITY_GENERATION_CONFIG :: typeof(ENTITY_GENERATION_CONFIG)

@@ -3,6 +3,7 @@ local HttpService = game:GetService("HttpService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
+local EntityGenerationConfig = require(ReplicatedStorage.shared.configs["entity-generation-config"])
 local GenerationConfig = require(ReplicatedStorage.shared.configs["generation-config"])
 local GenerationFactory = require(script["generation-factory"])
 local GenerationTypes = require(script.types)
@@ -16,6 +17,8 @@ local ROOM_TYPE = {
 	SAFEZONE_START = "safezoneStart",
 	SAFEZONE = "safezone",
 	SAFEZONE_EXIT = "safezoneExit",
+
+	HORDE = "horde",
 }
 
 local SAFEZONE_ROOM_TYPES = {
@@ -103,9 +106,11 @@ local function buildFinitePhase(
 	local distanceUntilSafezone = math.random(safezoneConfig.minSpacing, safezoneConfig.maxSpacing)
 
 	while roomsRemaining > 0 do
+		local roomType = math.random() <= GenerationConfig.hordeRoomChance and ROOM_TYPE.HORDE or ROOM_TYPE.NORMAL
+
 		roomPlan[index] = {
 			phase = phaseData.name,
-			roomType = ROOM_TYPE.NORMAL,
+			roomType = roomType,
 		}
 
 		index += 1
@@ -165,11 +170,19 @@ function GenerationService.generateNext(self: GenerationService)
 	end
 
 	local newRoom: Room?
+	if roomData.roomType == "horde" then
+		EntityGenerationConfig.useOnlyAggressive = true
+	end
 
 	if SAFEZONE_ROOM_TYPES[roomData.roomType] then
 		newRoom = GenerationFactory:getSafezoneRoom(roomData.phase, roomData.roomType)
 	else
-		newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
+		if roomData.roomType == "normal" then
+			newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
+		else
+			print("room should be horde")
+			newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
+		end
 	end
 
 	if not newRoom then
@@ -195,6 +208,10 @@ function GenerationService.generateNext(self: GenerationService)
 	self.roomChain[#self.roomChain + 1] = newRoom
 
 	SignalRegistry.roomSpawned:Fire(newRoom)
+
+	if roomData.roomType == "horde" then
+		EntityGenerationConfig.useOnlyAggressive = false
+	end
 end
 
 function GenerationService.initializeNext(self: GenerationService)

@@ -21,6 +21,10 @@ function CombatService.jaegarInit(_: CombatService)
 		end
 
 		for _, hit in hits do
+			if hit:HasTag("WanderingAI") then
+				SignalRegistry.hitPassive:Fire(hit :: Model)
+				continue
+			end
 			SignalRegistry.hitEntity:Fire(hit :: Model, attackData.Damage, attackName)
 		end
 	end)

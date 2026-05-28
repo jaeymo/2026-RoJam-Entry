@@ -3,18 +3,20 @@ local GENERATION_CONFIG = {
 	worldOrigin = Vector3.yAxis * 100,
 	parent = workspace:WaitForChild("runtime"):WaitForChild("map"),
 
+	hordeRoomChance = 0.6,
+
 	gamePhases = {
 		early = {
 			name = "early",
-			length = 50,
+			length = 2000,
 
 			safezones = {
 				enabled = true,
 
-				minSpacing = 4,
+				minSpacing = 2,
 				maxSpacing = 7,
 
-				guaranteedAtEnd = true,
+				guaranteedAtEnd = false,
 			},
 		},
 		middle = {

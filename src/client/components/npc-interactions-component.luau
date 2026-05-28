@@ -55,7 +55,9 @@ local NPC_Interactions = {}
 
 NPC_Interactions.Cooldown = false
 NPC_Interactions.ActiveNPC = nil :: Model?
+
 NPC_Interactions.ActiveActions = {}
+NPC_Interactions.ActiveActions[Enum.KeyCode.E] = "Exit"
 
 function NPC_Interactions.SystemMessage(Model: Model, Text: string)
 	local Head = Model:FindFirstChild("Head") or Model.PrimaryPart
@@ -198,6 +200,7 @@ local function RunTreatment()
 	NPC_Interactions.ActiveActions[Enum.KeyCode.One] = "Garlic"
 	NPC_Interactions.ActiveActions[Enum.KeyCode.Two] = "Emeralds"
 	NPC_Interactions.ActiveActions[Enum.KeyCode.Three] = "Exit"
+	NPC_Interactions.ActiveActions[Enum.KeyCode.E] = "Exit"
 
 	GarlicFrame.Keybind.Text = "1"
 	EmeraldsFrame.Keybind.Text = "2"
@@ -227,7 +230,6 @@ end
 
 local function RunAction(Action: string)
 	Sound:Play()
-	Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
 
 	if Action == "Talk" then
 		if NPC_Interactions.Cooldown then
@@ -249,9 +251,33 @@ local function RunAction(Action: string)
 		RunTreatment()
 	elseif Action == "Garlic" then
 		print("Garlic Treatment")
+
+		Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
+		ReplicatedStorage["global-data"].isInDialogue.Value = false
+
+		SetPromptsState(false)
+		CloseUI()
+
+		task.delay(3, function()
+			NPC_Interactions.Cooldown = false
+			SetPromptsState(true)
+		end)
 	elseif Action == "Emeralds" then
 		print("Emeralds Treatment")
+
+		Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
+
+		ReplicatedStorage["global-data"].isInDialogue.Value = false
+
+		SetPromptsState(false)
+		CloseUI()
+
+		task.delay(3, function()
+			NPC_Interactions.Cooldown = false
+			SetPromptsState(true)
+		end)
 	elseif Action == "Exit" then
+		ReplicatedStorage["global-data"].isInDialogue.Value = false
 		if NPC_Interactions.Cooldown then
 			return
 		end
@@ -304,9 +330,11 @@ local function SetupUI(NPC: Instance)
 	NPC_Interactions.ActiveActions = {}
 
 	Network:SendServer("startDialogueConversation", NPC)
+	ReplicatedStorage["global-data"].isInDialogue.Value = true
 
 	NPC_Interactions.ActiveActions[Enum.KeyCode.One] = "Talk"
 	NPC_Interactions.ActiveActions[Enum.KeyCode.Two] = "Treatment"
+	NPC_Interactions.ActiveActions[Enum.KeyCode.E] = "Exit"
 
 	TalkFrame.Keybind.Text = "1"
 	TreatmentFrame.Keybind.Text = "2"
@@ -375,6 +403,7 @@ local function SetupPrompt(NPC: Instance)
 
 	local Prompt = Instance.new("ProximityPrompt")
 	Prompt.Name = "NPCPrompt"
+	Prompt.ClickablePrompt = false
 	Prompt.ActionText = ""
 	Prompt.RequiresLineOfSight = false
 	Prompt.Parent = PrimaryPart

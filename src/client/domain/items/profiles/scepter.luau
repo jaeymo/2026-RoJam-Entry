@@ -101,8 +101,8 @@ function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterCo
 	ViewmodelController.animationObject:Play(`ViewModel{attackName}`)
 
 	local c = track:GetMarkerReachedSignal("hit"):Once(function()
-		local root = CharacterState:getRoot() :: BasePart
-		local hitboxCFrame = root.CFrame + (camera.CFrame.LookVector * 5)
+		-- local root = CharacterState:getRoot() :: BasePart
+		local hitboxCFrame = camera.CFrame + (camera.CFrame.LookVector * 4)
 		local debugFlag = false
 
 		local hits = HitboxController.CheckForHumanoids(hitboxCFrame, attackData.HitboxSize, debugFlag)
@@ -118,6 +118,7 @@ function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterCo
 				if entity:HasTag("Character") then
 					continue
 				end
+
 				if entity:HasTag("Dead") then
 					task.spawn(function()
 						self:handleDeathHit(entity)
@@ -132,6 +133,7 @@ function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterCo
 			end
 		end
 
+		print(valid)
 		network:SendServer("processScepterHits", valid, attackName)
 	end)
 

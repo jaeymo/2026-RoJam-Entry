@@ -1,12 +1,15 @@
 --!strict
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local ENTITY_GENERATION_CONFIG = {
-	useOnlyAggressive = true,
+	useOnlyAggressive = false,
 	useOnlyPassive = false,
 
 	-- temporary system
 	getSpawnAmount = function(_: any)
-		return math.random(2, 2)
+		local roomLevel = ReplicatedStorage["global-data"].room.Value
+		return math.random(4, 6)
 	end,
 }
 
-return table.freeze(ENTITY_GENERATION_CONFIG) :: typeof(ENTITY_GENERATION_CONFIG)
+return ENTITY_GENERATION_CONFIG :: typeof(ENTITY_GENERATION_CONFIG)

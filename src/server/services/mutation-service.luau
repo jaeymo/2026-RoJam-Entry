@@ -1,4 +1,5 @@
 --!strict
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local SignalRegistry = require(ServerScriptService["signal-registry"])
@@ -15,6 +16,10 @@ function MutationService.mutateEntity(_: MutationService, mutationName: string, 
 	entityModel:SetAttribute(`{mutationName}MutationDone`, true)
 
 	if mutationName == "Aggressive" then
+		if entityModel:GetAttribute("InitialTransitionState") then
+			return
+		end
+
 		entityModel:RemoveTag("PassiveAI")
 		entityModel:RemoveTag("WanderingAI")
 		entityModel:AddTag("AggressiveAI")
@@ -25,6 +30,19 @@ function MutationService.mutateEntity(_: MutationService, mutationName: string, 
 	end
 
 	SignalRegistry.mutationFinished:Fire(mutationName, entityModel)
+end
+
+function MutationService.jaegarInit(_: MutationService)
+	SignalRegistry.hitPassive:Connect(function(passiveEntity: Model)
+		passiveEntity:RemoveTag("AggressiveMutation")
+		passiveEntity:SetAttribute("InitialTransitionState", nil)
+
+		passiveEntity:RemoveTag("PassiveAI")
+		passiveEntity:RemoveTag("WanderingAI")
+
+		passiveEntity:SetAttribute("InitialTransitionState", "Stunned")
+		passiveEntity:AddTag("AggressiveAI")
+	end)
 end
 
 return MutationService

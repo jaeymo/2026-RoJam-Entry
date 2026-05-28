@@ -5,25 +5,25 @@ local SCEPTER_CONFIG = {
 	attacks = {
 		["Poke"] = {
 			Damage = 1,
-			HitboxSize = Vector3.one * 5,
+			HitboxSize = Vector3.new(3, 3, 4),
 			StunDuration = 1,
 		},
 
 		["Batter"] = {
 			Damage = 1,
-			HitboxSize = Vector3.one * 5,
+			HitboxSize = Vector3.one * 4,
 			StunDuration = 1,
 		},
 
 		["Peck"] = {
 			Damage = 1,
-			HitboxSize = Vector3.one * 5,
+			HitboxSize = Vector3.one * 4,
 			StunDuration = 1,
 		},
 
 		["Bonk"] = {
 			Damage = 1,
-			HitboxSize = Vector3.one * 5,
+			HitboxSize = Vector3.one * 4,
 			StunDuration = 1,
 		},
 	},

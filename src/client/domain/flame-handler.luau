@@ -110,7 +110,7 @@ local function CreateHitbox(Position: Vector3, Size: Vector3): Part
 	Hitbox.CanQuery = false
 	Hitbox.CanTouch = true
 
-	Hitbox.Transparency = 0.8
+	Hitbox.Transparency = 1
 	Hitbox.Color = Color3.fromRGB(255, 75, 0)
 
 	Hitbox.Size = Size

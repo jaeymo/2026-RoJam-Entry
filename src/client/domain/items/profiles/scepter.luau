@@ -72,8 +72,27 @@ function Scepter.primary(self: Scepter)
 	self:attack(randomAttackName, attackData)
 end
 
-function Scepter.attack(_: Scepter, attackName: string, attackData: ScepterConfig.AttackData)
-	local track = ViewmodelController.animationObject:GetTrack(`ViewModel{attackName}`)
+function Scepter.secondary(_self: Scepter) end
+
+function Scepter.handleNormalHit(self: Scepter, entityModel: Model) end
+
+function Scepter.handleDeathHit(self: Scepter, entityModel: Model)
+	local client = entityModel:FindFirstChild("Client")
+	if client then
+		local bv = Instance.new("BodyVelocity")
+		bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+		bv.P = 1e6
+		bv.Velocity = Vector3.new(0, math.random(15, 30), 0)
+		bv.Parent = client:FindFirstChild("HumanoidRootPart")
+
+		task.delay(0.2, function()
+			bv:Destroy()
+		end)
+	end
+end
+
+function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterConfig.AttackData)
+	local track = ViewmodelController.animationObject:GetTrack(`ViewModel{attackName}`) :: AnimationTrack
 	if not track then
 		warn(`[{script.Name}] No track with the name: ViewModel{attackName}`)
 		return
@@ -81,28 +100,46 @@ function Scepter.attack(_: Scepter, attackName: string, attackData: ScepterConfi
 
 	ViewmodelController.animationObject:Play(`ViewModel{attackName}`)
 
-	local root = CharacterState:getRoot() :: BasePart
-	local hitboxCFrame = root.CFrame + (camera.CFrame.LookVector * 5)
-	local debugFlag = true
+	local c = track:GetMarkerReachedSignal("hit"):Once(function()
+		local root = CharacterState:getRoot() :: BasePart
+		local hitboxCFrame = root.CFrame + (camera.CFrame.LookVector * 5)
+		local debugFlag = false
 
-	local hits = HitboxController.CheckForHumanoids(hitboxCFrame, attackData.HitboxSize, debugFlag)
-	if not next(hits) then
-		return
-	end
-
-	local valid = {}
-	for _, hit in hits do
-		local entity = FindFirstAncestorWithTag(hit, "Entity")
-
-		if entity then
-			if entity:HasTag("Character") then
-				continue
-			end
-			table.insert(valid, entity)
+		local hits = HitboxController.CheckForHumanoids(hitboxCFrame, attackData.HitboxSize, debugFlag)
+		if not next(hits) then
+			return
 		end
-	end
 
-	network:SendServer("processScepterHits", valid, attackName)
+		local valid = {}
+		for _, hit in hits do
+			local entity = FindFirstAncestorWithTag(hit, "Entity") :: Model
+
+			if entity then
+				if entity:HasTag("Character") then
+					continue
+				end
+				if entity:HasTag("Dead") then
+					task.spawn(function()
+						self:handleDeathHit(entity)
+					end)
+					continue
+				end
+
+				task.spawn(function()
+					self:handleNormalHit(entity)
+				end)
+				table.insert(valid, entity)
+			end
+		end
+
+		network:SendServer("processScepterHits", valid, attackName)
+	end)
+
+	task.delay(5, function()
+		if c then
+			c:Disconnect()
+		end
+	end)
 end
 
 function Scepter.jaegarInit(_: Scepter)

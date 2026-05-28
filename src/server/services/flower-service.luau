@@ -1,4 +1,5 @@
 --!strict
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
@@ -34,6 +35,10 @@ end
 local FlowerService = {}
 
 export type FlowerService = typeof(FlowerService)
+
+function FlowerService.stringFromColor(_self: FlowerService, color: Color3): string?
+	return REVERSED_COLOR_MAP[tostring(color)]
+end
 
 function FlowerService.generateFlowersIntoMap(self: FlowerService, nodesFromRoom: { BasePart })
 	local currentInfectedColor = self:getPlayerInfectionColor()
@@ -81,9 +86,24 @@ function FlowerService.generateFlowersIntoMap(self: FlowerService, nodesFromRoom
 	for _ = 1, amountFlowersToSpawn do
 		local randomIndex = math.random(1, #nodesFromRoom)
 		local node = nodesFromRoom[randomIndex]
-		node.Name = "LJHLJHSGJLHSJLH"
 
 		local chosenColor = Lucky:chooseWeighted(weights :: any)
+		local model = FlowerConfig.models[chosenColor.Name]
+
+		if model then
+			local clone = model:Clone()
+			clone:PivotTo(node.CFrame)
+			clone.Parent = node
+
+			for _, k in clone:GetDescendants() do
+				if k:IsA("Light") then
+					k.Enabled = false
+				end
+			end
+
+			node.Transparency = 1
+		end
+
 		initializeTemporaryPrompt(node, chosenColor.Name)
 
 		table.remove(nodesFromRoom, randomIndex)
@@ -154,9 +174,28 @@ function FlowerService.jaegarInit(self: FlowerService)
 		self:generateFlowersIntoMap(nodes)
 	end)
 
+	SignalRegistry.playerHealthColorChanged:Connect(function(color: Color3)
+		local colorString = self:stringFromColor(color)
+
+		for colorName, tag in FlowerConfig.tags do
+			local enabled = colorName == colorString
+
+			for _, v in CollectionService:GetTagged(tag :: string) do
+				if v:IsDescendantOf(ReplicatedStorage) then
+					continue
+				end
+
+				for _, k in v:GetDescendants() do
+					if k:IsA("Light") then
+						k.Enabled = enabled
+					end
+				end
+			end
+		end
+	end)
+
 	Classy.create("FlowerPrompt", function(prompt: Instance, janitor)
 		if prompt.Parent then
-			(prompt.Parent :: BasePart).Transparency = 0
 			(prompt.Parent :: BasePart).Color = FlowerConfig.colors[prompt:GetAttribute("Color")]
 		end
 

@@ -8,13 +8,13 @@ export type Signal<T...> = Signal.Signal<T...>
 local SIGNAL_REGISTRY = {
 	conversationStarted = Signal.new() :: Signal<Model>, -- entityModel
 	conversationEnded = Signal.new() :: Signal<Model>,
-
+	playerHealthColorChanged = Signal.new() :: Signal<Color3>,
 	mutationFinished = Signal.new() :: Signal<string, Model>, -- mutationName, entityModel
 	roomSpawned = Signal.new() :: Signal<Model>,
 	roomInitialized = Signal.new() :: Signal<Model>,
 	roomEntered = Signal.new() :: Signal<Model>,
 	roomExitReached = Signal.new() :: Signal<>,
-	hitEntity = Signal.new() :: Signal<Model, number>,
+	hitEntity = Signal.new() :: Signal<Model, number, string>,
 	playerSlept = Signal.new() :: Signal<>,
 }
 

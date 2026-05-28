@@ -4,19 +4,19 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local ServerScriptService = game:GetService("ServerScriptService")
 
-local Classy = require(ReplicatedStorage.packages.classy)
-local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
-local Network = Jaegar:GetNetwork()
-
 local AIPathService = require(ServerScriptService.services["ai-path-service"])
-local Raydar = require(ReplicatedStorage.shared.utils.raydar)
-
+local Classy = require(ReplicatedStorage.packages.classy)
 local HealthService = require(ServerScriptService.services["health-service"])
-
+local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
+local Raydar = require(ReplicatedStorage.shared.utils.raydar)
+local ScepterConfig = require(ReplicatedStorage.shared.configs["scepter-config"])
+local SignalRegistry = require(ServerScriptService["signal-registry"])
 local Configs = ReplicatedStorage.shared.configs
 local AIConfig = require(Configs["aggressive-ai-config"])
 local InfectedConfig = require(Configs["infected-config"])
 local JobConfig = require(Configs["job-config"])
+
+local Network = Jaegar:GetNetwork()
 
 local AggressiveAI = {}
 AggressiveAI.__index = AggressiveAI
@@ -83,7 +83,7 @@ function AggressiveAI.cleanEntityModel(self: AggressiveAI, entityModel: Model)
 	entityModel.HumanoidRootPart.Transparency = 1
 
 	local collisionBall = Instance.new("Part")
-	collisionBall.Transparency = 0.8
+	collisionBall.Transparency = 1
 	collisionBall.Shape = Enum.PartType.Ball
 	collisionBall.Size = Vector3.one * 4
 	collisionBall.Position = entityModel.PrimaryPart.Position
@@ -468,7 +468,7 @@ function AggressiveAI.ChaseLoop(self: AggressiveAI)
 
 	self.chaseLoopConnection = task.spawn(function()
 		while true do
-			if self.internalState == "attacking" or self.internalState == "burning" then
+			if self.internalState == "attacking" or self.internalState == "burning" or self.internalState == "stun" then
 				task.wait()
 				continue
 			end
@@ -577,5 +577,35 @@ AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {
 })
 
 Classy.registerGlobal("AggressiveAI", AggressiveAI.classy)
+
+SignalRegistry.hitEntity:Connect(function(entity: Model, _, attackName: string)
+	local attackData = ScepterConfig.attacks[attackName]
+	local stunDuration = attackData and attackData.StunDuration
+
+	if not stunDuration then
+		stunDuration = 5
+		warn(`[{script.Name}] Failed to get stun duration: {attackName}`)
+	end
+
+	if AggressiveAI.classy:GetApplied(entity) then
+		local data = AggressiveAI.classy:GetApplied(entity):GetData()
+		data:SetState("Stunned")
+		data.internalState = "stun"
+
+		local flag = false
+		data.janitor:Add(function()
+			flag = true
+		end)
+
+		task.wait(stunDuration)
+
+		if flag then
+			return
+		end
+
+		data:SetState("Hunting")
+		data.internalState = "followTarget"
+	end
+end)
 
 return AggressiveAI

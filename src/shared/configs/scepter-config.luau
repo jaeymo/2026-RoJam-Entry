@@ -32,6 +32,7 @@ local SCEPTER_CONFIG = {
 export type AttackData = {
 	Damage: number,
 	HitboxSize: Vector3,
+	StunDuration: number,
 }
 
 return table.freeze(SCEPTER_CONFIG) :: typeof(SCEPTER_CONFIG)

@@ -20,7 +20,7 @@ PART_CACHE.Anchored = true
 PART_CACHE.CastShadow = false
 PART_CACHE.CanCollide = false
 PART_CACHE.CanQuery = false
-PART_CACHE.Transparency = 0.5
+PART_CACHE.Transparency = 0.85
 PART_CACHE.Color = Color3.fromRGB(255, 0, 0)
 
 function HitboxController.CreateBox(CFrame, Size)

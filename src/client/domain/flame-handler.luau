@@ -209,6 +209,9 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 
 	for Index = #ActiveFlames, 1, -1 do
 		local Flame = ActiveFlames[Index]
+		if not Flame then
+			continue
+		end
 
 		local Elasped = tick() - Flame.StartTime
 

@@ -83,7 +83,7 @@ function AggressiveAI.cleanEntityModel(self: AggressiveAI, entityModel: Model)
 	entityModel.HumanoidRootPart.Transparency = 1
 
 	local collisionBall = Instance.new("Part")
-	collisionBall.Transparency = 0.8
+	collisionBall.Transparency = 1
 	collisionBall.Shape = Enum.PartType.Ball
 	collisionBall.Size = Vector3.one * 4
 	collisionBall.Position = entityModel.PrimaryPart.Position

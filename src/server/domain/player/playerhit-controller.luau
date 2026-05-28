@@ -1,11 +1,13 @@
 --// Services //--
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 --// Modules //--
 local Config = require(ReplicatedStorage.shared.configs.configuration)
 local FlowerConfig = require(ReplicatedStorage.shared.configs["flower-config"])
 local HealthService = require("../../services/health-service")
+local SignalRegistry = require(ServerScriptService["signal-registry"])
 
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
 local Network = Jaegar:GetNetwork()
@@ -39,7 +41,9 @@ function PlayerHitController.Infect(Player: Player)
 		return
 	end
 
-	Player:SetAttribute("Infected", ColorList[math.random(1, #ColorList)])
+	local Color = ColorList[math.random(1, #ColorList)]
+	Player:SetAttribute("Infected", Color)
+	SignalRegistry.playerHealthColorChanged:Fire(Color)
 
 	task.spawn(function()
 		local HealthTick = 0

@@ -2,8 +2,8 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local ENTITY_GENERATION_CONFIG = {
-	useOnlyAggressive = false,
-	useOnlyPassive = true,
+	useOnlyAggressive = true,
+	useOnlyPassive = false,
 
 	-- temporary system
 	getSpawnAmount = function(_: any)

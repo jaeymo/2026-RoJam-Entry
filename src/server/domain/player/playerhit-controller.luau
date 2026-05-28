@@ -112,7 +112,18 @@ end
 -- 	end
 -- end)
 
+local onCooldown = false
+
 Network:OnServer("sendHit", function(player: Player)
+	if onCooldown then
+		return
+	end
+
+	onCooldown = true
+	task.delay(3, function()
+		onCooldown = false
+	end)
+
 	PlayerHitController.Infect(player)
 end)
 

@@ -35,6 +35,7 @@ local PACKETS = {
 	startDialogueConversation = Packet.new("startDialogueConversation", INSTANCE),
 	endDialogueConversation = Packet.new("endDialogueConversation", INSTANCE),
 	processScepterHits = Packet.new("processScepterHits", ANY, STRING),
+	treatEntity = Packet.new("treatEntity", INSTANCE, STRING),
 	sendHit = Packet.new("sendHit"),
 	restartGameSession = Packet.new("restartGameSession"),
 	trade = Packet.new("trade", STRING):Response(BOOLEAN),

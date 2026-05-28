@@ -121,7 +121,11 @@ local function CreateHitbox(Position: Vector3, Size: Vector3): Part
 	return Hitbox
 end
 
-function FlameHandler:DamageHumanoid(CharModel: Humanoid, Properties: FlameProperties)
+function FlameHandler:DamageHumanoid(CharModel: Model, Properties: FlameProperties)
+	if CharModel:HasTag("Plague_Doctor") then
+		return
+	end
+
 	Network:SendServer("damageNPC", CharModel, 1)
 end
 
@@ -275,6 +279,9 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 			end
 
 			local hitEntity = AncestorUtil(Part, "Entity") or AncestorUtil(Part, "Dead")
+			if hitEntity and hitEntity:HasTag("Plague_Doctor") then
+				continue
+			end
 
 			if hitEntity and hitEntity:HasTag("Dead") then
 				local clientEntity = hitEntity.Client

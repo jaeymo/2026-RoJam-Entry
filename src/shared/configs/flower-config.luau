@@ -4,7 +4,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local FLOWER_CONFIG = {
 	colors = {
 		Purple = Color3.fromRGB(170, 0, 255),
-		Yellow = Color3.fromRGB(255, 255, 0),
+		-- Yellow = Color3.fromRGB(255, 255, 0),
 		Red = Color3.fromRGB(219, 43, 43),
 	},
 

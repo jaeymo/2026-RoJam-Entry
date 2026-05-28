@@ -12,7 +12,7 @@ function MutationService.initializeEntityMutation(_: MutationService, mutationNa
 	entityModel:SetAttribute(`{mutationName}MutationDone`, false)
 end
 
-function MutationService.mutateEntity(_: MutationService, mutationName: string, entityModel: Model)
+function MutationService.mutateEntity(self: MutationService, mutationName: string, entityModel: Model)
 	entityModel:SetAttribute(`{mutationName}MutationDone`, true)
 
 	if mutationName == "Aggressive" then
@@ -20,10 +20,7 @@ function MutationService.mutateEntity(_: MutationService, mutationName: string, 
 			return
 		end
 
-		entityModel:RemoveTag("PassiveAI")
-		entityModel:RemoveTag("WanderingAI")
-		entityModel:AddTag("AggressiveAI")
-
+		self:swapFromWanderingToAggressive(entityModel)
 		-- can add something for terminal here if need be, like a skin change
 		-- elseif mutationName == "Terminal" then
 		-- 	print()
@@ -32,16 +29,21 @@ function MutationService.mutateEntity(_: MutationService, mutationName: string, 
 	SignalRegistry.mutationFinished:Fire(mutationName, entityModel)
 end
 
-function MutationService.jaegarInit(_: MutationService)
+function MutationService.swapFromWanderingToAggressive(_: MutationService, entityModel: Model)
+	if entityModel:GetAttribute("InitialTransitionState") then
+		return
+	end
+
+	entityModel:RemoveTag("PassiveAI")
+	entityModel:RemoveTag("WanderingAI")
+	entityModel:RemoveTag("AggressiveMutation")
+	entityModel:AddTag("AggressiveAI")
+end
+
+function MutationService.jaegarInit(self: MutationService)
 	SignalRegistry.hitPassive:Connect(function(passiveEntity: Model)
-		passiveEntity:RemoveTag("AggressiveMutation")
-		passiveEntity:SetAttribute("InitialTransitionState", nil)
-
-		passiveEntity:RemoveTag("PassiveAI")
-		passiveEntity:RemoveTag("WanderingAI")
-
+		self:swapFromWanderingToAggressive(passiveEntity)
 		passiveEntity:SetAttribute("InitialTransitionState", "Stunned")
-		passiveEntity:AddTag("AggressiveAI")
 	end)
 end
 

@@ -126,6 +126,10 @@ function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterCo
 			local entity = FindFirstAncestorWithTag(hit, "Entity") :: Model
 
 			if entity then
+				if entity:HasTag("Plague_Doctor") then
+					continue
+				end
+
 				if entity:HasTag("Character") then
 					continue
 				end

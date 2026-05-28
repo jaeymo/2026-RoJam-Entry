@@ -63,10 +63,12 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		end
 	end
 
+	local generatedWeights = EntityGenerationConfig.getEntitySpawnWeights()
 	local entityStateAllocator = ResourceAllocator.new()
+
 	entityStateAllocator:BatchAddItems({
-		["Passive"] = { Weight = 5, Cost = 1 },
-		["Aggressive"] = { Weight = 1, Cost = 1 },
+		["Passive"] = { Weight = generatedWeights.Passive, Cost = 1 },
+		["Aggressive"] = { Weight = generatedWeights.Aggressive, Cost = 1 },
 	})
 
 	local totalEntityCount = EntityGenerationConfig:getSpawnAmount()
@@ -91,6 +93,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 			warn("Could not assign job")
 			continue
 		end
+
 		local newEntityModel = EntityFactory:getNewEntityModel(jobData.Name)
 		if not newEntityModel then
 			warn(`[{script.Name}] Failed to make new entity: {jobData.Name}`)

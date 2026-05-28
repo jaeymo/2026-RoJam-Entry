@@ -1,5 +1,4 @@
 --// Services //--
-local ProximityPromptService = game:GetService("ProximityPromptService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
@@ -19,8 +18,8 @@ local Colors = FlowerConfig.colors
 
 local ColorList = {
 	Colors.Purple,
-	Colors.Yellow,
-	Colors.Green,
+	Colors.Red,
+	-- Colors.Yellow,
 }
 
 --// Main Code //--
@@ -112,7 +111,18 @@ end
 -- 	end
 -- end)
 
+local onCooldown = false
+
 Network:OnServer("sendHit", function(player: Player)
+	if onCooldown then
+		return
+	end
+
+	onCooldown = true
+	task.delay(3, function()
+		onCooldown = false
+	end)
+
 	PlayerHitController.Infect(player)
 end)
 

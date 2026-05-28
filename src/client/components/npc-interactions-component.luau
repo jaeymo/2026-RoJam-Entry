@@ -15,6 +15,7 @@ local UserInputService = game:GetService("UserInputService")
 --// Modules //--
 local Classy = require(ReplicatedStorage.packages.classy)
 local Config = require(ReplicatedStorage.shared.configs.dialogue)
+local InfectedController = require(ReplicatedStorage.client.controllers["infected-controller"])
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
@@ -258,10 +259,12 @@ local function RunAction(Action: string, Prompt: ProximityPrompt)
 		end)
 	elseif Action == "Treatment" then
 		RunTreatment()
-	elseif Action == "Garlic" then
-		print("Garlic Treatment")
-	elseif Action == "Emeralds" then
-		print("Emeralds Treatment")
+	elseif Action == "Garlic" or Action == "Emeralds" then
+		InfectedController:treatEntity(
+			NPC_Interactions.ActiveNPC,
+			NPC_Interactions.ActiveNPC:GetAttribute("InfectedLevel"),
+			Action
+		)
 	elseif Action == "Exit" then
 		if NPC_Interactions.Cooldown then
 			return

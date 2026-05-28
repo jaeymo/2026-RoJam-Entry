@@ -63,6 +63,10 @@
             "global-data": {
                 "$className": "Folder",
 
+                "room": {
+                    "$className": "IntValue"
+                },
+                
                 "isSleeping": {
                      "$className": "BoolValue"
                 },

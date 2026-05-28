@@ -16,6 +16,10 @@ function MutationService.mutateEntity(_: MutationService, mutationName: string, 
 	entityModel:SetAttribute(`{mutationName}MutationDone`, true)
 
 	if mutationName == "Aggressive" then
+		if entityModel:GetAttribute("InitialTransitionState") then
+			return
+		end
+
 		entityModel:RemoveTag("PassiveAI")
 		entityModel:RemoveTag("WanderingAI")
 		entityModel:AddTag("AggressiveAI")
@@ -30,6 +34,9 @@ end
 
 function MutationService.jaegarInit(_: MutationService)
 	SignalRegistry.hitPassive:Connect(function(passiveEntity: Model)
+		passiveEntity:RemoveTag("AggressiveMutation")
+		passiveEntity:SetAttribute("InitialTransitionState", nil)
+
 		passiveEntity:RemoveTag("PassiveAI")
 		passiveEntity:RemoveTag("WanderingAI")
 

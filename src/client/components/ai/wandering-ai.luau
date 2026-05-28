@@ -196,26 +196,26 @@ function WanderingAI.OnDied(self: WanderingAI)
 	self.clientEntity.PrimaryPart.Anchored = false
 	Ragdoller:activateRagdoll(self.clientEntity)
 
-	local root = self.clientEntity:FindFirstChild("HumanoidRootPart")
-	if not root then
-		return
-	end
+	-- local root = self.clientEntity:FindFirstChild("HumanoidRootPart")
+	-- if not root then
+	-- 	return
+	-- end
 
-	local head = self.clientEntity:FindFirstChild("Head")
-	if not head then
-		warn("get jaeymo")
-		return
-	end
+	-- local head = self.clientEntity:FindFirstChild("Head")
+	-- if not head then
+	-- 	warn("get jaeymo")
+	-- 	return
+	-- end
 
-	local bv = Instance.new("BodyVelocity")
-	bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
-	bv.P = 1e6
-	bv.Velocity = Vector3.new(0, math.random(-15, 15), 0) + (-root.CFrame.LookVector * 100) * -1
-	bv.Parent = head
+	-- local bv = Instance.new("BodyVelocity")
+	-- bv.MaxForce = Vector3.new(1e9, 1e9, 1e9)
+	-- bv.P = 1e6
+	-- bv.Velocity = Vector3.new(0, math.random(-15, 15), 0) + (-root.CFrame.LookVector * 100) * -1
+	-- bv.Parent = head
 
-	task.delay(0.2, function()
-		bv:Destroy()
-	end)
+	-- task.delay(0.2, function()
+	-- 	bv:Destroy()
+	-- end)
 end
 
 function WanderingAI.Destroy(self: WanderingAI)

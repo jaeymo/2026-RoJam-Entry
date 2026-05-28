@@ -2,7 +2,6 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local entityAssets = ReplicatedStorage.assets.entities
-local testCharacters = entityAssets.test
 
 local EntityFactory = {}
 

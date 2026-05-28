@@ -26,8 +26,6 @@ local Leave = SleepFrame:WaitForChild("Leave") :: TextButton
 --// Main Code //--
 local UiSleep = {}
 
-local Hovering = false
-
 local function Tween(Object: Instance, Time: number, Properties: {})
 	local TweenObject =
 		TweenService:Create(Object, TweenInfo.new(Time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), Properties)

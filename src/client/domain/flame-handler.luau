@@ -125,6 +125,14 @@ function FlameHandler:DamageHumanoid(CharModel: Humanoid, Properties: FlamePrope
 	Network:SendServer("damageNPC", CharModel, 1)
 end
 
+function FlameHandler:SpawnFlammable(Position: Vector3, Size: Vector3)
+	local Hitbox = CreateHitbox(Position, Size)
+	Hitbox.CanCollide = true
+	Hitbox.CollisionGroup = "MapMesh"
+	Hitbox:AddTag("Flammable")
+	return Hitbox
+end
+
 function FlameHandler:Spawn(Position: Vector3, Size: Vector3, Properties: FlameProperties?, SourcePart: BasePart?)
 	if typeof(Position) ~= "Vector3" or typeof(Size) ~= "Vector3" then
 		warn("Position/Size need to be a Vector3")
@@ -256,7 +264,7 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 			continue
 		end
 
-		local Parts = workspace:GetPartsInPart(Flame.Hitbox)
+		local Parts = workspace:GetPartBoundsInBox(Flame.Hitbox.CFrame, Flame.Hitbox.Size)
 
 		for _, Part in Parts do
 			if not Part:IsA("BasePart") then
@@ -319,6 +327,8 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 			if not Part:HasTag("Flammable") then
 				continue
 			end
+
+			Part:SetAttribute("HasBurned", true)
 
 			if BurningParts[Part] then
 				continue

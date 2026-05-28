@@ -7,6 +7,7 @@ local testCharacters = ReplicatedStorage.assets.entities:FindFirstChild("test") 
 
 local EntityFactory = require(script["entity-factory"])
 local EntityGenerationConfig = require(ReplicatedStorage.shared.configs["entity-generation-config"])
+local GenerationConfig = require(ReplicatedStorage.shared.configs["generation-config"])
 local InfectedConfig = require(ReplicatedStorage.shared.configs["infected-config"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local MutationsConfig = require(ReplicatedStorage.shared.configs["mutations-config"])
@@ -63,10 +64,14 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		end
 	end
 
+	local generatedWeights = EntityGenerationConfig.getEntitySpawnWeights()
+	print(generatedWeights)
+
 	local entityStateAllocator = ResourceAllocator.new()
+
 	entityStateAllocator:BatchAddItems({
-		["Passive"] = { Weight = 5, Cost = 1 },
-		["Aggressive"] = { Weight = 1, Cost = 1 },
+		["Passive"] = { Weight = generatedWeights.Passive, Cost = 1 },
+		["Aggressive"] = { Weight = generatedWeights.Aggressive, Cost = 1 },
 	})
 
 	local totalEntityCount = EntityGenerationConfig:getSpawnAmount()

@@ -28,6 +28,7 @@ export type AggressiveAI = typeof(setmetatable(
 		janitor: Classy.Janitor,
 		target: Model?,
 
+		canAttack: boolean,
 		destroyed: boolean,
 
 		staminaDrainTick: number?,
@@ -71,6 +72,7 @@ function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): Aggress
 
 		human = character:FindFirstChildWhichIsA("Humanoid") :: Humanoid,
 		janitor = janitor,
+		canAttack = false,
 		destroyed = false,
 	}, AggressiveAI)
 end
@@ -105,6 +107,9 @@ function AggressiveAI.cleanEntityModel(self: AggressiveAI, entityModel: Model)
 end
 
 function AggressiveAI.Init(self: AggressiveAI)
+	task.delay(1, function()
+		self.canAttack = true
+	end)
 	self:cleanEntityModel(self.entity)
 	self.entity.PrimaryPart:SetNetworkOwner(nil)
 	self.entity.PrimaryPart.CollisionGroup = "Entity"
@@ -383,6 +388,10 @@ function AggressiveAI.Attack(self: AggressiveAI)
 	end
 
 	local elapsedTick = os.clock() - self.attackTick
+
+	if not self.canAttack then
+		return false
+	end
 
 	if elapsedTick <= cooldown or self.entity:GetAttribute("Recovering") then
 		return false

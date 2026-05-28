@@ -19,6 +19,8 @@ local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
 --// Variables //--
+local RESET_DURATION = 2
+
 local ActiveConfig = {}
 
 local UsedDialogue = {}
@@ -44,7 +46,7 @@ local SecondList = ScreenGui:WaitForChild("SecondList") :: Frame
 
 local GarlicFrame = SecondList:WaitForChild("Garlic") :: Frame
 local EmeraldsFrame = SecondList:WaitForChild("Emeralds") :: Frame
-local ExitFrame = SecondList:WaitForChild("Exit") :: Frame
+-- local ExitFrame = SecondList:WaitForChild("Exit") :: Frame
 
 local Sound = ScreenGui:WaitForChild("Sounds"):WaitForChild("Select") :: Sound
 
@@ -199,12 +201,10 @@ local function RunTreatment()
 
 	NPC_Interactions.ActiveActions[Enum.KeyCode.One] = "Garlic"
 	NPC_Interactions.ActiveActions[Enum.KeyCode.Two] = "Emeralds"
-	NPC_Interactions.ActiveActions[Enum.KeyCode.Three] = "Exit"
 	NPC_Interactions.ActiveActions[Enum.KeyCode.E] = "Exit"
 
 	GarlicFrame.Keybind.Text = "1"
 	EmeraldsFrame.Keybind.Text = "2"
-	ExitFrame.Keybind.Text = "3"
 end
 
 local function CloseUI()
@@ -228,8 +228,17 @@ local function SetPromptsState(State: boolean)
 	end
 end
 
-local function RunAction(Action: string)
+local function RunAction(Action: string, Prompt: ProximityPrompt)
+	if Action == "Exit" and Prompt then
+		Prompt.Enabled = true
+	end
+
 	Sound:Play()
+
+	if Action ~= "Treatment" then
+		Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
+		ReplicatedStorage["global-data"].isInDialogue.Value = false
+	end
 
 	if Action == "Talk" then
 		if NPC_Interactions.Cooldown then
@@ -243,7 +252,7 @@ local function RunAction(Action: string)
 		RunTalk()
 		CloseUI()
 
-		task.delay(3, function()
+		task.delay(RESET_DURATION, function()
 			NPC_Interactions.Cooldown = false
 			SetPromptsState(true)
 		end)
@@ -251,33 +260,9 @@ local function RunAction(Action: string)
 		RunTreatment()
 	elseif Action == "Garlic" then
 		print("Garlic Treatment")
-
-		Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
-		ReplicatedStorage["global-data"].isInDialogue.Value = false
-
-		SetPromptsState(false)
-		CloseUI()
-
-		task.delay(3, function()
-			NPC_Interactions.Cooldown = false
-			SetPromptsState(true)
-		end)
 	elseif Action == "Emeralds" then
 		print("Emeralds Treatment")
-
-		Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
-
-		ReplicatedStorage["global-data"].isInDialogue.Value = false
-
-		SetPromptsState(false)
-		CloseUI()
-
-		task.delay(3, function()
-			NPC_Interactions.Cooldown = false
-			SetPromptsState(true)
-		end)
 	elseif Action == "Exit" then
-		ReplicatedStorage["global-data"].isInDialogue.Value = false
 		if NPC_Interactions.Cooldown then
 			return
 		end
@@ -292,7 +277,7 @@ local function RunAction(Action: string)
 
 		CloseUI()
 
-		task.delay(3, function()
+		task.delay(RESET_DURATION, function()
 			NPC_Interactions.Cooldown = false
 			SetPromptsState(true)
 		end)
@@ -313,14 +298,15 @@ local function RunAction(Action: string)
 
 		CloseUI()
 
-		task.delay(3, function()
+		task.delay(RESET_DURATION, function()
 			NPC_Interactions.Cooldown = false
 			SetPromptsState(true)
 		end)
 	end
 end
 
-local function SetupUI(NPC: Instance)
+local function SetupUI(NPC: Instance, Prompt: ProximityPrompt)
+	Prompt.Enabled = false
 	SecondList.Visible = false
 	FirstList.Visible = true
 
@@ -339,10 +325,6 @@ local function SetupUI(NPC: Instance)
 	TalkFrame.Keybind.Text = "1"
 	TreatmentFrame.Keybind.Text = "2"
 
-	ExitFrame.Keybind.Text = "3"
-
-	NPC_Interactions.ActiveActions[Enum.KeyCode.Three] = "Exit"
-
 	NPC_Interactions.ActiveNPC = NPC
 	ActiveConfig = GetConfigForNPC(NPC)
 
@@ -350,9 +332,9 @@ local function SetupUI(NPC: Instance)
 
 	task.spawn(function()
 		while NPC_Interactions.ActiveNPC == NPC do
-			if NPC_Interactions.ActiveNPC:HasTag("Dead") then
+			if NPC_Interactions.ActiveNPC:HasTag("Dead") or NPC_Interactions.ActiveNPC:HasTag("AggressiveAI") then
 				task.spawn(function()
-					RunAction("Exit")
+					RunAction("Exit", Prompt)
 				end)
 			end
 			task.wait()
@@ -379,7 +361,7 @@ local function SetupUI(NPC: Instance)
 			local Distance = (RootPart.Position - NPCRoot.Position).Magnitude
 
 			if Distance > 12 then
-				RunAction("Exit")
+				RunAction("Exit", Prompt)
 				break
 			end
 		end
@@ -437,7 +419,7 @@ ProximityPromptService.PromptTriggered:Connect(function(ProximityPrompt: Proximi
 		return
 	end
 
-	SetupUI(Model)
+	SetupUI(Model, ProximityPrompt)
 end)
 
 Viewer.WatchAttribute(Character, "Health", function(_)

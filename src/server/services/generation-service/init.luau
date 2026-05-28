@@ -180,7 +180,8 @@ function GenerationService.generateNext(self: GenerationService)
 		if roomData.roomType == "normal" then
 			newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
 		else
-			print("room should be horde")
+			-- print("room should be horde")
+			print(1)
 			newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
 		end
 	end

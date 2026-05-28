@@ -13,7 +13,9 @@ local HitboxController
 local camera = workspace.CurrentCamera
 local network = Jaegar:GetNetwork()
 
-local Scepter = {}
+local Scepter = {
+	cooldown = false,
+}
 
 export type Scepter = typeof(Scepter)
 
@@ -56,6 +58,10 @@ local function getRandomAttackName(): string
 end
 
 function Scepter.primary(self: Scepter)
+	if self.cooldown then
+		return
+	end
+
 	ViewmodelController:getViewmodel():setArmVisible("left")
 
 	local scopedId = HttpService:GenerateGUID(false)
@@ -92,6 +98,11 @@ function Scepter.handleDeathHit(self: Scepter, entityModel: Model)
 end
 
 function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterConfig.AttackData)
+	self.cooldown = true
+	task.delay(1, function()
+		self.cooldown = false
+	end)
+
 	local track = ViewmodelController.animationObject:GetTrack(`ViewModel{attackName}`) :: AnimationTrack
 	if not track then
 		warn(`[{script.Name}] No track with the name: ViewModel{attackName}`)
@@ -133,7 +144,7 @@ function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterCo
 			end
 		end
 
-		print(valid)
+		-- print(valid)
 		network:SendServer("processScepterHits", valid, attackName)
 	end)
 

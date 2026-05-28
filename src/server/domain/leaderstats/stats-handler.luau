@@ -1,7 +1,12 @@
 --// Services //--
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+--// Modules //--
+local Config = require(ReplicatedStorage.shared.configs.configuration)
+local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
+local Network = Jaegar:GetNetwork()
 
 --// Datastore //--
 local Leaderboard = DataStoreService:GetDataStore("GlobalLeaderboards")
@@ -141,5 +146,30 @@ function StatsHandler.ClaimStats(Player: Player)
 end
 
 Players.PlayerAdded:Connect(SetupStats)
+
+Network:OnInvoke("trade", function(Player: Player, Item: string)
+	if typeof(Item) ~= "string" then
+		return false
+	end
+
+	local FoundItem = Config.Shop[Item]
+	if not FoundItem then
+		return false
+	end
+
+	local Price = FoundItem.Price
+	local Currency = Player:GetAttribute("Currency") or 0
+
+	if Currency < Price then
+		return false
+	end
+
+	Player:SetAttribute("Currency", Currency - Price)
+
+	local CurrentAmount = Player:GetAttribute(Item) or 0
+	Player:SetAttribute(Item, CurrentAmount + 1)
+
+	return true
+end)
 
 return StatsHandler

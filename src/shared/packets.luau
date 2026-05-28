@@ -37,6 +37,7 @@ local PACKETS = {
 	processScepterHits = Packet.new("processScepterHits", ANY, STRING),
 	sendHit = Packet.new("sendHit"),
 	restartGameSession = Packet.new("restartGameSession"),
+	trade = Packet.new("trade", STRING):Response(BOOLEAN),
 }
 
 return table.freeze(PACKETS) :: typeof(PACKETS)

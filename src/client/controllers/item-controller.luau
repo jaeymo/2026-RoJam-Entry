@@ -65,14 +65,33 @@ function ItemController.primary(self: ItemController)
 	ItemProfileHandler:getProfile(self.currentlyHeldItem):primary()
 end
 
+function ItemController.secondary(self: ItemController)
+	if not self.currentlyHeldItem then
+		return
+	end
+
+	SignalRegistry.itemSecondary:Fire(self.currentlyHeldItem)
+	ItemProfileHandler:getProfile(self.currentlyHeldItem):secondary()
+end
+
 function ItemController.watchInputs(self: ItemController)
 	self.janitor:Add(UserInputService.InputBegan:Connect(function(input: InputObject, gpe: boolean)
 		if gpe then
 			return
 		end
 
+		if ReplicatedStorage["global-data"].isInDialogue.Value then
+			return
+		end
+
+		if ReplicatedStorage["global-data"].isSleeping.Value then
+			return
+		end
+
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			self:primary()
+		elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+			self:secondary()
 		end
 
 		local itemName = config.Items[input.KeyCode]

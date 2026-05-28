@@ -11,6 +11,7 @@ export type ItemImpl = {
 	equip: (self: ItemImpl) -> (),
 	unequip: (self: ItemImpl) -> (),
 	primary: (self: ItemImpl) -> (),
+	secondary: (self: ItemImpl) -> (),
 }
 
 do

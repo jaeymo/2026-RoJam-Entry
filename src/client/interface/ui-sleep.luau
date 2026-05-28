@@ -26,8 +26,6 @@ local Leave = SleepFrame:WaitForChild("Leave") :: TextButton
 --// Main Code //--
 local UiSleep = {}
 
-local Hovering = false
-
 local function Tween(Object: Instance, Time: number, Properties: {})
 	local TweenObject =
 		TweenService:Create(Object, TweenInfo.new(Time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), Properties)
@@ -66,6 +64,8 @@ local function SetupHover(Button: TextButton)
 end
 
 local function TweenOut()
+	Continue.Modal = false
+	ReplicatedStorage["global-data"].isSleeping.Value = false
 	Player.CameraMode = Enum.CameraMode.LockFirstPerson
 
 	Tween(SleepFrame, 2, { BackgroundTransparency = 1 })
@@ -77,6 +77,7 @@ local function TweenOut()
 end
 
 local function Sleep(OldDay: number)
+	ReplicatedStorage["global-data"].isSleeping.Value = true
 	SleepFrame.Visible = true
 	SleepFrame.BackgroundTransparency = 1
 
@@ -99,6 +100,7 @@ local function Sleep(OldDay: number)
 	NewDay.Text = tostring(OldDay + 1)
 
 	UserInputService.MouseIconEnabled = false
+	Continue.Modal = true
 
 	local Black = Tween(SleepFrame, 2, { BackgroundTransparency = 0 })
 	Black.Completed:Wait()

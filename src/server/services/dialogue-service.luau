@@ -13,10 +13,12 @@ export type DialogueService = typeof(DialogueService)
 
 function DialogueService.startConversation(_: DialogueService, targetEntity: Model)
 	SignalRegistry.conversationStarted:Fire(targetEntity)
+	ReplicatedStorage["global-data"].isInDialogue.Value = true
 end
 
 function DialogueService.stopConversation(_: DialogueService, targetEntity: Model)
 	SignalRegistry.conversationEnded:Fire(targetEntity)
+	ReplicatedStorage["global-data"].isInDialogue.Value = false
 end
 
 function DialogueService.jaegarInit(self: DialogueService)

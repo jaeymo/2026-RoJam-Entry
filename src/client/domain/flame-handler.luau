@@ -1,9 +1,19 @@
 --!nocheck
 
 --// Services //--
+local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+
+local assetsFolder = ReplicatedStorage.assets
+
+local AncestorUtil = require(ReplicatedStorage.shared.utils["find-first-ancestor-with-tag"])
+
+local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
+local Network = Jaegar:GetNetwork()
 
 --// Typecheck //--
 export type FlameProperties = {
@@ -15,6 +25,7 @@ export type FlameProperties = {
 	BurnDamage: number?,
 	FlameTransmission: number?,
 	FlameVFX: Instance?,
+	HitboxOverlapParams: OverlapParams?,
 }
 
 type InternalFlameProperties = {
@@ -38,6 +49,7 @@ local Default_Properties: InternalFlameProperties = {
 	BurnDamage = 5,
 	FlameTransmission = 1,
 	FlameVFX = nil,
+	HitboxOverlapParams = OverlapParams.new(),
 }
 
 --// Main Code //--
@@ -98,7 +110,7 @@ local function CreateHitbox(Position: Vector3, Size: Vector3): Part
 	Hitbox.CanQuery = false
 	Hitbox.CanTouch = true
 
-	Hitbox.Transparency = 0.5
+	Hitbox.Transparency = 0.8
 	Hitbox.Color = Color3.fromRGB(255, 75, 0)
 
 	Hitbox.Size = Size
@@ -107,6 +119,10 @@ local function CreateHitbox(Position: Vector3, Size: Vector3): Part
 	Hitbox.Parent = workspace.runtime.hitboxes
 
 	return Hitbox
+end
+
+function FlameHandler:DamageHumanoid(CharModel: Humanoid, Properties: FlameProperties)
+	Network:SendServer("damageNPC", CharModel, 1)
 end
 
 function FlameHandler:Spawn(Position: Vector3, Size: Vector3, Properties: FlameProperties?, SourcePart: BasePart?)
@@ -131,10 +147,36 @@ function FlameHandler:Spawn(Position: Vector3, Size: Vector3, Properties: FlameP
 		BurningParts[SourcePart] = true
 	end
 
+	local visualModel
+	if (Size).Magnitude > 13 then
+		visualModel = ReplicatedStorage.assets.particles.BigFlames:Clone()
+	else
+		visualModel = ReplicatedStorage.assets.particles.SmallFlames:Clone()
+	end
 	local Hitbox = CreateHitbox(Position, Size)
+	visualModel:PivotTo(CFrame.new(Position))
+	visualModel.Parent = Hitbox
+
+	task.spawn(function()
+		for _, desc in pairs(Hitbox:GetDescendants()) do
+			if desc:IsA("Light") then
+				local initBrightness = desc.Brightness
+				local initRange = desc.Range
+				desc.Brightness = 0
+				desc.Range = desc.Range * 0.95
+				desc.Enabled = true
+				TweenService:Create(
+					desc,
+					TweenInfo.new(0.5, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out),
+					{ Brightness = initBrightness, Range = initRange }
+				):Play()
+			end
+		end
+	end)
 
 	table.insert(ActiveFlames, {
 		Hitbox = Hitbox,
+		OverlapParams = Properties and Properties.HitboxOverlapParams or Default_Properties.HitboxOverlapParams,
 		SourcePart = SourcePart,
 
 		StartTime = tick(),
@@ -181,7 +223,26 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 				end
 			end
 
-			Flame.Hitbox:Destroy()
+			task.spawn(function()
+				for _, desc in pairs(Flame.Hitbox:GetDescendants()) do
+					if desc:IsA("Light") then
+						TweenService:Create(
+							desc,
+							TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
+							{ Brightness = 0, Range = desc.Range * 0.8 }
+						):Play()
+					elseif desc:IsA("ParticleEmitter") then
+						desc.Enabled = false
+					elseif desc:IsA("Model") then
+						desc.Parent = workspace.runtime
+						Debris:AddItem(desc, 20)
+					end
+				end
+
+				task.wait(0.6)
+
+				Flame.Hitbox:Destroy()
+			end)
 
 			table.remove(ActiveFlames, Index)
 			continue
@@ -200,6 +261,59 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 		for _, Part in Parts do
 			if not Part:IsA("BasePart") then
 				continue
+			end
+
+			local hitEntity = AncestorUtil(Part, "Entity") or AncestorUtil(Part, "Dead")
+
+			if hitEntity and hitEntity:HasTag("Dead") then
+				local clientEntity = hitEntity.Client
+				local bodyAura = clientEntity.Torso:FindFirstChild("AuraBodyFlame")
+					or assetsFolder.particles.AuraBodyFlame:Clone()
+				local bodyFloat = clientEntity.Torso:FindFirstChild("FloatBodyFlame")
+					or assetsFolder.particles.FloatBodyFlame:Clone()
+				local bodySmoke = clientEntity.Torso:FindFirstChild("FloatBodySmoke")
+					or assetsFolder.particles.FloatBodySmoke:Clone()
+
+				bodyAura.Parent = clientEntity.Torso
+				bodyFloat.Parent = clientEntity.Torso
+				bodySmoke.Parent = clientEntity.Torso
+
+				bodyAura.Enabled = true
+				bodyFloat.Enabled = true
+				bodySmoke.Enabled = true
+
+				local flameLightPart = clientEntity.Torso:FindFirstChild("FlameLighting")
+					or assetsFolder.FlameLighting:Clone()
+				flameLightPart.Position = clientEntity.Torso.Position
+				flameLightPart.WeldConstraint.Part1 = clientEntity.Torso
+				flameLightPart.Parent = clientEntity.Torso
+
+				for _, light in pairs(flameLightPart:GetDescendants()) do
+					if not light:IsA("Light") then
+						continue
+					end
+
+					light.Enabled = true
+				end
+				local bodyColor = clientEntity["Body Colors"]
+				local h, s, v = bodyColor.HeadColor3:ToHSV()
+
+				local num = 100
+				for i = 1, num do
+					local newV = math.lerp(v, 0, i / num)
+
+					bodyColor.HeadColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.TorsoColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.RightArmColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.LeftArmColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.RightLegColor3 = Color3.fromHSV(h, s, newV)
+					bodyColor.LeftLegColor3 = Color3.fromHSV(h, s, newV)
+					task.wait()
+				end
+			end
+
+			if hitEntity then
+				FlameHandler:DamageHumanoid(hitEntity)
 			end
 
 			if not Part:HasTag("Flammable") then

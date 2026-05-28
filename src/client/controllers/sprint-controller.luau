@@ -99,7 +99,7 @@ local function HandleRegen()
 end
 
 UserInputService.InputBegan:Connect(function(Input: InputObject, GPE: boolean)
-	if not GPE then
+	if GPE then
 		return
 	end
 

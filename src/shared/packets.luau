@@ -35,6 +35,7 @@ local PACKETS = {
 	endDialogueConversation = Packet.new("endDialogueConversation", INSTANCE),
 	processScepterHits = Packet.new("processScepterHits", ANY, STRING),
 	sendHit = Packet.new("sendHit"),
+	restartGameSession = Packet.new("restartGameSession"),
 }
 
 return table.freeze(PACKETS) :: typeof(PACKETS)

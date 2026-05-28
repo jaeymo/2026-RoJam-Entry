@@ -21,7 +21,6 @@ function CombatService.jaegarInit(_: CombatService)
 		end
 
 		for _, hit in hits do
-			print(attackData.Damage)
 			SignalRegistry.hitEntity:Fire(hit :: Model, attackData.Damage)
 		end
 	end)

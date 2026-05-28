@@ -319,7 +319,6 @@ function AggressiveAI.Idle(self: AggressiveAI)
 		task.wait(stateDelay)
 
 		if self.destroyed then
-			print(self)
 			return
 		end
 

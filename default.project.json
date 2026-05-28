@@ -61,7 +61,11 @@
                 }
             },
             "global-data": {
-                "$className": "Folder"
+                "$className": "Folder",
+
+                "room": {
+                    "$className": "IntValue"
+                }
             },
             "proxies": {
                 "$className": "Folder"

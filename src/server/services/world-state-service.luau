@@ -23,6 +23,8 @@ function WorldStateService.restartGameSession(_: WorldStateService, player: Play
 end
 
 function WorldStateService.jaegarInit(self: WorldStateService)
+	ReplicatedStorage["global-data"].room.Value = 1
+
 	network:OnServer("restartGameSession", function(player: Player)
 		self:restartGameSession(player)
 	end)

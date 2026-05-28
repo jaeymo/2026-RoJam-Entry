@@ -124,7 +124,6 @@ function FlowerService.useFlower(self: FlowerService, flowerColor: string): bool
 
 	local currentFlowerName = REVERSED_COLOR_MAP[tostring(currentInfection)]
 	if not currentFlowerName then
-		print("no use")
 		return false
 	end
 
@@ -155,7 +154,7 @@ end
 
 function FlowerService._handleUnsuccessfulFlower(self: FlowerService, flower: Model)
 	print("UNSUCCESSFUL FLOWER: ", flower)
-	flower:Destroy()
+	-- flower:Destroy()
 end
 
 function FlowerService.jaegarInit(self: FlowerService)
@@ -164,8 +163,6 @@ function FlowerService.jaegarInit(self: FlowerService)
 	SignalRegistry.roomSpawned:Connect(function(roomModel: Model)
 		task.defer(function()
 			task.wait(1.5)
-			print(roomModel)
-			print("SPAWNING FLOWERS")
 			local nodes = {} :: { BasePart }
 
 			for _, v in roomModel:GetDescendants() do

@@ -61,7 +61,15 @@
                 }
             },
             "global-data": {
-                "$className": "Folder"
+                "$className": "Folder",
+
+                "isSleeping": {
+                     "$className": "BoolValue"
+                },
+
+                "isInDialogue": {
+                    "$className": "BoolValue"
+                }
             },
             "proxies": {
                 "$className": "Folder"

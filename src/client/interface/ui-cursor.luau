@@ -11,9 +11,6 @@ local Player = Players.LocalPlayer
 local Mouse = Player:GetMouse()
 
 Mouse.Icon = "rbxassetid://135894365640631"
-
-local itemEquipped = false
-
 UserInputService.MouseIconEnabled = false
 
 signals.itemEquipped:Connect(function()

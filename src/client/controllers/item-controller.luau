@@ -88,7 +88,6 @@ function ItemController.watchInputs(self: ItemController)
 			return
 		end
 
-		print("DOING")
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			self:primary()
 		elseif input.UserInputType == Enum.UserInputType.MouseButton2 then

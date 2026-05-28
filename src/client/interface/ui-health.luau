@@ -6,6 +6,8 @@ local TweenService = game:GetService("TweenService")
 --// Modules //--
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
+local camShaker = require(ReplicatedStorage.packages.cam)
+
 --// Variables //--
 local Player = Players.LocalPlayer
 local PlayerGui = Player.PlayerGui

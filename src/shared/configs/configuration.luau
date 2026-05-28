@@ -23,6 +23,18 @@ return {
 		[Enum.KeyCode.Two] = "FlintAndSteel",
 	},
 
+	Shop = {
+		Garlic = {
+			Icon = "rbxassetid://121932471238553",
+			Price = 4,
+		},
+
+		Emeralds = {
+			Icon = "rbxassetid://73785031998645",
+			Price = 2,
+		},
+	},
+
 	--// idk what a spawn node is supposed to contain
 	SpawnNode = {},
 }

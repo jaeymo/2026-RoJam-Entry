@@ -80,6 +80,14 @@ function ItemController.watchInputs(self: ItemController)
 			return
 		end
 
+		if ReplicatedStorage["global-data"].isInDialogue.Value then
+			return
+		end
+
+		if ReplicatedStorage["global-data"].isSleeping.Value then
+			return
+		end
+
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			self:primary()
 		elseif input.UserInputType == Enum.UserInputType.MouseButton2 then

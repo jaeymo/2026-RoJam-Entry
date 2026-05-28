@@ -19,8 +19,8 @@ local Colors = FlowerConfig.colors
 
 local ColorList = {
 	Colors.Purple,
-	Colors.Yellow,
-	Colors.Green,
+	Colors.Red,
+	-- Colors.Yellow,
 }
 
 --// Main Code //--

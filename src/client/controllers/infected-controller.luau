@@ -21,6 +21,7 @@ function InfectedController.treatEntity(
 	treatmentType: string
 )
 	print(entity, entityInfectedLevel, treatmentType, TREATMENT_MAP[treatmentType])
+	network:SendServer("treatEntity", entity, treatmentType)
 end
 
 return InfectedController

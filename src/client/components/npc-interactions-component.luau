@@ -227,6 +227,7 @@ end
 
 local function RunAction(Action: string)
 	Sound:Play()
+	Network:SendServer("endDialogueConversation", NPC_Interactions.ActiveNPC)
 
 	if Action == "Talk" then
 		if NPC_Interactions.Cooldown then

@@ -1,6 +1,8 @@
 --!strict
 local StarterGui = game:GetService("StarterGui")
 
+local camera = workspace.CurrentCamera
+
 local SetupController = {}
 
 export type SetupController = typeof(SetupController)
@@ -20,6 +22,7 @@ local function disableResetButton()
 end
 
 function SetupController.jaegarInit(_: SetupController)
+	camera.FieldOfView = 80
 	disableResetButton()
 end
 

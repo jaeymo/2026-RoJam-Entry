@@ -1,163 +1,156 @@
 --!strict
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
 
-local domain = ReplicatedStorage.client.domain
-
-local CharacterState = require(domain.character["character-state"])
+local CharacterState = require(ReplicatedStorage.client.domain.character["character-state"])
+local Janitor = require(ReplicatedStorage.packages.janitor)
 local Spring = require(ReplicatedStorage.packages.spring)
-local ViewmodelSettings = require(script.Parent["viewmodel-settings"])
 
-local viewmodelAssets = ReplicatedStorage.assets.viewmodel
-local baseRig = viewmodelAssets:FindFirstChild("rig") :: Model
-local camera = workspace.CurrentCamera
-
-local MAX_ROLL_ANGLE = ViewmodelSettings.maxRollAngle
-local ROLL_DAMPING = ViewmodelSettings.rollDamping
-local ROLL_SPEED = ViewmodelSettings.rollSpeed
-local SCALE = ViewmodelSettings.scale
-local OCCLUSION_FADE_DURATION = ViewmodelSettings.occlusionFadeDuration
-
-local YAW_MAX_ANGLE = ViewmodelSettings.yawMaxAngle
-local YAW_SENSITIVITY = ViewmodelSettings.yawSensitivity
-local PITCH_MAX_ANGLE = ViewmodelSettings.pitchMaxAngle
-local PITCH_SENSITIVITY = ViewmodelSettings.pitchSensitivity
-local PITCH_SPEED = ViewmodelSettings.pitchSpeed
-local PITCH_DAMPING = ViewmodelSettings.pitchDamping
-local YAW_SPEED = ViewmodelSettings.yawSpeed
-local YAW_DAMPING = ViewmodelSettings.yawDamping
-
-local INVERT_JUMP_FORCES = ViewmodelSettings.invertJumpSettings
-local JUMP_VERTICAL_SPEED = ViewmodelSettings.jumpVerticalSpeed
-local JUMP_VERTICAL_DAMPING = ViewmodelSettings.jumpVerticalDamping
-local JUMP_HORIZONTAL_SPEED = ViewmodelSettings.jumpHorizontalSpeed
-local JUMP_HORIZONTAL_DAMPING = ViewmodelSettings.jumpHorizontalDamping
-local JUMP_VERTICAL_IMPULSE = ViewmodelSettings.jumpVerticalImpulse
-local JUMP_HORIZONTAL_IMPULSE = ViewmodelSettings.jumpHorizontalImpulse
-local JUMP_RANDOM_DIRECTION_MIN = ViewmodelSettings.jumpRandomDirectionMin
-local JUMP_RANDOM_DIRECTION_MAX = ViewmodelSettings.jumpRandomDirectionMax
-
-local STEP_INTERVAL_BASE = ViewmodelSettings.stepIntervalBase
-local STEP_INTERVAL_SPEED_REDUCTION = ViewmodelSettings.stepIntervalSpeedReduction
-local IMPACT_DURATION = ViewmodelSettings.impactDuration
-local REBOUND_END = ViewmodelSettings.reboundEnd
-local SETTLE_END = ViewmodelSettings.settleEnd
-local REBOUND_HEIGHT = ViewmodelSettings.reboundHeight
-local HORIZONTAL_AMPLITUDE = ViewmodelSettings.horizontalAmplitude
-local VERTICAL_AMPLITUDE = ViewmodelSettings.verticalAmplitude
-local INITIAL_BOB_PROGRESS = ViewmodelSettings.initialBobProgress
-local BOBBLE_SPEED_NORMALIZATION = ViewmodelSettings.bobbleSpeedNormalization
-local MOVE_DIRECTION_THRESHOLD = ViewmodelSettings.moveDirectionThreshold
-local MOVEMENT_SPEED_THRESHOLD = ViewmodelSettings.movementSpeedThreshold
-local BOBBLE_VERTICAL_SPEED = ViewmodelSettings.bobbleVerticalSpeed
-local BOBBLE_VERTICAL_DAMPING = ViewmodelSettings.bobbleVerticalDamping
-local BOBBLE_HORIZONTAL_SPEED = ViewmodelSettings.bobbleHorizontalSpeed
-local BOBBLE_HORIZONTAL_DAMPING = ViewmodelSettings.bobbleHorizontalDamping
-local BOBBLE_LATERAL_CYCLE_DIVISOR = ViewmodelSettings.bobbleLateralCycleDivisor
+local YAW_MAX_ANGLE = 3.5
+local PITCH_MAX_ANGLE = 2
+local MAX_ROLL_ANGLE = 2.25
+local SCALE = 0.2
 
 local ViewmodelObject = {}
 ViewmodelObject.__index = ViewmodelObject
 
-type Spring = Spring.Spring<number>
-
 export type ViewmodelObject = typeof(setmetatable(
 	{} :: {
+		camera: Camera,
 		rig: Model,
 		root: BasePart,
-		clothing: Model?,
+		mouseDelta: Vector2,
+		left: BasePart,
+		right: BasePart,
+		janitor: Janitor.Janitor,
+		springs: { [string]: Spring.Spring<number> },
 		item: {
-			model: Model?,
 			motor: Motor6D?,
-		},
-		animator: Animator,
-		rightArm: BasePart,
-		leftArm: BasePart,
-		delta: Vector2,
-		bobbleClock: number,
-		wasBobbling: boolean,
-		springs: {
-			bobbleHorizontal: Spring,
-			bobbleVertical: Spring,
-			jumpHorizontal: Spring,
-			jumpVertical: Spring,
-			pitch: Spring,
-			roll: Spring,
-			yaw: Spring,
+			model: Model?,
 		},
 	},
 	ViewmodelObject
 ))
 
-local function handleOcclusion(rig: Model, tweenTransparency: number, duration: number?)
-	local info = TweenInfo.new(duration or OCCLUSION_FADE_DURATION, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-
-	for _, v in rig:GetDescendants() do
-		if v.Name == "root" or v.Name == "Root" then
-			continue
-		end
-
-		if v:IsA("BasePart") or v:IsA("MeshPart") then
-			TweenService:Create(v, info, { Transparency = tweenTransparency }):Play()
-		end
-	end
-end
-
-function ViewmodelObject.new(): ViewmodelObject
-	local rig = baseRig:Clone()
-
+function ViewmodelObject.new(rig: Model): ViewmodelObject
 	return setmetatable({
+		camera = workspace.CurrentCamera,
 		rig = rig,
-		root = rig:FindFirstChild("Root") :: BasePart,
-		rightArm = (rig:FindFirstChild("Static/Meshes") :: Folder):FindFirstChild("RightArm") :: BasePart,
-		leftArm = (rig:FindFirstChild("Static/Meshes") :: Folder):FindFirstChild("LeftArm") :: BasePart,
-		animator = ((rig:WaitForChild("Humanoid") :: Humanoid):WaitForChild("Animator")) :: Animator,
+		root = rig.PrimaryPart :: BasePart,
+		left = rig:FindFirstChild("LeftArm") :: BasePart,
+		right = rig:FindFirstChild("RightArm") :: BasePart,
+		janitor = Janitor.new(),
+		mouseDelta = Vector2.zero,
+		springs = {},
 		item = {},
-		delta = Vector2.zero,
-		bobbleClock = 0,
-		wasBobbling = false,
-		springs = {} :: any,
 	}, ViewmodelObject)
 end
 
 function ViewmodelObject.init(self: ViewmodelObject)
 	self.rig:ScaleTo(SCALE)
 
-	self:makeSpring("roll", ROLL_SPEED, ROLL_DAMPING)
-	self:makeSpring("yaw", YAW_SPEED, YAW_DAMPING)
-	self:makeSpring("pitch", PITCH_SPEED, PITCH_DAMPING)
-	self:makeSpring("jumpVertical", JUMP_VERTICAL_SPEED, JUMP_VERTICAL_DAMPING)
-	self:makeSpring("jumpHorizontal", JUMP_HORIZONTAL_SPEED, JUMP_HORIZONTAL_DAMPING)
-	self:makeSpring("bobbleVertical", BOBBLE_VERTICAL_SPEED, BOBBLE_VERTICAL_DAMPING)
-	self:makeSpring("bobbleHorizontal", BOBBLE_HORIZONTAL_SPEED, BOBBLE_HORIZONTAL_DAMPING)
+	self:_makeSpring("pitch", 15, 0.5)
+	self:_makeSpring("yaw", 11, 0.45)
+	self:_makeSpring("roll", 12, 1)
+end
+
+local function makeFirstCapital(str: string): string
+	if str == "" then
+		return str
+	end
+
+	return string.upper(string.sub(str, 1, 1)) .. string.sub(str, 2)
+end
+
+function ViewmodelObject.setArmVisible(self: ViewmodelObject, armName: string)
+	local arm = self[armName] :: BasePart?
+	if not arm then
+		warn(`[{script.Name}] Failed to get arm: {armName}`)
+		return
+	end
+
+	local meshes = self.rig:FindFirstChild("Static/Meshes") :: Folder
+	-- arm.Transparency = 0
+
+	for _, v in (meshes:FindFirstChild(makeFirstCapital(armName)) :: Folder):GetDescendants() do
+		if not v:IsA("BasePart") or not v:IsA("MeshPart") then
+			continue
+		end
+
+		v.Transparency = 0
+	end
+end
+
+function ViewmodelObject.setArmInvisible(self: ViewmodelObject, armName: string)
+	local arm = self[armName] :: BasePart?
+	if not arm then
+		warn(`[{script.Name}] Failed to get arm: {armName}`)
+		return
+	end
+
+	local meshes = self.rig:FindFirstChild("Static/Meshes") :: Folder
+	-- arm.Transparency = 0
+
+	for _, v in (meshes:FindFirstChild(makeFirstCapital(armName)) :: Folder):GetDescendants() do
+		if not v:IsA("BasePart") or not v:IsA("MeshPart") then
+			continue
+		end
+
+		v.Transparency = 1
+	end
 end
 
 function ViewmodelObject.enable(self: ViewmodelObject)
-	self.rig.Parent = camera
-	handleOcclusion(self.rig, 0)
+	self.rig.Parent = self.camera
+	self.janitor:Add(RunService.RenderStepped:Connect(function(dt: number)
+		self:update(dt)
+	end))
 end
 
 function ViewmodelObject.disable(self: ViewmodelObject)
 	self.rig.Parent = nil
-	handleOcclusion(self.rig, 1, 0)
+	self.janitor:Cleanup()
 end
 
-function ViewmodelObject.equip(self: ViewmodelObject, itemModel: Model)
-	if not itemModel.PrimaryPart then
-		warn(`[{script}] ItemModel is missing primary part: {itemModel:GetFullName()}`)
+function ViewmodelObject.onJump(self: ViewmodelObject)
+	self.springs["jumpH"]:Impulse(0.1 * (math.random() > 0.5 and -1 or 1))
+	self.springs["jumpV"]:Impulse(0.25)
+end
+
+function ViewmodelObject.onLand(self: ViewmodelObject)
+	self.springs["jumpH"]:Impulse(0.1 * (math.random() > 0.5 and -1 or 1))
+	self.springs["jumpV"]:Impulse(-0.25)
+end
+
+function ViewmodelObject.updateMouseDelta(self: ViewmodelObject, mouseDelta: Vector2)
+	self.mouseDelta = mouseDelta
+end
+
+function ViewmodelObject.update(self: ViewmodelObject, dt: number)
+	self.rig:PivotTo(self.camera.CFrame * self:getSway(dt) * self:getRoll())
+end
+
+function ViewmodelObject.equip(self: ViewmodelObject, item: Model)
+	if not item.PrimaryPart then
+		warn(`[{script}] ItemModel is missing primary part: {item:GetFullName()}`)
 		return
 	end
 
 	local motor = Instance.new("Motor6D")
 	motor.Name = "ItemRoot"
 	motor.Part0 = self.root
-	motor.Part1 = itemModel.PrimaryPart
+	motor.Part1 = item.PrimaryPart
 	motor.Parent = self.root
 
-	self.item.motor = motor
-	self.item.model = itemModel
+	if item.Name == "Scepter" then
+		motor.C0 = CFrame.new(Vector3.new(0.235, -0.315, -0.435)) * CFrame.Angles(0, math.rad(-90), 0)
+	end
 
-	itemModel:ScaleTo(SCALE)
-	itemModel.Parent = self.root
+	self.item.motor = motor
+	self.item.model = item
+
+	item:ScaleTo(SCALE)
+	item.Parent = self.rig
 end
 
 function ViewmodelObject.unequip(self: ViewmodelObject)
@@ -172,52 +165,6 @@ function ViewmodelObject.unequip(self: ViewmodelObject)
 	table.clear(self.item)
 end
 
-function ViewmodelObject.updateDelta(self: ViewmodelObject, delta: Vector2)
-	self.delta = delta
-end
-
-function ViewmodelObject.makeSpring(self: ViewmodelObject, springName: string, speed: number, damping: number)
-	local spring = Spring.new(0)
-	spring.Speed = speed
-	spring.Damper = damping
-
-	self.springs[springName] = spring
-end
-
-local function randomSwayDirection()
-	return (math.random() > 0.5 and 1 or -1)
-		* math.random(JUMP_RANDOM_DIRECTION_MIN * 100, JUMP_RANDOM_DIRECTION_MAX * 100)
-		/ 100
-end
-
-function ViewmodelObject.onJump(
-	self: ViewmodelObject,
-	multipliers: {
-		vertical: number,
-		horizontal: number,
-	}?
-)
-	self.springs.jumpHorizontal:Impulse(
-		randomSwayDirection() * JUMP_HORIZONTAL_IMPULSE * (multipliers and multipliers.horizontal or 1)
-	)
-	self.springs.jumpVertical:Impulse(JUMP_VERTICAL_IMPULSE * (multipliers and multipliers.vertical or 1))
-end
-
-function ViewmodelObject.onLand(
-	self: ViewmodelObject,
-	multipliers: {
-		vertical: number,
-		horizontal: number,
-	}?
-)
-	self.springs.jumpHorizontal:Impulse(-JUMP_HORIZONTAL_IMPULSE * (multipliers and multipliers.horizontal or 1))
-	self.springs.jumpVertical:Impulse(-JUMP_VERTICAL_IMPULSE * (multipliers and multipliers.vertical or 1))
-end
-
-function ViewmodelObject.update(self: ViewmodelObject, dt: number)
-	self.root.CFrame = camera.CFrame * self:getRoll() * self:getSway(dt) * self:getBobble(dt) * self:getJump()
-end
-
 function ViewmodelObject.getRoll(self: ViewmodelObject): CFrame
 	local root = CharacterState:getRoot()
 	if not root then
@@ -227,90 +174,37 @@ function ViewmodelObject.getRoll(self: ViewmodelObject): CFrame
 	local targetRoll = 0
 
 	if CharacterState:isOnGround() then
-		local moveDirection = CharacterState:getMoveDirection()
-		local right = root.CFrame.RightVector
-		local relative = moveDirection:Dot(right)
-		targetRoll = -relative * math.rad(MAX_ROLL_ANGLE) -- max roll angle
+		local moveDir = CharacterState:getMoveDirection()
+		targetRoll = -moveDir:Dot(root.CFrame.RightVector) * math.rad(MAX_ROLL_ANGLE) -- roll range
 	end
 
-	self.springs.roll.Target = targetRoll
-	return CFrame.Angles(0, 0, self.springs.roll.Position)
+	self.springs["roll"].Target = targetRoll
+	return CFrame.Angles(0, 0, self.springs["roll"].Position)
 end
 
 function ViewmodelObject.getSway(self: ViewmodelObject, dt: number): CFrame
-	local pitchSpring = self.springs.pitch
-	local yawSpring = self.springs.yaw
+	local pitchSpring = self.springs["pitch"]
+	local yawSpring = self.springs["yaw"]
 
 	local yawAngleRad = math.rad(YAW_MAX_ANGLE)
-	local yawTarget = math.clamp(-self.delta.X * YAW_SENSITIVITY * yawAngleRad / dt, -yawAngleRad, yawAngleRad)
+	local yawTarget = math.clamp(-self.mouseDelta.X * 0.0008 * yawAngleRad / dt, -yawAngleRad, yawAngleRad)
 
 	local pitchAngleRad = math.rad(PITCH_MAX_ANGLE)
-	local pitchTarget =
-		math.clamp(-self.delta.Y * PITCH_SENSITIVITY * pitchAngleRad / dt, -pitchAngleRad, pitchAngleRad)
+	local pitchTarget = math.clamp(-self.mouseDelta.Y * 0.004 * pitchAngleRad / dt, -pitchAngleRad, pitchAngleRad)
 
 	yawSpring.Target = yawTarget
 	pitchSpring.Target = pitchTarget
 
-	self.delta = Vector2.zero
+	self.mouseDelta = Vector2.zero
 	return CFrame.Angles(pitchSpring.Position, yawSpring.Position, 0)
 end
 
-function ViewmodelObject.getJump(self: ViewmodelObject): CFrame
-	local horizontal, vertical = self.springs.jumpHorizontal.Position, self.springs.jumpVertical.Position
+function ViewmodelObject._makeSpring(self: ViewmodelObject, springName: string, speed: number, damper: number)
+	local spring = Spring.new()
+	spring.Damper = damper
+	spring.Speed = speed
 
-	if INVERT_JUMP_FORCES then
-		horizontal *= -1
-		vertical *= -1
-	end
-
-	return CFrame.new(horizontal, vertical, 0)
-end
-
-function ViewmodelObject.getBobble(self: ViewmodelObject, dt: number): CFrame
-	local horizontalSpring = self.springs.bobbleHorizontal
-	local verticalSpring = self.springs.bobbleVertical
-
-	local moveDirection = CharacterState:getMoveDirection()
-	local speed = CharacterState:getSpeed()
-	local isMoving = moveDirection.Magnitude > MOVE_DIRECTION_THRESHOLD and speed > MOVEMENT_SPEED_THRESHOLD
-	local grounded = CharacterState:isOnGround()
-
-	if isMoving and grounded then
-		local speedAlpha = math.clamp(speed / BOBBLE_SPEED_NORMALIZATION, 0, 1)
-		local stepInterval = STEP_INTERVAL_BASE - (STEP_INTERVAL_SPEED_REDUCTION * speedAlpha)
-
-		if not self.wasBobbling then
-			self.wasBobbling = true
-			self.bobbleClock = stepInterval * INITIAL_BOB_PROGRESS
-		else
-			self.bobbleClock += dt
-		end
-
-		local stepProgress = (self.bobbleClock % stepInterval) / stepInterval
-
-		local verticalWave = 0
-		if stepProgress < IMPACT_DURATION then
-			verticalWave = -(stepProgress / IMPACT_DURATION)
-		elseif stepProgress < REBOUND_END then
-			verticalWave = -1
-				+ ((stepProgress - IMPACT_DURATION) / (REBOUND_END - IMPACT_DURATION)) * (1 + REBOUND_HEIGHT)
-		elseif stepProgress < SETTLE_END then
-			verticalWave = REBOUND_HEIGHT - ((stepProgress - REBOUND_END) / (SETTLE_END - REBOUND_END)) * REBOUND_HEIGHT
-		else
-			verticalWave = 0
-		end
-
-		local lateralWave = math.sin((self.bobbleClock / (stepInterval * BOBBLE_LATERAL_CYCLE_DIVISOR)) * math.pi * 2)
-		horizontalSpring.Target = lateralWave * HORIZONTAL_AMPLITUDE * speedAlpha
-		verticalSpring.Target = verticalWave * VERTICAL_AMPLITUDE * speedAlpha
-	else
-		self.wasBobbling = false
-		self.bobbleClock = 0
-		horizontalSpring.Target = 0
-		verticalSpring.Target = 0
-	end
-
-	return CFrame.new(horizontalSpring.Position, verticalSpring.Position, 0)
+	self.springs[springName] = spring
 end
 
 return ViewmodelObject

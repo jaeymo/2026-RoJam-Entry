@@ -109,6 +109,20 @@ end
 
 function MovementController.jaegarInit(self: MovementController)
 	self:_watchHumanoidState()
+
+	local humanoid: Humanoid?
+
+	while not humanoid do
+		task.wait()
+		humanoid = CharacterState:getHumanoid()
+	end
+
+	(humanoid :: Humanoid).UseJumpPower = false
+	(humanoid :: Humanoid).JumpHeight = 0
+
+	SignalRegistry.localCharacterDied:Connect(function()
+		(humanoid :: Humanoid).WalkSpeed = 0
+	end)
 end
 
 return MovementController

@@ -6,7 +6,7 @@ local TweenService = game:GetService("TweenService")
 --// Modules //--
 local Config = require(ReplicatedStorage.shared.configs.configuration)
 local Janitor = require(ReplicatedStorage.packages.janitor)
-local SignalRegistery = require(ReplicatedStorage.client["client-signal-registry"])
+local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
 
 --// Variables //--
 local Player = Players.LocalPlayer
@@ -73,12 +73,12 @@ function UiHotbar:createSlots()
 	end
 end
 
-function UiHotbar:watchSignals()
-	self.janitor:Add(SignalRegistery.itemEquipped:Connect(function(ItemName: string)
+function UiHotbar.watchSignals(self: UiHotbar)
+	self.janitor:Add(SignalRegistry.itemEquipped:Connect(function(ItemName: string)
 		self:setActive(ItemName)
 	end))
 
-	self.janitor:Add(SignalRegistery.itemUnequipped:Connect(function(ItemName: string)
+	self.janitor:Add(SignalRegistry.itemUnequipped:Connect(function(ItemName: string)
 		self:clearActive(ItemName)
 	end))
 end
@@ -130,7 +130,7 @@ function UiHotbar:clearActive(itemName: string)
 	TweenSlotIn(Slot)
 end
 
-function UiHotbar:destroy(self: UiHotbar)
+function UiHotbar.destroy(self: UiHotbar)
 	self.janitor:Cleanup()
 end
 

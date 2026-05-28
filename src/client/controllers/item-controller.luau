@@ -26,12 +26,12 @@ end
 
 function ItemController.toggleEquip(self: ItemController, newHeldItem: string)
 	if self.currentlyHeldItem == newHeldItem then
-		self:unequipCurrent()
+		self:unequipCurrent(false)
 		return
 	end
 
 	if self.currentlyHeldItem ~= nil then
-		self:unequipCurrent()
+		self:unequipCurrent(true)
 		self:equip(newHeldItem)
 		return
 	end
@@ -45,14 +45,14 @@ function ItemController.equip(self: ItemController, itemName: string)
 	ItemProfileHandler:getProfile(itemName):equip()
 end
 
-function ItemController.unequipCurrent(self: ItemController)
+function ItemController.unequipCurrent(self: ItemController, isEquippingNext: boolean)
 	if not self.currentlyHeldItem then
 		return
 	end
 
 	local old = self.currentlyHeldItem
 	self.currentlyHeldItem = nil
-	SignalRegistry.itemUnequipped:Fire(old)
+	SignalRegistry.itemUnequipped:Fire(old, isEquippingNext)
 	ItemProfileHandler:getProfile(old):unequip()
 end
 
@@ -65,6 +65,15 @@ function ItemController.primary(self: ItemController)
 	ItemProfileHandler:getProfile(self.currentlyHeldItem):primary()
 end
 
+function ItemController.secondary(self: ItemController)
+	if not self.currentlyHeldItem then
+		return
+	end
+
+	SignalRegistry.itemSecondary:Fire(self.currentlyHeldItem)
+	ItemProfileHandler:getProfile(self.currentlyHeldItem):secondary()
+end
+
 function ItemController.watchInputs(self: ItemController)
 	self.janitor:Add(UserInputService.InputBegan:Connect(function(input: InputObject, gpe: boolean)
 		if gpe then
@@ -73,6 +82,8 @@ function ItemController.watchInputs(self: ItemController)
 
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			self:primary()
+		elseif input.UserInputType == Enum.UserInputType.MouseButton2 then
+			self:secondary()
 		end
 
 		local itemName = config.Items[input.KeyCode]

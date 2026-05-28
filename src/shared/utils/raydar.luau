@@ -28,6 +28,19 @@ Raydar.RayTypes = {
 			return params
 		end,
 	},
+	AimForEntities = {
+		Name = "AimForEntities",
+		GetParams = function(...)
+			-- local filter = {}
+
+			local params = RaycastParams.new()
+			params.CollisionGroup = "IgnorePlayers"
+			params.FilterType = Enum.RaycastFilterType.Exclude
+			params.FilterDescendantsInstances = { ... }
+
+			return params
+		end,
+	},
 	AimforPathNodes = {
 		Name = "AimForPlayers",
 		GetParams = function(...)

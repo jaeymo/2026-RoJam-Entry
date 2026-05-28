@@ -1,4 +1,5 @@
 --!strict
+local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Raydar = require(ReplicatedStorage.shared.utils.raydar)
 
@@ -30,13 +31,18 @@ function HitboxController.CreateBox(CFrame, Size)
 	return box
 end
 
-function HitboxController.CheckForHumanoids(CFrame, Size)
+function HitboxController.CheckForHumanoids(CFrame: CFrame, Size: Vector3, Debug: boolean?)
 	local rayTypeParams = Raydar.RayTypes.AimForPlayers.GetParams()
 
 	local params = OverlapParams.new()
 	params.FilterType = rayTypeParams.FilterType
 	params.FilterDescendantsInstances = rayTypeParams.FilterDescendantsInstances
 	params.CollisionGroup = rayTypeParams.CollisionGroup
+
+	if Debug then
+		local box = HitboxController.CreateBox(CFrame, Size)
+		Debris:AddItem(box, 3)
+	end
 
 	local touching = workspace:GetPartBoundsInBox(CFrame, Size, params)
 	local humans = {}

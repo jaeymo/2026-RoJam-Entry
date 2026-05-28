@@ -1,10 +1,17 @@
 --!strict
-local Debris = game:GetService("Debris")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 local Viewer = require(ReplicatedStorage.packages.viewer)
+
+local healthChangedConnections = {} :: {
+	[Model]: RBXScriptConnection,
+}
+
+local destroyConnections = {} :: {
+	[Model]: RBXScriptConnection,
+}
 
 local HealthService = {}
 
@@ -24,12 +31,33 @@ function HealthService.initEntity(self: HealthService, entityModel: Model, healt
 	self:setMaxHealth(entityModel, health)
 	self:setHealth(entityModel, health)
 
-	-- memory leak! dont care!
-	entityModel:GetAttributeChangedSignal("Health"):Connect(function()
+	local healthConnection: RBXScriptConnection
+	local destroyConnection: RBXScriptConnection
+
+	healthConnection = entityModel:GetAttributeChangedSignal("Health"):Connect(function()
+		if not entityModel.Parent then
+			return
+		end
+
+		if self:isDead(entityModel) then
+			return
+		end
+
 		if self:getHealth(entityModel) <= 0 then
 			self:killEntity(entityModel)
 		end
 	end)
+
+	destroyConnection = entityModel.Destroying:Connect(function()
+		healthConnection:Disconnect()
+		destroyConnection:Disconnect()
+
+		healthChangedConnections[entityModel] = nil
+		destroyConnections[entityModel] = nil
+	end)
+
+	healthChangedConnections[entityModel] = healthConnection
+	destroyConnections[entityModel] = destroyConnection
 end
 
 function HealthService.setHealth(_: HealthService, entityModel: Model, health: number)
@@ -90,11 +118,24 @@ function HealthService.jaegarInit(self: HealthService)
 		instance:RemoveTag("AggressiveAI")
 		instance:RemoveTag("AggressiveMutation")
 		instance:RemoveTag("TerminalMutation")
+
+		if instance:IsA("Model") and instance.PrimaryPart and not instance:HasTag("Character") then
+			instance.PrimaryPart.CanCollide = false
+			instance.PrimaryPart.CanQuery = false
+			instance.PrimaryPart.CanTouch = false
+		end
 	end)
 
 	SignalRegistry.mutationFinished:Connect(function(mutation: string, entityModel: Model)
 		if mutation == "Terminal" then
 			self:killEntity(entityModel)
+		end
+	end)
+
+	SignalRegistry.hitEntity:Connect(function(entityModel: Model, damage: number)
+		self:removeHealthFrom(entityModel, damage)
+		if entityModel:GetAttribute("State") == "Burning" then
+			entityModel:SetAttribute("Burned", true)
 		end
 	end)
 end

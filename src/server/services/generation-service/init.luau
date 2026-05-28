@@ -294,7 +294,7 @@ function GenerationService.jaegarInit(self: GenerationService)
 		end
 	end)
 
-	task.delay(3.25, function()
+	task.delay(4, function()
 		self:initiateGenerationProcess()
 	end)
 

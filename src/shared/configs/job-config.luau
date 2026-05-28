@@ -7,18 +7,27 @@ local JobConfig = {
 			HealthMultiplier = 1,
 			DamageMultiplier = 1.25,
 		},
+		Movement = {
+			StaminaMultiplier = 1,
+			DamageMultiplier = 1.25,
+
+			StaminaRecoveryRateMultiplier = 1.25,
+			StaminaRecoveryTimeMultiplier = 1.5,
+
+			SpeedMultiplier = 1.1,
+		},
 		Weapons = {
 			Torch = {
 				Name = "Torch",
-				Weight = 2,
+				Weight = 20,
 			},
-			PitchFork = {
-				Name = "PitchFork",
-				Weight = 5,
+			Pitchfork = {
+				Name = "Pitchfork",
+				Weight = 50,
 			},
 			Plow = {
 				Name = "Plow",
-				Weight = 5,
+				Weight = 50,
 			},
 			Nothing = {
 				Name = "Nothing",
@@ -26,25 +35,35 @@ local JobConfig = {
 			},
 		},
 	},
-	Nitwit = {
+	NitWit = {
 		Name = "NitWit",
-		Weight = 3,
+		Weight = 13,
 		Vitals = {
 			HealthMultiplier = 1,
 			DamageMultiplier = 1,
 		},
+
+		Movement = {
+			StaminaMultiplier = 1,
+			DamageMultiplier = 1,
+
+			StaminaRecoveryRateMultiplier = 1,
+			StaminaRecoveryTimeMultiplier = 1,
+
+			SpeedMultiplier = 1,
+		},
 		Weapons = {
 			Torch = {
 				Name = "Torch",
-				Weight = 2,
+				Weight = 20,
 			},
-			PitchFork = {
-				Name = "PitchFork",
-				Weight = 1,
+			Pitchfork = {
+				Name = "Pitchfork",
+				Weight = 10,
 			},
 			Nothing = {
 				Name = "Nothing",
-				Weight = 10,
+				Weight = 1,
 			},
 		},
 	},
@@ -56,14 +75,23 @@ local JobConfig = {
 			HealthMultiplier = 2,
 			DamageMultiplier = 1.5,
 		},
+		Movement = {
+			StaminaMultiplier = 3,
+			DamageMultiplier = 1.5,
+
+			StaminaRecoveryRateMultiplier = 2,
+			StaminaRecoveryTimeMultiplier = 1.5,
+
+			SpeedMultiplier = 1.5,
+		},
 		Weapons = {
 			Sword = {
 				Name = "Sword",
-				Weight = 5,
+				Weight = 50,
 			},
-			PitchFork = {
-				Name = "PitchFork",
-				Weight = 1,
+			Pitchfork = {
+				Name = "Pitchfork",
+				Weight = 10,
 			},
 			Nothing = {
 				Name = "Nothing",

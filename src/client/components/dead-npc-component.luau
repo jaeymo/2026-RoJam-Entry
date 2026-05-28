@@ -38,7 +38,14 @@ local function SetupPrompt(NPC: Instance)
 	Prompt.Name = "DeadPrompt"
 	Prompt.ActionText = "Collect"
 	Prompt.RequiresLineOfSight = false
+	Prompt.Enabled = Client.Parent:GetAttribute("Burned")
 	Prompt.Parent = PrimaryPart
+
+	if not Prompt.Enabled then
+		NPC:GetAttributeChangedSignal("Burned"):Once(function()
+			Prompt.Enabled = true
+		end)
+	end
 end
 
 local function CollectBody(NPC: Model)
@@ -64,12 +71,21 @@ ProximityPromptService.PromptTriggered:Connect(function(Prompt: ProximityPrompt,
 	Network:SendServer("collectDeathToll", NPC)
 	CollectBody(NPC)
 	Prompt:Destroy()
+
+	for _, v in NPC:GetDescendants() do
+		if v:IsA("ParticleEmitter") then
+			v.Enabled = false
+		end
+	end
 end)
 
 Classy.create("Dead", function(NPC: Instance)
+	if NPC:HasTag("Character") then
+		return
+	end
+
 	task.spawn(function()
-		SetupPrompt(NPC)
-		print(NPC, NPC:FindFirstChild("NPCPrompt", true))
+		-- SetupPrompt(NPC)
 
 		if NPC:FindFirstChild("NPCPrompt", true) then
 			NPC:FindFirstChild("NPCPrompt", true):Destroy()

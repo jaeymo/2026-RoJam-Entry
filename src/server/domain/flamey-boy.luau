@@ -22,6 +22,8 @@ Network:OnServer("damageNPC", function(_, charModel: Model, damage: number)
 
 	if HealthService:getHealth(charModel) <= 0 then
 		charModel:SetAttribute("Burned", true)
+		charModel:SetAttribute("DeathTollCollected", true)
+		charModel:AddTag("Burned")
 	end
 end)
 

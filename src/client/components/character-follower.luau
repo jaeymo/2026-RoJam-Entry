@@ -61,7 +61,7 @@ function CharacterFollower.Start(self: CharacterFollower)
 			targetCFrame = targetOrigin * CFrame.new(self.offset)
 		end
 
-		self.taggedModel:PivotTo(self.taggedModel:GetPivot():Lerp(targetCFrame, 0.15))
+		self.taggedModel:PivotTo(self.taggedModel:GetPivot():Lerp(targetCFrame, 0.075))
 	end))
 end
 

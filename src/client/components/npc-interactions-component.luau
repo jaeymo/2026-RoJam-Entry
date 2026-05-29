@@ -267,6 +267,7 @@ end
 local function RunAction(Action: string, Prompt: ProximityPrompt)
 	if Action == "Exit" and Prompt then
 		Prompt.Enabled = true
+		print(debug.traceback())
 	end
 
 	Sound:Play()

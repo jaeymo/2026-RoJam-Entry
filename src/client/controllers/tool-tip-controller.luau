@@ -19,6 +19,10 @@ end
 function ToolTipController._setupTooltip(_self: ToolTipController, parent: Instance, text: string, color: Color3?)
 	for _, v in parent:GetDescendants() do
 		if v:IsA("BasePart") or v:IsA("MeshPart") or v:IsA("UnionOperation") then
+			if v:HasTag("IgnoreToolTip") then
+				continue
+			end
+
 			v:SetAttribute("ToolTip", text)
 			v:SetAttribute("ToolTipColor", color)
 		end

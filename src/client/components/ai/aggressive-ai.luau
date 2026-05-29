@@ -12,6 +12,7 @@ local enitityFolder = assetsFolder:WaitForChild("entities")
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
 local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
+local ToolTipController = require(ReplicatedStorage.client.controllers["tool-tip-controller"])
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
 local Plr = Players.LocalPlayer
@@ -88,6 +89,7 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 	objVal.Parent = clientModel
 
 	clientModel.PrimaryPart.Anchored = true
+	clientModel.PrimaryPart.Transparency = 1
 end
 
 function AggressiveAI.ApplyInfectedEffects(self: AggressiveAI)
@@ -225,6 +227,14 @@ function AggressiveAI.Init(self: AggressiveAI)
 	self.human:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
 	self.human:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
 	self.human:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+
+	if self.serverEntity.PrimaryPart then
+		self.serverEntity.PrimaryPart:AddTag("IgnoreToolTip")
+		self.serverEntity.PrimaryPart.Transparency = 1
+	end
+
+	ToolTipController:handleToolTip(self.serverEntity, "aggressive")
+	ToolTipController:handleToolTip(self.clientEntity, "aggressive")
 
 	if self.serverEntity:GetAttribute("InitialTransitionState") then
 		task.spawn(function()

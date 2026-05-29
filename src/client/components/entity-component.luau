@@ -58,7 +58,7 @@ function EntityComponent.AddInfectionModel(self: EntityComponent)
 		local w = Instance.new("WeldConstraint")
 		local model = ReplicatedStorage.assets.models.InfectedArm:Clone()
 
-		local limb = self.instance.Client["Right Arm"]
+		local limb = self.instance.Client:WaitForChild("Right Arm")
 		model.Parent = limb
 		model:PivotTo(limb.CFrame)
 		w.Part0 = model.PrimaryPart
@@ -70,7 +70,7 @@ function EntityComponent.AddInfectionModel(self: EntityComponent)
 		local w = Instance.new("WeldConstraint")
 		local model = ReplicatedStorage.assets.models.InfectedArm:Clone()
 
-		local limb = self.instance.Client["Left Arm"]
+		local limb = self.instance.Client:WaitForChild("Left Arm")
 		model.Parent = limb
 		model:PivotTo(limb.CFrame)
 		w.Part0 = model.PrimaryPart
@@ -83,7 +83,7 @@ function EntityComponent.AddInfectionModel(self: EntityComponent)
 			local model = ReplicatedStorage.assets.models.InfectedArm:Clone()
 			if i == 1 then
 				local w = Instance.new("WeldConstraint")
-				local limb = self.instance.Client["Right Arm"]
+				local limb = self.instance.Client:WaitForChild("Right Arm")
 				model:PivotTo(limb.CFrame)
 				w.Part0 = model.PrimaryPart
 				w.Part1 = limb
@@ -91,7 +91,7 @@ function EntityComponent.AddInfectionModel(self: EntityComponent)
 				model.Parent = limb
 			else
 				local w = Instance.new("WeldConstraint")
-				local limb = self.instance.Client["Left Arm"]
+				local limb = self.instance.Client:WaitForChild("Left Arm")
 				model.Parent = limb
 				model:PivotTo(limb.CFrame)
 				w.Part0 = model.PrimaryPart

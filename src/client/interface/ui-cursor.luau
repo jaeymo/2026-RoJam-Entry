@@ -21,7 +21,7 @@ local Camera = workspace.CurrentCamera
 
 local RaycastParam = RaycastParams.new()
 RaycastParam.ExcludeInstances = { Player.Character }
-RaycastParam.CollisionGroup = "Idk"
+RaycastParam.CollisionGroup = "ToolTip"
 
 local Main = PlayerGui:WaitForChild("ui-assets"):WaitForChild("Main")
 

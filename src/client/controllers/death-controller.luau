@@ -13,7 +13,7 @@ local Player = Players.LocalPlayer
 
 local PlayerGui = Player.PlayerGui
 
-local DeathFrame: CanvasGroup = PlayerGui:WaitForChild("ui-assets"):WaitForChild("Main"):WaitForChild("Death")
+local DeathFrame: CanvasGroup = PlayerGui:WaitForChild("ui-assets"):WaitForChild("Canvas"):WaitForChild("Death")
 
 local YouHave = DeathFrame:WaitForChild("YouHave")
 local Died = DeathFrame:WaitForChild("Died")

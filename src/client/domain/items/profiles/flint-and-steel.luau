@@ -9,24 +9,53 @@ local raydar = require(ReplicatedStorage.shared.utils.raydar)
 local ViewmodelController
 local HitboxController
 
-local FlintAndSteel = {}
+local FlintAndSteel = {
+	onCooldown = false,
+	secondaryCooldown = false,
+}
 
 export type FlintAndSteel = typeof(FlintAndSteel)
 
+local flag = false
+
 function FlintAndSteel.equip(self: FlintAndSteel)
+	flag = true
+
+	ViewmodelController.animationObject:StopAll()
 	ViewmodelController.animationObject:Play("ViewModelFNSIdle")
 	ViewmodelController:getViewmodel():setArmVisible("left")
+
+	task.delay(0.2, function()
+		if flag then
+			ViewmodelController:getViewmodel():setArmVisible("left")
+		end
+	end)
 end
 
 function FlintAndSteel.unequip(self: FlintAndSteel)
-	ViewmodelController.animationObject:Stop("ViewModelFNSIdle")
+	flag = false
+	ViewmodelController.animationObject:StopAll()
 end
 
 function FlintAndSteel.primary(self: FlintAndSteel)
-	ViewmodelController.animationObject:Play("ViewModelFNSSpark")
+	if self.onCooldown or self.secondaryCooldown then
+		return
+	end
+	self.onCooldown = true
 
+	ReplicatedStorage["global-data"].canSwitchToNewItem.Value = false
+
+	task.delay(0.6, function()
+		ReplicatedStorage["global-data"].canSwitchToNewItem.Value = true
+	end)
+	task.delay(0.8, function()
+		self.onCooldown = false
+	end)
+
+	ViewmodelController.animationObject:Play("ViewModelFNSSpark")
 	ViewmodelController.animationObject:GetTrack("ViewModelFNSSpark"):GetMarkerReachedSignal("hit"):Wait()
 
+	ViewmodelController:getViewmodel():setArmVisible("left")
 	local forwardDist = 10
 	local downwardDist = 6
 
@@ -53,14 +82,29 @@ function FlintAndSteel.primary(self: FlintAndSteel)
 
 	if downwardResult then
 		flameConnector:Spawn(downwardResult.Position, Vector3.one * 6, { DestroyOnBurn = true })
+		ViewmodelController:getViewmodel():setArmVisible("left")
 		return
 	end
 end
 
 function FlintAndSteel.secondary(self: FlintAndSteel)
+	if self.secondaryCooldown or self.onCooldown then
+		return
+	end
+
+	self.secondaryCooldown = true
+	ReplicatedStorage["global-data"].canSwitchToNewItem.Value = false
+
+	task.delay(1, function()
+		self.secondaryCooldown = false
+		ReplicatedStorage["global-data"].canSwitchToNewItem.Value = true
+	end)
+
 	ViewmodelController.animationObject:Stop("ViewModelFNSSpark")
 	ViewmodelController.animationObject:Play("ViewModelSandThrow")
 	ViewmodelController.animationObject:GetTrack("ViewModelSandThrow"):GetMarkerReachedSignal("hit"):Wait()
+
+	ViewmodelController:getViewmodel():setArmVisible("left")
 
 	for i = 1, 4 do
 		local dir = charState:getFacingDirection()

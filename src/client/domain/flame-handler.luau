@@ -165,6 +165,7 @@ function FlameHandler:Spawn(Position: Vector3, Size: Vector3, Properties: FlameP
 	else
 		visualModel = ReplicatedStorage.assets.particles.SmallFlames:Clone()
 	end
+
 	local Hitbox = CreateHitbox(Position, Size)
 	visualModel:PivotTo(CFrame.new(Position))
 	visualModel.Parent = Hitbox
@@ -331,7 +332,9 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 			end
 
 			if hitEntity then
-				FlameHandler:DamageHumanoid(hitEntity)
+				if not hitEntity:HasTag("PleaseIgnore") then
+					FlameHandler:DamageHumanoid(hitEntity)
+				end
 			end
 
 			if not Part:HasTag("Flammable") then

@@ -218,7 +218,15 @@ local function RunTalk()
 	end
 end
 
-local function RunTreatment()
+local function RunTreatment(prompt: ProximityPrompt)
+	if NPC_Interactions.ActiveNPC then
+		if NPC_Interactions.ActiveNPC:HasTag("HealedInfection") then
+			print("ALREADY HEALED")
+			NPC_Interactions.runAction("Exit", prompt)
+			return
+		end
+	end
+
 	FirstList.Visible = false
 	SecondList.Visible = true
 
@@ -285,7 +293,7 @@ local function RunAction(Action: string, Prompt: ProximityPrompt)
 			SetPromptsState(true)
 		end)
 	elseif Action == "Treatment" then
-		RunTreatment()
+		RunTreatment(Prompt)
 	elseif Action == "Garlic" or Action == "Emeralds" then
 		InfectedController:treatEntity(
 			NPC_Interactions.ActiveNPC,
@@ -418,6 +426,10 @@ local function SetupPrompt(NPC: Instance)
 	Prompt.Parent = PrimaryPart
 
 	table.insert(Prompts, Prompt)
+end
+
+function NPC_Interactions.runAction(actionName: string, prompt: ProximityPrompt)
+	RunAction(actionName, prompt)
 end
 
 UserInputService.InputBegan:Connect(function(Input: InputObject, GPE: boolean)

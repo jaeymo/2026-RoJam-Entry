@@ -1,11 +1,11 @@
 local TOOL_TIP_CONFIG = {
 	deathTollCollected = {
-		text = "Death Toll Collected",
-		color = Color3.fromRGB(21, 182, 16),
+		text = "A Burned Body",
+		color = Color3.fromRGB(236, 253, 235),
 	},
 
 	collectByBurning = {
-		text = "Burn to Collect",
+		text = "Burn It!",
 		color = Color3.fromRGB(126, 16, 16),
 	},
 }

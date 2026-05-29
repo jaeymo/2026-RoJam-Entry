@@ -60,12 +60,17 @@ function HealthService.initEntity(self: HealthService, entityModel: Model, healt
 	destroyConnections[entityModel] = destroyConnection
 end
 
-function HealthService.setHealth(_: HealthService, entityModel: Model, health: number)
-	entityModel:SetAttribute("Health", health)
+function HealthService.setHealth(self: HealthService, entityModel: Model, health: number)
+	local maxHealth = self:getMaxHealth(entityModel) or health
+	entityModel:SetAttribute("Health", math.min(maxHealth, health))
 end
 
-function HealthService.setMaxHealth(_: HealthService, entityModel: Model, maxHealth: number)
+function HealthService.setMaxHealth(self: HealthService, entityModel: Model, maxHealth: number)
 	entityModel:SetAttribute("MaxHealth", maxHealth)
+
+	if (self:getHealth(entityModel) or -100) > maxHealth then
+		self:setHealth(entityModel, maxHealth)
+	end
 end
 
 function HealthService.addHealthTo(self: HealthService, entityModel: Model, amount: number)

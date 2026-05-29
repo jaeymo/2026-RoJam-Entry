@@ -35,6 +35,10 @@ export type WanderingAI = typeof(setmetatable(
 ))
 
 function WanderingAI.new(character: Instance, janitor: Classy.Janitor): WanderingAI
+	if not character:GetAttribute("OriginalEntityType") then
+		character:SetAttribute("OriginalEntityType", "Wandering")
+	end
+
 	return setmetatable({
 		entity = character :: Model,
 

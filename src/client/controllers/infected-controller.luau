@@ -30,9 +30,10 @@ function InfectedController.treatEntity(
 	local levelOfTreatment = TREATMENT_MAP[treatmentType]
 	local doesTreatmentWork = levelOfTreatment >= entityInfectedLevel
 
+	network:SendServer("treatEntity", entity, treatmentType, doesTreatmentWork)
+
 	if doesTreatmentWork then
 		print("WORKED")
-		network:SendServer("treatEntity", entity, treatmentType)
 	else
 		print("NAH, NO WORK!")
 	end

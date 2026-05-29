@@ -160,6 +160,8 @@ end
 function GenerationService.generateNext(self: GenerationService)
 	local nextRoomIndex = self.currentRoomGenerationIndex + 1
 
+	local originalUseOnly = EntityGenerationConfig.useOnlyAggressive
+
 	if nextRoomIndex + 25 > #self.roomPlan then
 		self:extendLateGame(nextRoomIndex + 100)
 	end
@@ -211,7 +213,7 @@ function GenerationService.generateNext(self: GenerationService)
 	SignalRegistry.roomSpawned:Fire(newRoom)
 
 	if roomData.roomType == "horde" then
-		EntityGenerationConfig.useOnlyAggressive = false
+		EntityGenerationConfig.useOnlyAggressive = originalUseOnly
 	end
 end
 

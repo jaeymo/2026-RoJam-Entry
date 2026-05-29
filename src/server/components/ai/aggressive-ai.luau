@@ -59,6 +59,10 @@ export type AggressiveAI = typeof(setmetatable(
 ))
 
 function AggressiveAI.new(character: Instance, janitor: Classy.Janitor): AggressiveAI
+	if not character:GetAttribute("OriginalEntityType") then
+		character:SetAttribute("OriginalEntityType", "Aggressive")
+	end
+
 	return setmetatable({
 		entity = character :: Model,
 

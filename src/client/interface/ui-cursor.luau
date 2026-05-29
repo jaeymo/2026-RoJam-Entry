@@ -43,10 +43,6 @@ RunService.PreRender:Connect(function()
 		return
 	end
 
-	if Target:HasTag("IgnoreToolTip") then
-		return
-	end
-
 	local Character = Player.Character
 	local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart") :: BasePart
 

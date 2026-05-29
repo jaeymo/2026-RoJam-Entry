@@ -1,7 +1,7 @@
 --!strict
 local InfectedConfig = {
 	[0] = {
-		Weight = 10,
+		Weight = 1,
 
 		StaminaMultiplier = 1,
 		DamageMultiplier = 1,

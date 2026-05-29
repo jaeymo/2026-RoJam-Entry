@@ -38,6 +38,7 @@ function MutationService.swapFromWanderingToAggressive(_: MutationService, entit
 	entityModel:RemoveTag("WanderingAI")
 	entityModel:RemoveTag("AggressiveMutation")
 	entityModel:AddTag("AggressiveAI")
+	entityModel:AddTag("Transitioned")
 end
 
 function MutationService.jaegarInit(self: MutationService)

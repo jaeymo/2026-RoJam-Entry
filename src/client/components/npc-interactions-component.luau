@@ -126,50 +126,13 @@ local function GetUniqueDialogue(Pool: {}, UsedTable: {}, ResetOnEmpty: boolean?
 	return Chosen.Data
 end
 
-local function RunTalk()
-	local NPC = NPC_Interactions.ActiveNPC
-	if not NPC then
-		return
-	end
-
-	local FoundConfig = "NonAggressiveNPCs"
-
-	for Name in Config do
-		if Name ~= "NonAggressiveNPCs" and NPC:HasTag(Name) then
-			FoundConfig = Name
-			break
-		end
-	end
-
-	UsedDialogue[FoundConfig] = UsedDialogue[FoundConfig] or {}
-	UsedOutOfMessage[FoundConfig] = UsedOutOfMessage[FoundConfig] or {}
-
-	local Dialogue = GetUniqueDialogue(ActiveConfig.Dialogue, UsedDialogue[FoundConfig], false)
-
-	if not Dialogue then
-		local Message = GetUniqueDialogue(ActiveConfig.OutOfMessages, UsedOutOfMessage[FoundConfig], true)
-
-		NPC_Interactions.SystemMessage(NPC, Message)
-
-		return
-	end
-
-	NPC_Interactions.SystemMessage(NPC, Dialogue.Text)
-
-	if Dialogue.Followups and #Dialogue.Followups > 0 then
-		task.delay(1.5, function()
-			NPC_Interactions.SystemMessage(NPC, Dialogue.Followups[math.random(1, #Dialogue.Followups)])
-		end)
-	end
-end
-
 local function RunInfectedInteraction()
 	local NPC = NPC_Interactions.ActiveNPC
 	if not NPC then
 		return
 	end
 
-	local Level = NPC:GetAttribute("Infected") or 0
+	local Level = NPC:GetAttribute("InfectedLevel") or 0
 	if Level <= 0 then
 		return
 	end
@@ -189,6 +152,51 @@ local function RunInfectedInteraction()
 	local Message = GetUniqueDialogue(Pool, UsedInfectionDialogue[Level])
 
 	NPC_Interactions.SystemMessage(NPC, Message)
+end
+
+local function RunTalk()
+	local NPC = NPC_Interactions.ActiveNPC
+	if not NPC then
+		return
+	end
+
+	if (NPC:GetAttribute("InfectedLevel") or 0) >= 0 then
+		print(debug.traceback())
+		RunInfectedInteraction()
+		return
+	end
+
+	local FoundConfig = "NonAggressiveNPCs"
+
+	for Name in Config do
+		if Name ~= "NonAggressiveNPCs" and NPC:HasTag(Name) then
+			FoundConfig = Name
+			break
+		end
+	end
+
+	UsedDialogue[FoundConfig] = UsedDialogue[FoundConfig] or {}
+	UsedOutOfMessage[FoundConfig] = UsedOutOfMessage[FoundConfig] or {}
+
+	local UsedConfig = ActiveConfig.Dialogue
+
+	local Dialogue = GetUniqueDialogue(UsedConfig, UsedDialogue[FoundConfig], false)
+
+	if not Dialogue then
+		local Message = GetUniqueDialogue(ActiveConfig.OutOfMessages, UsedOutOfMessage[FoundConfig], true)
+
+		NPC_Interactions.SystemMessage(NPC, Message)
+
+		return
+	end
+
+	NPC_Interactions.SystemMessage(NPC, Dialogue.Text)
+
+	if Dialogue.Followups and #Dialogue.Followups > 0 then
+		task.delay(1.5, function()
+			NPC_Interactions.SystemMessage(NPC, Dialogue.Followups[math.random(1, #Dialogue.Followups)])
+		end)
+	end
 end
 
 local function RunTreatment()
@@ -274,10 +282,6 @@ local function RunAction(Action: string, Prompt: ProximityPrompt)
 		NPC_Interactions.Cooldown = true
 
 		SetPromptsState(false)
-
-		if NPC_Interactions.ActiveNPC and NPC_Interactions.ActiveNPC:GetAttribute("Infected") then
-			RunInfectedInteraction()
-		end
 
 		CloseUI()
 

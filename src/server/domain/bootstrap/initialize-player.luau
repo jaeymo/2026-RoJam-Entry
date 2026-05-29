@@ -12,6 +12,9 @@ local function handlePlayer(player: Player)
 	local component = BackpackComponent.classy:Apply(player)
 	component:GetData():setResource("Garlic", 10)
 	component:GetData():setResource("Emeralds", 10)
+	component:GetData():setResource("SandCharges", 0)
+
+	print(component:GetData())
 end
 
 for _, player in Players:GetPlayers() do

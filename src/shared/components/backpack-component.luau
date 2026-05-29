@@ -25,7 +25,7 @@ end
 
 function BackpackComponent.setResource(self: BackpackComponent, resourceName: string, amount: number)
 	self.resources[resourceName] = amount
-	self.instance:SetAttribute(resourceName, self:getResource(resourceName))
+	self.instance:SetAttribute(resourceName, amount)
 end
 
 function BackpackComponent.addResource(self: BackpackComponent, resourceName: string, amount: number): number
@@ -34,7 +34,7 @@ function BackpackComponent.addResource(self: BackpackComponent, resourceName: st
 	end
 
 	self.resources[resourceName] += amount
-	self.instance:SetAttribute(resourceName, self:getResource(resourceName))
+	self.instance:SetAttribute(resourceName, self.resources[resourceName])
 
 	return self.resources[resourceName]
 end
@@ -48,7 +48,7 @@ function BackpackComponent.clearResource(self: BackpackComponent, resourceName: 
 end
 
 function BackpackComponent.getResource(self: BackpackComponent, resourceName: string): number
-	return (self.instance:GetAttribute(resourceName) :: number?) or 0
+	return self.resources[resourceName] or 0
 end
 
 BackpackComponent.classy = Classy.create("Tag", BackpackComponent, {

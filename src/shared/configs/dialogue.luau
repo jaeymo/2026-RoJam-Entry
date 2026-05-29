@@ -52,7 +52,7 @@ return {
 			},
 
 			{
-				Text = "Can i get some food?",
+				Text = "Can I get some food?",
 			},
 		},
 

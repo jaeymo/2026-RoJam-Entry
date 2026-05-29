@@ -15,6 +15,8 @@ local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
 local ToolTipController = require(ReplicatedStorage.client.controllers["tool-tip-controller"])
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
+local repertoire = require(ReplicatedStorage.packages.repertoire)
+
 local Plr = Players.LocalPlayer
 local LocalChar = Plr.Character or Plr.CharacterAdded:Wait()
 
@@ -75,6 +77,9 @@ function AggressiveAI.CreateAIModel(self: AggressiveAI, serverModel: Model)
 		clientModel.PrimaryPart = clientModel:WaitForChild("HumanoidRootPart")
 		clientModel.Parent = serverModel
 	else
+		local newAngy = ReplicatedStorage.assets.sounds.anger:Clone()
+		newAngy.PlaybackSpeed = math.random(60, 140) / 100
+		local angy = repertoire.Accent(newAngy):Spawn(serverModel:GetPivot().Position)
 		clientModel = serverModel:WaitForChild("Client")
 	end
 

@@ -24,8 +24,25 @@ export type FlintAndSteel = typeof(FlintAndSteel)
 
 local flag = false
 
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+local Main = PlayerGui:WaitForChild("ui-assets"):WaitForChild("Main")
+
+local fireImage = Main:WaitForChild("FireImage")
+local fireCharge = Main:WaitForChild("FireCharge")
+
+local sandImage = Main:WaitForChild("SandImage")
+local sandCharge = Main:WaitForChild("SandCharge")
+
 function FlintAndSteel.equip(self: FlintAndSteel)
 	flag = true
+
+	fireImage.Visible = true
+	fireCharge.Visible = true
+
+	sandImage.Visible = true
+	sandCharge.Visible = true
 
 	ViewmodelController.animationObject:StopAll()
 	ViewmodelController.animationObject:Play("ViewModelFNSIdle")
@@ -40,11 +57,19 @@ end
 
 function FlintAndSteel.unequip(self: FlintAndSteel)
 	flag = false
+
+	fireImage.Visible = false
+	fireCharge.Visible = false
+
+	sandImage.Visible = false
+	sandCharge.Visible = false
 	ViewmodelController.animationObject:StopAll()
 end
 
 local hitFlammable: BasePart? = nil
 
+local flickSound = ReplicatedStorage.assets.sounds.flintFlick
+local scrapeSound = ReplicatedStorage.assets.sounds.flintScrape
 function FlintAndSteel.primary(self: FlintAndSteel)
 	if self.onCooldown or self.secondaryCooldown then
 		return
@@ -56,7 +81,20 @@ function FlintAndSteel.primary(self: FlintAndSteel)
 		local fireCharges = player:GetAttribute("FireCharge") :: number
 		if fireCharges <= 0 then
 			print("hell nah")
+
+			scrapeSound:Play()
+
 			ViewmodelController.animationObject:Play("ViewModelFNSSpark")
+			ViewmodelController.animationObject
+				:GetTrack("ViewModelFNSSpark")
+				:GetMarkerReachedSignal("hit")
+				:Once(function()
+					flickSound:Play()
+					task.delay(0.5, function()
+						flickSound:Stop()
+					end)
+				end)
+
 			return
 		end
 	else
@@ -79,8 +117,15 @@ function FlintAndSteel.primary(self: FlintAndSteel)
 		self.onCooldown = false
 	end)
 
+	scrapeSound:Play()
+
 	ViewmodelController.animationObject:Play("ViewModelFNSSpark")
 	ViewmodelController.animationObject:GetTrack("ViewModelFNSSpark"):GetMarkerReachedSignal("hit"):Wait()
+
+	flickSound:Play()
+	task.delay(0.5, function()
+		flickSound:Stop()
+	end)
 
 	ViewmodelController:getViewmodel():setArmVisible("left")
 	local forwardDist = 10
@@ -173,14 +218,21 @@ function FlintAndSteel.secondary(self: FlintAndSteel)
 		local flyingSandDust = ReplicatedStorage.assets.particles.FlyingSandDust:Clone()
 		local sandSpawn = ReplicatedStorage.assets.particles.SandSpawn:Clone()
 
+		local sandCrack = ReplicatedStorage.assets.sounds.sandCrack:Clone()
+		local sandPoof = ReplicatedStorage.assets.sounds.sandPoof:Clone()
+
 		flammableHitbox:GetAttributeChangedSignal("HasBurned"):Once(function()
 			local boom = ReplicatedStorage.assets.particles.BOOM:Clone()
 			boom.Parent = sandVessel
+
+			local boomSound = ReplicatedStorage.assets.sounds.fireBoom:Clone()
+			boomSound.Parent = sandVessel
 
 			sandDust.Enabled = false
 			sandSparkle.Enabled = false
 
 			task.spawn(function()
+				boomSound:Play()
 				for _ = 1, 3 do
 					boom:Emit(5)
 					sandSparkle:Destroy()
@@ -198,6 +250,11 @@ function FlintAndSteel.secondary(self: FlintAndSteel)
 		sandSpawn.Parent = sandVessel
 		flyingSandSparkle.Parent = sandVessel
 		flyingSandDust.Parent = sandVessel
+		sandCrack.Parent = sandVessel
+		sandPoof.Parent = sandVessel
+
+		sandPoof:Play()
+		sandCrack:Play()
 
 		sandSpawn:Emit(1)
 		flyingSandSparkle:Emit(100)

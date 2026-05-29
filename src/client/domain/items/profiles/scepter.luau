@@ -128,6 +128,10 @@ function Scepter.handleNormalHit(self: Scepter, entityModel: Model)
 	sweatAccent:Spawn(origin)
 
 	repertoire.Accent(ScepterHitSounds[math.random(1, #ScepterHitSounds)]):Spawn(origin)
+
+	local newOuch = ReplicatedStorage.assets.sounds.ouch:Clone()
+	newOuch.PlaybackSpeed = math.random(50, 150) / 100
+	repertoire.Accent(newOuch):Spawn(origin)
 end
 
 function Scepter.handleDeathHit(self: Scepter, entityModel: Model)

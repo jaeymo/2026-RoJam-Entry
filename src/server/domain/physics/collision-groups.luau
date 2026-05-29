@@ -20,6 +20,7 @@ local COLLISION_GROUPS = {
 	Entity = {
 		CanCollide = {
 			"Entity",
+			"ToolTip",
 			"PlayerCharacter",
 			"BarrierCollision",
 			"EntityCollision",
@@ -52,6 +53,14 @@ local COLLISION_GROUPS = {
 	},
 	PathCast = {
 		CanCollide = { "EntityCollision", "PathNode", "PathWall" },
+	},
+
+	ToolTip = {
+		CanCollide = { "Flower", "Entity" },
+	},
+
+	Flower = {
+		CanCollide = { "ToolTip" },
 	},
 } :: {
 	[string]: { CanCollide: { string }, CannotCollide: { string } },

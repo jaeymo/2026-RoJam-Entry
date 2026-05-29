@@ -89,6 +89,7 @@ function AggressiveAI.cleanEntityModel(self: AggressiveAI, entityModel: Model)
 	collisionBall.Transparency = 1
 	collisionBall.Shape = Enum.PartType.Ball
 	collisionBall.Size = Vector3.one * 4
+	collisionBall:AddTag("IgnoreToolTip")
 	collisionBall.Position = entityModel.PrimaryPart.Position
 	collisionBall.CollisionGroup = "CollisionHitbox"
 

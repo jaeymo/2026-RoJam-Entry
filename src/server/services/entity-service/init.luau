@@ -113,6 +113,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:SetAttribute("JobName", jobData.Name)
 		newEntityModel:SetAttribute("DamageMultiplier", jobData.DamageMultiplier)
 		newEntityModel:SetAttribute("HealthMultiplier", jobData.HealthMultiplier)
+		newEntityModel:SetAttribute("DeathTollCollected", false)
 
 		newEntityModel.Parent = parent
 
@@ -159,6 +160,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel.Parent = parent
 
+		newEntityModel:SetAttribute("DeathTollCollected", false)
 		newEntityModel:SetAttribute("JobWeapon", jobData.Weapon)
 		newEntityModel:SetAttribute("JobName", jobData.Name)
 		newEntityModel:SetAttribute("DamageMultiplier", jobData.DamageMultiplier)

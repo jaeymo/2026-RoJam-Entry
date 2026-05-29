@@ -143,7 +143,7 @@ function Scepter.handleDeathHit(self: Scepter, entityModel: Model)
 			bv:Destroy()
 		end)
 
-		-- repertoire.Accent(ScepterHitSounds[math.random(1, #ScepterHitSounds)]):Spawn(client:GetPivot().Position)
+		repertoire.Accent(ScepterHitSounds[math.random(1, #ScepterHitSounds)]):Spawn(client:GetPivot().Position)
 	end
 end
 

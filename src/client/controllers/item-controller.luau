@@ -27,6 +27,7 @@ end
 function ItemController.toggleEquip(self: ItemController, newHeldItem: string)
 	if self.currentlyHeldItem == newHeldItem then
 		self:unequipCurrent(false)
+		ReplicatedStorage["global-data"].currentWeaponName.Value = ""
 		return
 	end
 
@@ -43,6 +44,7 @@ function ItemController.equip(self: ItemController, itemName: string)
 	self.currentlyHeldItem = itemName
 	SignalRegistry.itemEquipped:Fire(itemName)
 	ItemProfileHandler:getProfile(itemName):equip()
+	ReplicatedStorage["global-data"].currentWeaponName.Value = itemName
 end
 
 function ItemController.unequipCurrent(self: ItemController, isEquippingNext: boolean)

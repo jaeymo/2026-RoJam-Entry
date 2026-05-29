@@ -530,10 +530,12 @@ function AggressiveAI.ExitRecovering(self: AggressiveAI)
 	self.animController:GetTrack("AggressiveStumbleChase"):AdjustSpeed(1)
 end
 
-AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {
-	Nuke = false,
-})
+function AggressiveAI.jaegarInit(self: AggressiveAI)
+	AggressiveAI.classy = Classy.create("AggressiveAI", AggressiveAI, {
+		Nuke = false,
+	})
 
-Classy.registerGlobal("AggressiveAI", AggressiveAI.classy)
+	Classy.registerGlobal("AggressiveAI", AggressiveAI.classy)
+end
 
 return AggressiveAI

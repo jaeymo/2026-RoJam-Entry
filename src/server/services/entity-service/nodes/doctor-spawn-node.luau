@@ -23,6 +23,7 @@ Viewer.WatchTag("DoctorSpawnNode", false, function(instance: Instance)
 	newDoctorModel:AddTag("Ragdoll")
 	newDoctorModel:AddTag("Entity")
 	newDoctorModel:AddTag("Plague_Doctor")
+	newDoctorModel:AddTag("Shopkeeper")
 	newDoctorModel.Parent = workspace
 end)
 

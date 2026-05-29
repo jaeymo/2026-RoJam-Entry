@@ -1,4 +1,5 @@
 --!strict
+local CollectionService = game:GetService("CollectionService")
 local Raydar = {}
 
 export type Raydar = typeof(Raydar)
@@ -11,6 +12,16 @@ Raydar.RayTypes = {
 
 			local params = RaycastParams.new()
 			params.CollisionGroup = "IgnoreCharacters"
+
+			return params
+		end,
+	},
+	Flammable = {
+		Name = "Flammable",
+		GetParams = function(...)
+			local params = RaycastParams.new()
+			params.FilterDescendantsInstances = CollectionService:GetTagged("Flammable")
+			params.FilterType = Enum.RaycastFilterType.Include
 
 			return params
 		end,

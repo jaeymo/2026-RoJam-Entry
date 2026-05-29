@@ -80,7 +80,27 @@ ProximityPromptService.PromptTriggered:Connect(function(Prompt: ProximityPrompt,
 	end
 end)
 
+local function flammable(client)
+	local part = Instance.new("Part")
+	part.Size = Vector3.new(5, 6, 2)
+	part:AddTag("Flammable")
+	part.CanCollide = false
+	part.Transparency = 0.8
+	part.Color = Color3.fromRGB(156, 29, 29)
+	part.CFrame = client:WaitForChild("HumanoidRootPart").CFrame
+	part.Parent = workspace
+
+	local weldConstraint = Instance.new("WeldConstraint")
+	weldConstraint.Part1 = part
+	weldConstraint.Part0 = client.HumanoidRootPart
+	weldConstraint.Parent = client.HumanoidRootPart
+end
+
 Classy.create("Dead", function(NPC: Instance, janitor)
+	task.spawn(function()
+		flammable(NPC:WaitForChild("Client"))
+	end)
+
 	if NPC:FindFirstChild("EntityCollision", true) then
 		NPC:FindFirstChild("EntityCollision", true):Destroy()
 	end

@@ -19,7 +19,7 @@ local vignette = Main:WaitForChild("WavyVignette") :: ImageLabel
 
 local Health = Main:WaitForChild("Health") :: Frame
 local Bar = Health:WaitForChild("Bar") :: Frame
-local Title = Health:WaitForChild("Title") :: Frame
+local Title = Health:WaitForChild("Title") :: TextLabel
 
 local BacteriaGui = Health:WaitForChild("Bacteria")
 local guiFill = Health:WaitForChild("Fill")
@@ -383,6 +383,22 @@ Viewer.WatchAttribute(Character, "Health", function(NewValue)
 	CurrentHealth = NewValue
 
 	UpdateHealth()
+end)
+
+Viewer.WatchAttribute(Players.LocalPlayer, "Infected", function(color: Color3?)
+	local chosenColor
+
+	for colorName, v in FlowerConfig.colors do
+		if v == color then
+			chosenColor = colorName
+			break
+		end
+	end
+
+	if chosenColor then
+		local text = FlowerConfig.diseaseNames[chosenColor]
+		Title.Text = text
+	end
 end)
 
 Viewer.WatchAttribute(Character, "MaxHealth", function(NewValue)

@@ -106,7 +106,9 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 
-		newEntityModel:SetAttribute("InfectedLevel", getRandomInfectedLevel())
+		local infectedLevel = getRandomInfectedLevel()
+		newEntityModel:SetAttribute("InfectedLevel", infectedLevel)
+
 		newEntityModel:SetAttribute("JobWeapon", jobData.Weapon)
 		newEntityModel:SetAttribute("JobName", jobData.Name)
 		newEntityModel:SetAttribute("DamageMultiplier", jobData.DamageMultiplier)
@@ -126,7 +128,10 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 
 		-- local tag = math.random() >= 0.5 and "PassiveAI" or "WanderingAI"
 		newEntityModel:AddTag("WanderingAI")
-		newEntityModel:AddTag("Dialogue")
+
+		task.delay(1, function()
+			newEntityModel:AddTag("Dialogue")
+		end)
 
 		task.wait(0.1) -- fun lil wait
 	end
@@ -137,6 +142,7 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 			warn("Could not assign job")
 			continue
 		end
+
 		local newEntityModel = EntityFactory:getNewEntityModel(jobData.Name)
 		if not newEntityModel then
 			warn(`[{script.Name}] Failed to make new entity: {jobData.Name}`)
@@ -146,7 +152,9 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 		local randomIndex = math.random(1, #aggressiveEntitySpawns)
 		local chosenNode = aggressiveEntitySpawns[randomIndex]
 
-		newEntityModel:SetAttribute("InfectedLevel", getRandomInfectedLevel())
+		local infectedLevel = getRandomInfectedLevel()
+		newEntityModel:SetAttribute("InfectedLevel", infectedLevel)
+
 		newEntityModel:SetAttribute("GUID", HttpService:GenerateGUID(false))
 		newEntityModel:PivotTo(chosenNode.CFrame * CFrame.new(0, 3, 0))
 		newEntityModel.Parent = parent

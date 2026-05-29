@@ -9,7 +9,6 @@ local Classy = require(ReplicatedStorage.packages.classy)
 local FlowerConfig = require(ReplicatedStorage.shared.configs["flower-config"])
 local Lucky = require(ReplicatedStorage.shared.utils.lucky)
 local SignalRegistry = require(ServerScriptService["signal-registry"])
-local Viewer = require(ReplicatedStorage.packages.viewer)
 local PlayerHitController
 
 local REVERSED_COLOR_MAP = {} :: { [string]: string } -- color to name

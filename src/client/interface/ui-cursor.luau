@@ -16,8 +16,8 @@ local Mouse = Player:GetMouse()
 
 local Main = PlayerGui:WaitForChild("ui-assets"):WaitForChild("Main")
 
-local ToolTip = Main:WaitForChild("ToolTip")
-local TextLabel = ToolTip:WaitForChild("TextLabel")
+local ToolTip = Main:WaitForChild("ToolTip") :: TextLabel
+local TextLabel = ToolTip:WaitForChild("TextLabel") :: TextLabel
 
 Mouse.Icon = "rbxassetid://135894365640631"
 UserInputService.MouseIconEnabled = false
@@ -40,7 +40,7 @@ RunService.PreRender:Connect(function()
 	end
 
 	local Character = Player.Character
-	local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart")
+	local HumanoidRootPart = Character and Character:FindFirstChild("HumanoidRootPart") :: BasePart
 
 	if not HumanoidRootPart then
 		ToolTip.Visible = false

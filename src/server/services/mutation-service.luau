@@ -1,5 +1,4 @@
 --!strict
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local SignalRegistry = require(ServerScriptService["signal-registry"])
@@ -13,6 +12,10 @@ function MutationService.initializeEntityMutation(_: MutationService, mutationNa
 end
 
 function MutationService.mutateEntity(self: MutationService, mutationName: string, entityModel: Model)
+	if entityModel:HasTag("HealedInfection") then
+		return
+	end
+
 	entityModel:SetAttribute(`{mutationName}MutationDone`, true)
 
 	if mutationName == "Aggressive" then
@@ -21,9 +24,6 @@ function MutationService.mutateEntity(self: MutationService, mutationName: strin
 		end
 
 		self:swapFromWanderingToAggressive(entityModel)
-		-- can add something for terminal here if need be, like a skin change
-		-- elseif mutationName == "Terminal" then
-		-- 	print()
 	end
 
 	SignalRegistry.mutationFinished:Fire(mutationName, entityModel)
@@ -38,6 +38,7 @@ function MutationService.swapFromWanderingToAggressive(_: MutationService, entit
 	entityModel:RemoveTag("WanderingAI")
 	entityModel:RemoveTag("AggressiveMutation")
 	entityModel:AddTag("AggressiveAI")
+	entityModel:AddTag("Transitioned")
 end
 
 function MutationService.jaegarInit(self: MutationService)

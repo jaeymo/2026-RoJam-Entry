@@ -33,9 +33,14 @@ end)
 RunService.PreRender:Connect(function()
 	local Target = Mouse.Target
 
-	if not Target or not UserInputService.MouseIconEnabled then
+	-- if not Target or not UserInputService.MouseIconEnabled then
+	if not Target or Target:HasTag("IgnoreToolTip") then
 		ToolTip.Visible = false
 		TextLabel.Visible = false
+		return
+	end
+
+	if Target:HasTag("IgnoreToolTip") then
 		return
 	end
 
@@ -59,6 +64,7 @@ RunService.PreRender:Connect(function()
 	local FoundTooltip: string? = nil
 
 	local Attribute = Target:GetAttribute("ToolTip")
+	local ToolTipColor = (Target:GetAttribute("ToolTipColor") :: Color3) or Color3.fromRGB(255, 255, 255)
 
 	if typeof(Attribute) == "string" then
 		FoundTooltip = Attribute
@@ -78,6 +84,7 @@ RunService.PreRender:Connect(function()
 	end
 
 	if FoundTooltip then
+		TextLabel.TextColor3 = ToolTipColor
 		TextLabel.Text = FoundTooltip
 
 		TextLabel.Visible = true

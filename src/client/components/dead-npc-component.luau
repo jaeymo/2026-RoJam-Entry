@@ -7,6 +7,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --// Modules //--
 local Classy = require(ReplicatedStorage.packages.classy)
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
+local ToolTipController = require(ReplicatedStorage.client.controllers["tool-tip-controller"])
 
 local Network = Jaegar:GetNetwork()
 
@@ -79,9 +80,17 @@ ProximityPromptService.PromptTriggered:Connect(function(Prompt: ProximityPrompt,
 	end
 end)
 
-Classy.create("Dead", function(NPC: Instance)
+Classy.create("Dead", function(NPC: Instance, janitor)
 	if NPC:HasTag("Character") then
 		return
+	end
+
+	if NPC:GetAttribute("DeathTollCollected") then
+		ToolTipController:handleToolTip(NPC, "deathTollCollected")
+	end
+
+	if not NPC:GetAttribute("Burned") then
+		ToolTipController:handleToolTip(NPC, "collectByBurning")
 	end
 
 	task.spawn(function()

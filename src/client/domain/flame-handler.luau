@@ -105,6 +105,7 @@ local function CreateHitbox(Position: Vector3, Size: Vector3): Part
 
 	Hitbox.CastShadow = false
 
+	Hitbox:AddTag("IgnoreToolTip")
 	Hitbox.Anchored = true
 	Hitbox.CanCollide = false
 	Hitbox.CanQuery = false

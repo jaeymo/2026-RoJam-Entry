@@ -1,10 +1,13 @@
 --!strict
+local CollectionService = game:GetService("CollectionService")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 
 local UiCursor = {}
 
+local Viewer = require(ReplicatedStorage.packages.viewer)
 local signals = require("../client-signal-registry")
 
 export type UiCursor = typeof(UiCursor)
@@ -52,7 +55,7 @@ RunService.PreRender:Connect(function()
 		return
 	end
 
-	RaycastParam.ExcludeInstances = { Character }
+	RaycastParam.ExcludeInstances = { Character :: any, table.unpack(CollectionService:GetTagged("IgnoreToolTip")) }
 
 	local MousePosition = UserInputService:GetMouseLocation()
 
@@ -68,6 +71,7 @@ RunService.PreRender:Connect(function()
 		return
 	end
 
+	print(Target)
 	local Distance = (HumanoidRootPart.Position - Result.Position).Magnitude
 
 	if Distance > 10 then

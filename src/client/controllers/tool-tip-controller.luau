@@ -18,15 +18,7 @@ end
 
 function ToolTipController._setupTooltip(_self: ToolTipController, parent: Instance, text: string, color: Color3?)
 	for _, v in parent:GetDescendants() do
-		if parent:IsA("Model") and parent.PrimaryPart ~= nil and parent.PrimaryPart == v then
-			continue
-		end
-
-		if v.Name == "HumanoidRootPart" then
-			continue
-		end
-
-		if v:IsA("BasePart") then
+		if v:IsA("BasePart") or v:IsA("MeshPart") or v:IsA("UnionOperation") then
 			v:SetAttribute("ToolTip", text)
 			v:SetAttribute("ToolTipColor", color)
 		end

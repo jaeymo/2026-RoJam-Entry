@@ -81,15 +81,17 @@ ProximityPromptService.PromptTriggered:Connect(function(Prompt: ProximityPrompt,
 end)
 
 Classy.create("Dead", function(NPC: Instance, janitor)
+	if NPC:FindFirstChild("EntityCollision", true) then
+		NPC:FindFirstChild("EntityCollision", true):Destroy()
+	end
+
 	if NPC:HasTag("Character") then
 		return
 	end
 
 	if NPC:GetAttribute("DeathTollCollected") then
 		ToolTipController:handleToolTip(NPC, "deathTollCollected")
-	end
-
-	if not NPC:GetAttribute("Burned") then
+	else
 		ToolTipController:handleToolTip(NPC, "collectByBurning")
 	end
 

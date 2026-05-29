@@ -140,26 +140,27 @@ function HealthService.jaegarInit(self: HealthService)
 	end)
 
 	SignalRegistry.hitEntity:Connect(function(entityModel: Model, damage: number)
-		local wasDead = self:isDead(entityModel)
+		-- local wasDead = self:isDead(entityModel)
 
+		print(entityModel, damage)
 		self:removeHealthFrom(entityModel, damage)
 
-		if not wasDead and self:isDead(entityModel) then
-			local player = Players:GetPlayers()[1]
-			if not player then
-				return
-			end
-
-			if entityModel:GetAttribute("OriginalEntityType") == "Aggressive" then
+		task.spawn(function()
+			task.wait(0.5)
+			if self:isDead(entityModel) then
+				local player = Players:GetPlayers()[1]
+				if not player then
+					return
+				end
 				local data = BackpackComponent.classy:GetApplied(player)
 				if not data then
 					return
 				end
 
-				print("+1")
-				data:GetData():addResource("fireCharges", 5)
+				data:GetData():addResource("FireCharge", 2)
+				data:GetData():addResource("SandCharge", 1)
 			end
-		end
+		end)
 
 		if entityModel:GetAttribute("State") == "Burning" then
 			entityModel:SetAttribute("Burned", true)

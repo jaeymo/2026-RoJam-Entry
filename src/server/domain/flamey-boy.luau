@@ -33,14 +33,15 @@ Network:OnServer("damageNPC", function(_, charModel: Model, damage: number)
 		charModel:AddTag("Burned")
 		charModel:SetAttribute("DeathTollCollected", true)
 
-		if charModel:GetAttribute("OriginalEntityType") == "Aggressive" then
-			if Players:GetPlayers()[1] then
-				StatsHandler.ModifyStat(Players:GetPlayers()[1], "Tolls", 1)
-				BackpackComponent.classy:GetApplied(Players:GetPlayers()[1]):GetData():addResource("FireCharge", 1)
-			end
-		else
-			print("you killed a harmless npc!")
-		end
+		BackpackComponent.classy:GetApplied(Players:GetPlayers()[1]):GetData():addResource("FireCharge", 4)
+		BackpackComponent.classy:GetApplied(Players:GetPlayers()[1]):GetData():addResource("SandCharge", 2)
+		-- if charModel:GetAttribute("OriginalEntityType") == "Aggressive" then
+		-- 	if Players:GetPlayers()[1] then
+		-- 		StatsHandler.ModifyStat(Players:GetPlayers()[1], "Tolls", 1)
+		-- 	end
+		-- else
+		-- 	print("you killed a harmless npc!")
+		-- end
 	end
 end)
 

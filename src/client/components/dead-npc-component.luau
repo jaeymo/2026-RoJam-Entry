@@ -85,7 +85,7 @@ local function flammable(client)
 	part.Size = Vector3.new(5, 6, 2)
 	part:AddTag("Flammable")
 	part.CanCollide = false
-	part.Transparency = 0.8
+	part.Transparency = 1
 	part.Color = Color3.fromRGB(156, 29, 29)
 	part.CFrame = client:WaitForChild("HumanoidRootPart").CFrame
 	part.Parent = workspace
@@ -98,6 +98,9 @@ end
 
 Classy.create("Dead", function(NPC: Instance, janitor)
 	task.spawn(function()
+		if NPC:HasTag("Character") then
+			return
+		end
 		flammable(NPC:WaitForChild("Client"))
 	end)
 

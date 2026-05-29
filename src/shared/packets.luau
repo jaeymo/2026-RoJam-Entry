@@ -30,6 +30,7 @@ local VECTOR3_F32 = Packet.Vector3F32
 local PACKETS = {
 	playerSlept = Packet.new("playerSlept", ANY :: number?),
 	damageNPC = Packet.new("damageNPC", INSTANCE, U24),
+	startGame = Packet.new("startGame"),
 	spawnEnemyHitbox = Packet.new("spawnEnemyHitbox", CFRAME, VECTOR3_F24),
 	collectDeathToll = Packet.new("collectDeathToll", INSTANCE),
 	startDialogueConversation = Packet.new("startDialogueConversation", INSTANCE),

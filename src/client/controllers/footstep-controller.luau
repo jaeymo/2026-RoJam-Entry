@@ -2,6 +2,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local SoundService = game:GetService("SoundService")
+local TweenService = game:GetService("TweenService")
 
 local CharacterState = require(ReplicatedStorage.client.domain.character["character-state"])
 
@@ -12,12 +13,34 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local hum = character:WaitForChild("Humanoid")
 
-local WALK_PLAYBACK_SPEED = 1.1
-local SPRINT_PLAYBACK_SPEED = 1.45
+local WALK_PLAYBACK_SPEED = 0.975
+local SPRINT_PLAYBACK_SPEED = 1.35
+local FOOTSTEP_FADE_TIME = 0.15
+local FOOTSTEP_VOLUME = 0.35
 
 local FootstepsController = {}
 
 export type FootstepsController = typeof(FootstepsController)
+
+local function fadeIn(sound: Sound)
+	TweenService:Create(sound, TweenInfo.new(FOOTSTEP_FADE_TIME), {
+		Volume = FOOTSTEP_VOLUME,
+	}):Play()
+end
+
+local function fadeOut(sound: Sound)
+	local tween = TweenService:Create(sound, TweenInfo.new(FOOTSTEP_FADE_TIME), {
+		Volume = 0,
+	})
+
+	tween:Play()
+
+	tween.Completed:Once(function()
+		if sound.Volume <= 0.01 then
+			sound:Stop()
+		end
+	end)
+end
 
 local function getMaterial(): string
 	local floorMaterial = hum.FloorMaterial
@@ -33,7 +56,7 @@ function FootstepsController.jaegarInit()
 
 	RunService.Heartbeat:Connect(function()
 		local speed = CharacterState:getSpeed()
-		local moving = speed > 0.5
+		local moving = speed > 8
 
 		if moving then
 			local material = getMaterial()
@@ -45,12 +68,18 @@ function FootstepsController.jaegarInit()
 
 			if currentSound ~= materialSound or not materialSound.IsPlaying then
 				if currentSound then
-					currentSound:Stop()
+					fadeOut(currentSound)
 				end
 
 				currentSound = materialSound
 				currentSound.Looped = true
-				currentSound:Play()
+
+				if not currentSound.IsPlaying then
+					currentSound.Volume = 0
+					currentSound:Play()
+
+					fadeIn(currentSound)
+				end
 			end
 
 			local sprinting = ReplicatedStorage["global-data"].isSprinting.Value
@@ -58,7 +87,7 @@ function FootstepsController.jaegarInit()
 			lastMaterial = material
 		else
 			if currentSound then
-				currentSound:Stop()
+				fadeOut(currentSound)
 				currentSound = nil
 			end
 

@@ -12,7 +12,7 @@ return {
 		Health_Drain = 10,
 		Health_Take = 5,
 
-		MaxHealth_Drain = 15,
+		MaxHealth_Drain = 2,
 		MaxHealth_Take = 2,
 
 		Damage_PerHit = 5,

@@ -7,6 +7,7 @@ local FlameyBoy = {}
 local Jaeger = require(ReplicatedStorage.packages.jaegar):Server()
 local Network = Jaeger:GetNetwork()
 
+local BackpackComponent = require(ReplicatedStorage.shared.components["backpack-component"])
 local HealthService = require(ServerScriptService.services["health-service"])
 local MutationService = require(ServerScriptService.services["mutation-service"])
 local StatsHandler = require(ServerScriptService.domain.leaderstats["stats-handler"])
@@ -35,6 +36,7 @@ Network:OnServer("damageNPC", function(_, charModel: Model, damage: number)
 		if charModel:GetAttribute("OriginalEntityType") == "Aggressive" then
 			if Players:GetPlayers()[1] then
 				StatsHandler.ModifyStat(Players:GetPlayers()[1], "Tolls", 1)
+				BackpackComponent.classy:GetApplied(Players:GetPlayers()[1]):GetData():addResource("FireCharge", 1)
 			end
 		else
 			print("you killed a harmless npc!")

@@ -4,8 +4,12 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local FLOWER_CONFIG = {
 	colors = {
 		Purple = Color3.fromRGB(170, 0, 255),
-		-- Yellow = Color3.fromRGB(255, 255, 0),
 		Red = Color3.fromRGB(219, 43, 43),
+	},
+
+	diseaseNames = {
+		Purple = "PURPLE DEATH",
+		Red = "RED DEATH",
 	},
 
 	GuiColors = {
@@ -14,7 +18,6 @@ local FLOWER_CONFIG = {
 			Secondary = Color3.fromRGB(216, 138, 255),
 			Tertiary = Color3.fromRGB(56, 23, 86),
 		},
-		-- Yellow = Color3.fromRGB(255, 255, 0),
 		Red = {
 			Primary = Color3.fromRGB(130, 22, 22),
 			Secondary = Color3.fromRGB(234, 106, 106),

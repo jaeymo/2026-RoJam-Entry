@@ -1,13 +1,19 @@
 --!strict
+local CollectionService = game:GetService("CollectionService")
 local Debris = game:GetService("Debris")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local Jaegar = require(ReplicatedStorage.packages.jaegar):Client()
 local charState = require(ReplicatedStorage.client.domain.character["character-state"])
 local flameConnector = require(ReplicatedStorage.client.domain["flame-handler"])
 local raydar = require(ReplicatedStorage.shared.utils.raydar)
 
 local ViewmodelController
 local HitboxController
+
+local player = Players.LocalPlayer
+local network = Jaegar:GetNetwork()
 
 local FlintAndSteel = {
 	onCooldown = false,
@@ -37,11 +43,32 @@ function FlintAndSteel.unequip(self: FlintAndSteel)
 	ViewmodelController.animationObject:StopAll()
 end
 
+local hitFlammable: BasePart? = nil
+
 function FlintAndSteel.primary(self: FlintAndSteel)
 	if self.onCooldown or self.secondaryCooldown then
 		return
 	end
+
+	local isFreeOfCharge = false
+
+	if not hitFlammable then
+		local fireCharges = player:GetAttribute("FireCharge") :: number
+		if fireCharges <= 0 then
+			print("hell nah")
+			ViewmodelController.animationObject:Play("ViewModelFNSSpark")
+			return
+		end
+	else
+		isFreeOfCharge = true
+		print("FREE OF CHARGE!")
+	end
+
 	self.onCooldown = true
+
+	if not isFreeOfCharge then
+		network:SendServer("useCharge", "FireCharge")
+	end
 
 	ReplicatedStorage["global-data"].canSwitchToNewItem.Value = false
 
@@ -92,6 +119,13 @@ function FlintAndSteel.secondary(self: FlintAndSteel)
 		return
 	end
 
+	local sandCharges = player:GetAttribute("SandCharge") :: number
+	if sandCharges <= 0 then
+		print("hell nah")
+		return
+	end
+
+	network:SendServer("useCharge", "SandCharge")
 	self.secondaryCooldown = true
 	ReplicatedStorage["global-data"].canSwitchToNewItem.Value = false
 
@@ -176,6 +210,27 @@ end
 function FlintAndSteel.jaegarInit(_: FlintAndSteel)
 	ViewmodelController = require(ReplicatedStorage.client.controllers["viewmodel-controller"])
 	HitboxController = require(ReplicatedStorage.client.controllers["hitbox-controller"])
+
+	local camera = workspace.CurrentCamera
+
+	while task.wait(0.05) do
+		local params = RaycastParams.new()
+		params.IncludeInstances = CollectionService:GetTagged("Flammable")
+		params.FilterType = Enum.RaycastFilterType.Include
+
+		local ray = raydar:Fire(
+			camera.CFrame.Position,
+			workspace.CurrentCamera.CFrame.LookVector,
+			10,
+			raydar.RayTypes.Flammable
+		)
+
+		if ray and ray.Instance then
+			hitFlammable = ray.Instance
+		else
+			hitFlammable = nil
+		end
+	end
 end
 
 return FlintAndSteel

@@ -236,10 +236,12 @@ function WanderingAI.Destroy(self: WanderingAI)
 	end
 end
 
-WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {
-	Nuke = false,
-})
+function WanderingAI.jaegarInit(self: WanderingAI)
+	WanderingAI.classy = Classy.create("WanderingAI", WanderingAI, {
+		Nuke = false,
+	})
 
-Classy.registerGlobal("WanderingAI", WanderingAI.classy)
+	Classy.registerGlobal("WanderingAI", WanderingAI.classy)
+end
 
 return WanderingAI

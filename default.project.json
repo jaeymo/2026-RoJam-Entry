@@ -84,6 +84,10 @@
                     "$properties": {
                         "Value": true
                     }
+                },
+
+                "currentWeaponName": {
+                    "$className": "StringValue"
                 }
             },
             "proxies": {

@@ -1,7 +1,9 @@
 --!strict
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
+local BackpackComponent = require(ReplicatedStorage.shared.components["backpack-component"])
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
@@ -138,7 +140,27 @@ function HealthService.jaegarInit(self: HealthService)
 	end)
 
 	SignalRegistry.hitEntity:Connect(function(entityModel: Model, damage: number)
+		local wasDead = self:isDead(entityModel)
+
 		self:removeHealthFrom(entityModel, damage)
+
+		if not wasDead and self:isDead(entityModel) then
+			local player = Players:GetPlayers()[1]
+			if not player then
+				return
+			end
+
+			if entityModel:GetAttribute("OriginalEntityType") == "Aggressive" then
+				local data = BackpackComponent.classy:GetApplied(player)
+				if not data then
+					return
+				end
+
+				print("+1")
+				data:GetData():addResource("fireCharges", 5)
+			end
+		end
+
 		if entityModel:GetAttribute("State") == "Burning" then
 			entityModel:SetAttribute("Burned", true)
 		end

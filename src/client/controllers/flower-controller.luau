@@ -10,10 +10,8 @@ local FlowerController = {}
 
 export type FlowerController = typeof(FlowerController)
 
-function FlowerController.jaegarInit(self: FlowerController)
-	local char = Players.LocalPlayer.Character or Players.LocalPlayer.CharacterAdded:Wait()
-
-	Viewer.WatchAttribute(char, "Infected", function(color: Color3?)
+function FlowerController.jaegarInit(_: FlowerController)
+	Viewer.WatchAttribute(Players.LocalPlayer, "Infected", function(color: Color3?)
 		for _, v in CollectionService:GetTagged("Flower") do
 			if not color then
 				ToolTipController:handleToolTip(v, "basicFlower")

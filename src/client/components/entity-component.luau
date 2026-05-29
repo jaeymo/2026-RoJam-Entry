@@ -119,6 +119,8 @@ function EntityComponent.Init(self: EntityComponent)
 	end))
 end
 
-EntityComponent.classy = Classy.create("Entity", EntityComponent, {})
+function EntityComponent.jaegarInit(self: EntityComponent)
+	EntityComponent.classy = Classy.create("Entity", EntityComponent, {})
+end
 
 return EntityComponent

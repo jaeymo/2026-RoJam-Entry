@@ -18,8 +18,8 @@ local ENDING_PASSIVE_WEIGHT = 1
 local ENDING_AGGRESSIVE_WEIGHT = 5
 
 local ENTITY_GENERATION_CONFIG = {
-	useOnlyAggressive = false,
-	useOnlyPassive = true,
+	useOnlyAggressive = true,
+	useOnlyPassive = false,
 
 	getSpawnAmount = function(_: any)
 		local roomLevel = ReplicatedStorage["global-data"].room.Value

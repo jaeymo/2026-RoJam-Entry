@@ -1,9 +1,11 @@
 --!strict
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 local BackpackComponent = require(ReplicatedStorage.shared.components["backpack-component"])
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
+local StatsHandler = require(ServerScriptService.domain.leaderstats["stats-handler"])
 
 local network = Jaegar:GetNetwork()
 
@@ -15,7 +17,8 @@ function InfectedService.treatEntity(
 	self: InfectedService,
 	entityModel: Model,
 	infectedLevel: number,
-	treatmentType: "Garlic" | "Emeralds"
+	treatmentType: "Garlic" | "Emeralds",
+	doesTreatmentWork: boolean
 )
 	local player = Players:GetPlayers()[1]
 	if not player or not player.Character then
@@ -40,13 +43,24 @@ function InfectedService.treatEntity(
 	entityModel:AddTag("HealedInfection")
 	entityModel:RemoveTag("TerminalMutation")
 	entityModel:RemoveTag("AggressiveMutation")
+
+	if doesTreatmentWork then
+		print("WORK")
+		StatsHandler.ModifyStat(player, "Cured_Success", 1)
+	else
+		StatsHandler.ModifyStat(player, "Cured_Fail", 1)
+		print("NO WORK")
+	end
 end
 
 function InfectedService.jaegarInit(self: InfectedService)
-	network:OnServer("treatEntity", function(player: Player, entityModel: Model, treatmentType: "Garlic" | "Emeralds")
-		local infectedLevel = (entityModel:GetAttribute("InfectedLevel") :: number?) or 0
-		self:treatEntity(entityModel, infectedLevel, treatmentType)
-	end)
+	network:OnServer(
+		"treatEntity",
+		function(player: Player, entityModel: Model, treatmentType: "Garlic" | "Emeralds", doesTreatmentWork: boolean)
+			local infectedLevel = (entityModel:GetAttribute("InfectedLevel") :: number?) or 0
+			self:treatEntity(entityModel, infectedLevel, treatmentType, doesTreatmentWork)
+		end
+	)
 end
 
 return InfectedService

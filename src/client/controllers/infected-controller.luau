@@ -1,4 +1,5 @@
 --!strict
+local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -33,7 +34,12 @@ function InfectedController.treatEntity(
 	network:SendServer("treatEntity", entity, treatmentType, doesTreatmentWork)
 
 	if doesTreatmentWork then
-		print("WORKED")
+		local CureBlock = ReplicatedStorage.assets.particles["Cure?"]:Clone()
+		CureBlock.Position = entity:GetPivot().Position
+		CureBlock.Parent = workspace.runtime
+		Debris:AddItem(CureBlock, 5)
+		CureBlock.Attachment.Cross:Emit(1)
+		CureBlock.Feathers:Emit(160)
 	else
 		print("NAH, NO WORK!")
 	end

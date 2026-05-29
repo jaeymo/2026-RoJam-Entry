@@ -3,7 +3,7 @@ local GENERATION_CONFIG = {
 	worldOrigin = Vector3.yAxis * 100,
 	parent = workspace:WaitForChild("runtime"):WaitForChild("map"),
 
-	hordeRoomChance = 0.6,
+	hordeRoomChance = 0.15,
 
 	gamePhases = {
 		early = {

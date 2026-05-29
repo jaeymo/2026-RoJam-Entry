@@ -2,12 +2,14 @@
 local DataStoreService = game:GetService("DataStoreService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local ServerScriptService = game:GetService("ServerScriptService")
 
 --// Modules //--
 local Config = require(ReplicatedStorage.shared.configs.configuration)
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
 local Viewer = require(ReplicatedStorage.packages.viewer)
 local Network = Jaegar:GetNetwork()
+local SignalRegistry = require(ServerScriptService["signal-registry"])
 
 --// Datastore //--
 local Leaderboard = DataStoreService:GetDataStore("GlobalLeaderboards")
@@ -131,8 +133,7 @@ function StatsHandler.ClaimStats(Player: Player)
 	local CureFail = Player:GetAttribute("Cured_Fail") or 0
 
 	local CurrencyEarned = math.floor((Tolls * 0.5) + (CureSuccess * 1) - (CureFail * 0.25))
-
-	CurrencyEarned = math.max(0, CurrencyEarned)
+	CurrencyEarned = math.max(5, CurrencyEarned)
 
 	StatsHandler.ModifyStat(Player, "Currency", CurrencyEarned)
 
@@ -198,6 +199,19 @@ Network:OnInvoke("getLeaderboard", function(_: Player)
 	end
 
 	return Data
+end)
+
+SignalRegistry.roomEntered:Connect(function(roomModel: Model)
+	print(roomModel)
+	if roomModel.Name == "safezoneStart" then
+		local player = Players:GetPlayers()[1]
+		if not player then
+			return
+		end
+
+		print("CLAIMED", player)
+		StatsHandler.ClaimStats(player)
+	end
 end)
 
 return StatsHandler

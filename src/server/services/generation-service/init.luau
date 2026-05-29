@@ -176,15 +176,21 @@ function GenerationService.generateNext(self: GenerationService)
 		EntityGenerationConfig.useOnlyAggressive = true
 	end
 
-	if SAFEZONE_ROOM_TYPES[roomData.roomType] then
-		newRoom = GenerationFactory:getSafezoneRoom(roomData.phase, roomData.roomType)
-	else
-		if roomData.roomType == "normal" then
-			newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
+	if nextRoomIndex == 1 then
+		newRoom = ReplicatedStorage.assets.map:WaitForChild("starter-room"):Clone()
+	end
+
+	if not newRoom then
+		if SAFEZONE_ROOM_TYPES[roomData.roomType] then
+			newRoom = GenerationFactory:getSafezoneRoom(roomData.phase, roomData.roomType)
 		else
-			-- print("room should be horde")
-			print(1)
-			newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
+			if roomData.roomType == "normal" then
+				newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
+			else
+				-- print("room should be horde")
+				print(1)
+				newRoom = GenerationFactory:getRandomRoomFromPhase(roomData.phase)
+			end
 		end
 	end
 
@@ -314,7 +320,12 @@ function GenerationService.jaegarInit(self: GenerationService)
 		end
 	end)
 
-	task.delay(4, function()
+	-- task.delay(4, function()
+	-- 	self:initiateGenerationProcess()
+	-- end)
+
+	require(ReplicatedStorage.packages.jaegar):Server():GetNetwork():OnServer("startGame", function(player: Player)
+		player.Character:PivotTo(CFrame.new(GenerationConfig.worldOrigin) * CFrame.new(0, 15, 25))
 		self:initiateGenerationProcess()
 	end)
 

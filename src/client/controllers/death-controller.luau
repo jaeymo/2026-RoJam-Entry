@@ -8,6 +8,8 @@ local CharacterState = require(ReplicatedStorage.client.domain.character["charac
 local SignalRegistry = require(ReplicatedStorage.client["client-signal-registry"])
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
+local network = require(ReplicatedStorage.packages.jaegar):Client():GetNetwork()
+
 --// Variables //--
 local Player = Players.LocalPlayer
 
@@ -70,6 +72,11 @@ local function SetupHover(Button: TextButton)
 end
 
 local function handleDeath()
+	task.delay(5, function()
+		network:SendServer("restartGameSession")
+		print("sent")
+	end)
+
 	SignalRegistry.localCharacterDied:Fire()
 	Player.CameraMode = Enum.CameraMode.Classic
 

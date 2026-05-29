@@ -63,6 +63,8 @@ local function getRandomAttackName(): string
 	return selection
 end
 
+local ScepterHitSwings = ReplicatedStorage.assets.sounds.ScepterSwings:GetChildren()
+
 function Scepter.primary(self: Scepter)
 	if self.cooldown then
 		return
@@ -92,6 +94,10 @@ function Scepter.primary(self: Scepter)
 	local randomAttackName = getRandomAttackName()
 	local attackData = ScepterConfig.attacks[randomAttackName]
 	self:attack(randomAttackName, attackData)
+
+	local newSwingSOund = ScepterHitSwings[math.random(1, #ScepterHitSwings)]
+	newSwingSOund.PlaybackSpeed = math.random(90, 140) / 100
+	repertoire.Accent(newSwingSOund):Spawn(workspace.CurrentCamera.CFrame.Position)
 end
 
 function Scepter.secondary(_self: Scepter) end
@@ -107,6 +113,8 @@ local sweatAccent = repertoire.Accent(sweatCopy):AddAction(repertoire.Actions.Em
 	Num = 10,
 })
 
+local ScepterHitSounds = ReplicatedStorage.assets.sounds.ScepterHits:GetChildren()
+
 function Scepter.handleNormalHit(self: Scepter, entityModel: Model)
 	CameraShaker:ShakeOnce(1.5, 3, 0.1, 0.55)
 	TweenService:Create(Lighting, TweenInfo.new(0.175, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, true), {
@@ -116,6 +124,8 @@ function Scepter.handleNormalHit(self: Scepter, entityModel: Model)
 	local origin = entityModel:GetPivot().Position
 	normalHitAccent:Spawn(origin)
 	sweatAccent:Spawn(origin)
+
+	repertoire.Accent(ScepterHitSounds[math.random(1, #ScepterHitSounds)]):Spawn(origin)
 end
 
 function Scepter.handleDeathHit(self: Scepter, entityModel: Model)

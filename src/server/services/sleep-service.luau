@@ -1,9 +1,11 @@
 --!strict
 local CollectionService = game:GetService("CollectionService")
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
 local Jaegar = require(ReplicatedStorage.packages.jaegar):Server()
+local PlayerHitController = require(ServerScriptService.domain.player["playerhit-controller"])
 local SignalRegistry = require(ServerScriptService["signal-registry"])
 local Viewer = require(ReplicatedStorage.packages.viewer)
 
@@ -16,6 +18,11 @@ local SleepService = {
 export type SleepService = typeof(SleepService)
 
 function SleepService.initiateSleepProcess(self: SleepService)
+	local player = Players:GetPlayers()[1]
+	if player then
+		PlayerHitController.Deinfect(player)
+	end
+
 	network:Broadcast("playerSlept", self.sleepCount)
 end
 

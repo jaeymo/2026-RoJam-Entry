@@ -11,6 +11,7 @@ local enitityFolder = assetsFolder:WaitForChild("entities")
 local BetterAnimation = require(ReplicatedStorage.packages["better-animation"])
 local Classy = require(ReplicatedStorage.packages.classy)
 local Ragdoller = require(ReplicatedStorage.packages.ragdoller)
+local ToolTipController = require(ReplicatedStorage.client.controllers["tool-tip-controller"])
 
 local Plr = Players.LocalPlayer
 local LocalChar = Plr.Character or Plr.CharacterAdded:Wait()
@@ -74,6 +75,7 @@ function WanderingAI.CreateAIModel(self: WanderingAI, serverModel: Model)
 	objVal.Parent = clientModel
 
 	clientModel.PrimaryPart.Anchored = true
+	clientModel.PrimaryPart.Transparency = 1
 end
 
 function WanderingAI.Init(self: WanderingAI)
@@ -143,6 +145,14 @@ function WanderingAI.Init(self: WanderingAI)
 	if func then
 		func(self)
 	end
+
+	if self.serverEntity.PrimaryPart then
+		self.serverEntity.PrimaryPart:AddTag("IgnoreToolTip")
+		self.serverEntity.PrimaryPart.Transparency = 1
+	end
+
+	ToolTipController:handleToolTip(self.serverEntity, "wandering")
+	ToolTipController:handleToolTip(self.clientEntity, "wandering")
 
 	self.human:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
 	self.human:SetStateEnabled(Enum.HumanoidStateType.Swimming, false)

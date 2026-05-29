@@ -135,7 +135,7 @@ local function RunInfectedInteraction()
 	local Level = NPC:GetAttribute("InfectedLevel") or 0
 	if Level <= 0 then
 		print(NPC)
-		print(1)
+		print(Level)
 		return
 	end
 
@@ -267,6 +267,7 @@ end
 local function RunAction(Action: string, Prompt: ProximityPrompt)
 	if Action == "Exit" and Prompt then
 		Prompt.Enabled = true
+		print(debug.traceback())
 	end
 
 	Sound:Play()

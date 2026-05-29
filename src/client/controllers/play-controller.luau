@@ -1,3 +1,4 @@
+local TimerService = game:GetService("TimerService")
 --// Services //--
 -- local Players = game:GetService("Players")
 -- local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -39,6 +40,7 @@
 -- local CameraOffsetY = 0
 
 -- local function SetupCamera()
+--  Menu.Visible = true
 -- 	Camera.CameraType = Enum.CameraType.Scriptable
 
 -- 	RunService:BindToRenderStep("MenuCamera", Enum.RenderPriority.Camera.Value, function()

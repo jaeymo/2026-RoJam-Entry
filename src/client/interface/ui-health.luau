@@ -295,6 +295,8 @@ local function SpawnBacteria(index: number)
 end
 
 local function StartInfection()
+	ReplicatedStorage.assets.sounds.hurt:Play()
+	ReplicatedStorage.assets.sounds.sludge:Play()
 	for _, v in pairs(bacteriaGuis) do
 		v.Instance:Destroy()
 		task.cancel(v.Thread)

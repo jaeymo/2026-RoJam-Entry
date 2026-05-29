@@ -41,7 +41,7 @@ local function TweenSlotOut(Slot: Frame)
 	Tween(Slot, 0.35, { Position = UDim2.fromScale(0, Slot.Position.Y.Scale) })
 
 	if Label then
-		Tween(Label, 0.175, { TextColor3 = Color3.fromRGB(255, 0, 0) })
+		Tween(Label, 0.175, { TextColor3 = Color3.fromRGB(94, 137, 255) })
 	end
 end
 

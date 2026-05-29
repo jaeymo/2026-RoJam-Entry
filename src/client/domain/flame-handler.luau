@@ -169,9 +169,13 @@ function FlameHandler:Spawn(Position: Vector3, Size: Vector3, Properties: FlameP
 
 	local Hitbox = CreateHitbox(Position, Size)
 	visualModel:PivotTo(CFrame.new(Position))
+	local fireLoop = assetsFolder.sounds.fireLoop:Clone()
+
 	visualModel.Parent = Hitbox
 
 	task.spawn(function()
+		fireLoop.Parent = Hitbox
+		fireLoop:Play()
 		for _, desc in pairs(Hitbox:GetDescendants()) do
 			if desc:IsA("Light") then
 				local initBrightness = desc.Brightness
@@ -287,6 +291,7 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 
 			if hitEntity and hitEntity:HasTag("Dead") then
 				local clientEntity = hitEntity.Client
+				local fireLoop = assetsFolder.sounds.smallFireLoop:Clone()
 				local bodyAura = clientEntity.Torso:FindFirstChild("AuraBodyFlame")
 					or assetsFolder.particles.AuraBodyFlame:Clone()
 				local bodyFloat = clientEntity.Torso:FindFirstChild("FloatBodyFlame")
@@ -297,10 +302,12 @@ RunService.PostSimulation:Connect(function(DeltaTime)
 				bodyAura.Parent = clientEntity.Torso
 				bodyFloat.Parent = clientEntity.Torso
 				bodySmoke.Parent = clientEntity.Torso
+				fireLoop.Parent = clientEntity.Torso
 
 				bodyAura.Enabled = true
 				bodyFloat.Enabled = true
 				bodySmoke.Enabled = true
+				fireLoop:Play()
 
 				local flameLightPart = clientEntity.Torso:FindFirstChild("FlameLighting")
 					or assetsFolder.FlameLighting:Clone()

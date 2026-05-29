@@ -135,7 +135,7 @@ local function RunInfectedInteraction()
 	local Level = NPC:GetAttribute("InfectedLevel") or 0
 	if Level <= 0 then
 		print(NPC)
-		print(1)
+		print(Level)
 		return
 	end
 

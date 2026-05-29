@@ -14,6 +14,12 @@ local PlayerGui = Player.PlayerGui
 
 local Mouse = Player:GetMouse()
 
+local Camera = workspace.CurrentCamera
+
+local RaycastParam = RaycastParams.new()
+RaycastParam.ExcludeInstances = { Player.Character }
+RaycastParam.CollisionGroup = "Idk"
+
 local Main = PlayerGui:WaitForChild("ui-assets"):WaitForChild("Main")
 
 local ToolTip = Main:WaitForChild("ToolTip") :: TextLabel
@@ -31,10 +37,7 @@ signals.itemUnequipped:Connect(function()
 end)
 
 RunService.PreRender:Connect(function()
-	local Target = Mouse.Target
-
-	-- if not Target or not UserInputService.MouseIconEnabled then
-	if not Target or Target:HasTag("IgnoreToolTip") then
+	if not UserInputService.MouseIconEnabled then
 		ToolTip.Visible = false
 		TextLabel.Visible = false
 		return
@@ -53,7 +56,23 @@ RunService.PreRender:Connect(function()
 		return
 	end
 
-	local Distance = (HumanoidRootPart.Position - Target.Position).Magnitude
+	RaycastParam.ExcludeInstances = { Character }
+
+	local MousePosition = UserInputService:GetMouseLocation()
+
+	local Ray = Camera:ViewportPointToRay(MousePosition.X, MousePosition.Y)
+
+	local Result = workspace:Raycast(Ray.Origin, Ray.Direction * 1000, RaycastParam)
+
+	local Target = Result and Result.Instance
+
+	if not Target then
+		ToolTip.Visible = false
+		TextLabel.Visible = false
+		return
+	end
+
+	local Distance = (HumanoidRootPart.Position - Result.Position).Magnitude
 
 	if Distance > 10 then
 		ToolTip.Visible = false

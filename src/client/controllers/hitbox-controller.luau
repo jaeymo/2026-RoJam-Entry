@@ -18,6 +18,7 @@ export type HitboxController = typeof(HitboxController)
 local PART_CACHE = Instance.new("Part")
 PART_CACHE.Anchored = true
 PART_CACHE.CastShadow = false
+PART_CACHE:AddTag("IgnoreToolTip")
 PART_CACHE.CanCollide = false
 PART_CACHE.CanQuery = false
 PART_CACHE.Transparency = 0.85

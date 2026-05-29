@@ -1,86 +1,99 @@
---!strict
+local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local SoundService = game:GetService("SoundService")
+local TweenService = game:GetService("TweenService")
 
-local domain = ReplicatedStorage.client.domain
-local sounds = ReplicatedStorage.assets.sounds:FindFirstChild("FootstepSounds") :: Folder
+local CharacterState = require(ReplicatedStorage.client.domain.character["character-state"])
 
-local CharacterState = require(domain.character["character-state"])
+local materials = ReplicatedStorage.assets.sounds.FootstepSounds:Clone()
+materials.Parent = SoundService
 
-local FootstepController = {}
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hum = character:WaitForChild("Humanoid")
 
-export type FootstepController = typeof(FootstepController)
+local WALK_PLAYBACK_SPEED = 0.975
+local SPRINT_PLAYBACK_SPEED = 1.35
+local FOOTSTEP_FADE_TIME = 0.15
+local FOOTSTEP_VOLUME = 0.35
 
-local function getMaterial(humanoid: Humanoid): string
-	local floorMaterial = humanoid.FloorMaterial
+local FootstepsController = {}
 
-	if not floorMaterial then
-		floorMaterial = Enum.Material.Air
-	end
+export type FootstepsController = typeof(FootstepsController)
 
-	return floorMaterial.Name
+local function fadeIn(sound: Sound)
+	TweenService:Create(sound, TweenInfo.new(FOOTSTEP_FADE_TIME), {
+		Volume = FOOTSTEP_VOLUME,
+	}):Play()
 end
 
-function FootstepController.jaegarInit(self: FootstepController)
-	local humanoid = CharacterState:getHumanoid() :: Humanoid
+local function fadeOut(sound: Sound)
+	local tween = TweenService:Create(sound, TweenInfo.new(FOOTSTEP_FADE_TIME), {
+		Volume = 0,
+	})
 
-	repeat
-		task.wait()
-		humanoid = CharacterState:getHumanoid() :: any
-	until humanoid
+	tween:Play()
 
-	local walking = false
-	local lastMaterial: string?
-	local lastPlayingSound: Sound?
-
-	humanoid.Running:Connect(function(speed: number)
-		if speed > humanoid.WalkSpeed / 2 then
-			walking = true
-		else
-			walking = false
+	tween.Completed:Once(function()
+		if sound.Volume <= 0.01 then
+			sound:Stop()
 		end
 	end)
+end
 
-	RunService.Heartbeat:Connect(function(dt: number)
-		if not humanoid then
-			return
-		end
+local function getMaterial(): string
+	local floorMaterial = hum.FloorMaterial
 
-		if walking then
-			local material = getMaterial(humanoid)
-			if not material then
-				lastPlayingSound = nil
+	local material = string.split(tostring(floorMaterial), "Enum.Material.")[2]
+
+	return material or "Air"
+end
+
+function FootstepsController.jaegarInit()
+	local lastMaterial: string? = nil
+	local currentSound: Sound? = nil
+
+	RunService.Heartbeat:Connect(function()
+		local speed = CharacterState:getSpeed()
+		local moving = speed > 8
+
+		if moving then
+			local material = getMaterial()
+			local materialSound = materials:FindFirstChild(material) :: Sound?
+
+			if not materialSound then
 				return
 			end
 
-			if material == lastMaterial then
-				return
-			end
+			if currentSound ~= materialSound or not materialSound.IsPlaying then
+				if currentSound then
+					fadeOut(currentSound)
+				end
 
-			if material ~= lastMaterial and lastMaterial ~= nil then
-				if lastPlayingSound then
-					lastPlayingSound:Stop()
-					lastPlayingSound = nil
+				currentSound = materialSound
+				currentSound.Looped = true
+
+				if not currentSound.IsPlaying then
+					currentSound.Volume = 0
+					currentSound:Play()
+
+					fadeIn(currentSound)
 				end
 			end
 
-			local sound = sounds:FindFirstChild(material) :: Sound?
-			if not sound then
-				return
-			end
-
-			sound.PlaybackSpeed = humanoid.WalkSpeed / (ReplicatedStorage["global-data"].isSprinting.Value and 12 or 16)
-			sound:Play()
-
+			local sprinting = ReplicatedStorage["global-data"].isSprinting.Value
+			currentSound.PlaybackSpeed = sprinting and SPRINT_PLAYBACK_SPEED or WALK_PLAYBACK_SPEED
 			lastMaterial = material
-			lastPlayingSound = sound
 		else
-			if lastPlayingSound then
-				lastPlayingSound:Stop()
-				lastPlayingSound = nil
+			if currentSound then
+				fadeOut(currentSound)
+				currentSound = nil
 			end
+
+			lastMaterial = nil
 		end
 	end)
 end
 
-return FootstepController
+return FootstepsController

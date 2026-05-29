@@ -13,7 +13,7 @@ local GENERATION_CONFIG = {
 			safezones = {
 				enabled = true,
 
-				minSpacing = 2,
+				minSpacing = 4,
 				maxSpacing = 7,
 
 				guaranteedAtEnd = false,

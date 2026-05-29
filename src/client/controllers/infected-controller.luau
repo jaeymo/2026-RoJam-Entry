@@ -22,17 +22,20 @@ function InfectedController.treatEntity(
 	entityInfectedLevel: number,
 	treatmentType: string
 )
-	local character = player.Character
-	if not character then
-		return
-	end
-
-	local hasAtleastOneOfTreatmentType = ((character:GetAttribute(treatmentType) :: number) or 0) >= 0
+	local hasAtleastOneOfTreatmentType = ((player:GetAttribute(treatmentType) :: number) or 0) > 0
 	if not hasAtleastOneOfTreatmentType then
 		return
 	end
 
-	network:SendServer("treatEntity", entity, treatmentType)
+	local levelOfTreatment = TREATMENT_MAP[treatmentType]
+	local doesTreatmentWork = levelOfTreatment >= entityInfectedLevel
+
+	if doesTreatmentWork then
+		print("WORKED")
+		network:SendServer("treatEntity", entity, treatmentType)
+	else
+		print("NAH, NO WORK!")
+	end
 end
 
 return InfectedController

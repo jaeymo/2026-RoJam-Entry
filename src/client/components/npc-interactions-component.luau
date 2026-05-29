@@ -134,24 +134,39 @@ local function RunInfectedInteraction()
 
 	local Level = NPC:GetAttribute("InfectedLevel") or 0
 	if Level <= 0 then
+		print(NPC)
+		print(1)
 		return
 	end
 
 	local Pools = ActiveConfig.InfectedLevel
 	if not Pools then
+		print(2)
 		return
 	end
 
 	local Pool = Pools[Level]
 	if not Pool or #Pool <= 0 then
+		print(3)
 		return
 	end
 
 	UsedInfectionDialogue[Level] = UsedInfectionDialogue[Level] or {}
 
 	local Message = GetUniqueDialogue(Pool, UsedInfectionDialogue[Level])
-
 	NPC_Interactions.SystemMessage(NPC, Message)
+end
+
+local function RunHealedInteraction()
+	local NPC = NPC_Interactions.ActiveNPC
+	if not NPC then
+		return
+	end
+
+	local Pools = Config.Healed
+	local RandomMessage = Pools[math.random(1, #Pools)]
+
+	NPC_Interactions.SystemMessage(NPC, RandomMessage)
 end
 
 local function RunTalk()
@@ -160,8 +175,12 @@ local function RunTalk()
 		return
 	end
 
+	if NPC:HasTag("HealedInfection") then
+		RunHealedInteraction()
+		return
+	end
+
 	if (NPC:GetAttribute("InfectedLevel") or 0) >= 0 then
-		print(debug.traceback())
 		RunInfectedInteraction()
 		return
 	end

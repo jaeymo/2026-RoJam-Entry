@@ -71,6 +71,10 @@
                      "$className": "BoolValue"
                 },
 
+                "isSprinting": {
+                    "$className": "BoolValue"
+                },
+                
                 "isInDialogue": {
                     "$className": "BoolValue"
                 }

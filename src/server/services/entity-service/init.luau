@@ -128,7 +128,10 @@ function EntityService.loadEntitiesIntoRoom(_: EntityService, roomModel: Model)
 
 		-- local tag = math.random() >= 0.5 and "PassiveAI" or "WanderingAI"
 		newEntityModel:AddTag("WanderingAI")
-		newEntityModel:AddTag("Dialogue")
+
+		task.delay(1, function()
+			newEntityModel:AddTag("Dialogue")
+		end)
 
 		task.wait(0.1) -- fun lil wait
 	end

@@ -37,6 +37,11 @@ return {
 		},
 	},
 
+	Healed = {
+		[1] = "Thank you so much!",
+		[2] = "I'm all better! Please don't kill me.",
+	},
+
 	NonAggressiveNPCs = {
 		Dialogue = {
 			{

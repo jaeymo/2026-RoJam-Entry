@@ -69,7 +69,7 @@ function FootstepController.jaegarInit(self: FootstepController)
 				return
 			end
 
-			sound.PlaybackSpeed = humanoid.WalkSpeed / 12
+			sound.PlaybackSpeed = humanoid.WalkSpeed / (ReplicatedStorage["global-data"].isSprinting.Value and 12 or 16)
 			sound:Play()
 
 			lastMaterial = material

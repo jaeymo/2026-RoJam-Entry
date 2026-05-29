@@ -70,6 +70,7 @@ local function SetSprint(State: boolean)
 	end
 
 	Sprinting = State
+	ReplicatedStorage["global-data"].isSprinting.Value = State
 
 	Humanoid.WalkSpeed = State and SprintSpeed or WalkSpeed
 

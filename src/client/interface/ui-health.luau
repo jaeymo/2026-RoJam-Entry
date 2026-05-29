@@ -1,16 +1,21 @@
 --// Services //--
+local Lighting = game:GetService("Lighting")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
 
 --// Modules //--
 local Viewer = require(ReplicatedStorage.packages.viewer)
+
+local camShaker = require(ReplicatedStorage.client.controllers["camera-controller"]).shaker
 
 --// Variables //--
 local Player = Players.LocalPlayer
 local PlayerGui = Player.PlayerGui
 
 local Main = PlayerGui:WaitForChild("ui-assets"):WaitForChild("Main")
+local vignette = Main:WaitForChild("WavyVignette") :: ImageLabel
 
 local Health = Main:WaitForChild("Health") :: Frame
 local Bar = Health:WaitForChild("Bar") :: Frame
@@ -18,6 +23,7 @@ local Title = Health:WaitForChild("Title") :: Frame
 
 local BacteriaGui = Health:WaitForChild("Bacteria")
 local guiFill = Health:WaitForChild("Fill")
+local blackFill = Health:WaitForChild("BlackFill")
 
 local OuterFrame = Health:WaitForChild("OuterFrame")
 local WingsFill = OuterFrame:WaitForChild("wings-fill")
@@ -44,20 +50,89 @@ local FlowerConfig = require(ReplicatedStorage.shared.configs["flower-config"])
 local UiHealth = {}
 local bacteriaGuis = {}
 
+local updHealthThread
+local previousMidPoint
+
 local function UpdateHealth()
-	local HealthPercent = math.clamp(CurrentHealth / MaxHealth, 0, 1)
+	local HealthPercent = math.clamp(CurrentHealth / 100, 0, 1)
 	local MaxHealthPercent = math.clamp(MaxHealth / 100, 0, 1)
 
 	local BarSize = Bar.Size
 	local HealthSize = Health.Size
 
-	TweenService:Create(Bar, HealthTweenInfo, {
-		Size = UDim2.new(HealthPercent, 0, BarSize.Y.Scale, BarSize.Y.Offset),
-	}):Play()
+	local midPointOffset = 0.1
 
-	TweenService:Create(Health, HealthTweenInfo, {
-		Size = UDim2.new(0.218 * MaxHealthPercent, 0, HealthSize.Y.Scale, HealthSize.Y.Offset),
-	}):Play()
+	if not previousMidPoint then
+		previousMidPoint = HealthPercent - midPointOffset
+	end
+
+	if updHealthThread then
+		task.cancel(updHealthThread)
+		updHealthThread = nil
+		previousMidPoint = HealthPercent
+	end
+
+	updHealthThread = task.spawn(function()
+		local startTick = os.clock()
+		while task.wait() do
+			local elapsedTick = os.clock() - startTick
+			local t = elapsedTick / HealthTweenInfo.Time
+			if elapsedTick >= HealthTweenInfo.Time then
+				return
+			end
+
+			blackFill.UIGradient.Transparency = NumberSequence.new({
+				NumberSequenceKeypoint.new(0, 1),
+				NumberSequenceKeypoint.new(
+					math.clamp(math.lerp(previousMidPoint - 0.2, HealthPercent - 0.2, t), 0.01, HealthPercent),
+					1
+				),
+				NumberSequenceKeypoint.new(
+					math.clamp(math.lerp(previousMidPoint, HealthPercent, t), 0.1, HealthPercent),
+					0.1
+				),
+				NumberSequenceKeypoint.new(1, 0.1),
+			})
+		end
+		previousMidPoint = HealthPercent
+
+		updHealthThread = nil
+	end)
+
+	-- TweenService:Create(Health, HealthTweenInfo, {
+	-- 	Size = UDim2.new(0.218 * MaxHealthPercent, 0, HealthSize.Y.Scale, HealthSize.Y.Offset),
+	-- }):Play()
+end
+
+local beatingConnection
+local function StartBeatingPulse()
+	local beatTime = 1
+	local startTick = os.clock()
+	local beatTweenPlaying = false
+
+	beatingConnection = RunService.PostSimulation:Connect(function()
+		local elaspedTick = os.clock() - startTick
+
+		if beatTweenPlaying then
+			return
+		end
+
+		if elaspedTick >= beatTime then
+			startTick = os.clock()
+			local tween = TweenService:Create(
+				vignette,
+				TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 1, true),
+				{ ImageTransparency = math.clamp(vignette.ImageTransparency - 0.25, 0, 1) }
+			)
+			tween:Play()
+			beatTweenPlaying = true
+			tween.Completed:Once(function()
+				beatTweenPlaying = false
+			end)
+		end
+		vignette.ImageColor3 = CurrentBarColor
+		vignette.ImageTransparency = CurrentHealth / 100
+	end)
 end
 
 local function HideHealth()
@@ -232,6 +307,37 @@ local function StartInfection()
 
 	local GuiColors = FlowerConfig.GuiColors[CurrentBarColorName]
 
+	camShaker:Shake(camShaker.Presets.Explosion)
+
+	local tween = TweenService:Create(
+		Lighting.ColorCorrection,
+		TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut),
+		{ TintColor = GuiColors.Primary:Lerp(Color3.fromRGB(255, 255, 255), 0.3) }
+	)
+
+	local fov = workspace.CurrentCamera.FieldOfView
+
+	TweenService:Create(
+		workspace.CurrentCamera,
+		TweenInfo.new(0.25, Enum.EasingStyle.Exponential, Enum.EasingDirection.In),
+		{ FieldOfView = fov * 0.65 }
+	):Play()
+
+	tween:Play()
+
+	tween.Completed:Once(function()
+		TweenService:Create(
+			Lighting.ColorCorrection,
+			TweenInfo.new(2, Enum.EasingStyle.Exponential, Enum.EasingDirection.In),
+			{ TintColor = Color3.fromRGB(255, 255, 255) }
+		):Play()
+		TweenService:Create(
+			workspace.CurrentCamera,
+			TweenInfo.new(1.25, Enum.EasingStyle.Exponential, Enum.EasingDirection.In),
+			{ FieldOfView = fov }
+		):Play()
+	end)
+
 	foreFill.ImageColor3 = GuiColors.Secondary
 	WingsFill.ImageColor3 = GuiColors.Secondary
 	bgFill.ImageColor3 = GuiColors.Secondary
@@ -294,6 +400,7 @@ Viewer.WatchAttribute(Player, "Infected", function(Value)
 			end
 		end
 		StartInfection()
+		StartBeatingPulse()
 
 		TweenService:Create(
 			Bar,

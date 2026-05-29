@@ -26,7 +26,8 @@ end
 
 function Scepter.unequip(_: Scepter)
 	ViewmodelController:getViewmodel():setArmVisible("left")
-	ViewmodelController.animationObject:Stop("ViewModelScepterIdle")
+	ViewmodelController.animationObject:StopAll()
+	-- ViewmodelController.animationObject:Stop("ViewModelScepterIdle")
 end
 
 local lastSelected: string? = nil
@@ -62,6 +63,7 @@ function Scepter.primary(self: Scepter)
 		return
 	end
 
+	ReplicatedStorage["global-data"].canSwitchToNewItem.Value = false
 	ViewmodelController:getViewmodel():setArmVisible("left")
 
 	local scopedId = HttpService:GenerateGUID(false)
@@ -98,8 +100,12 @@ function Scepter.handleDeathHit(self: Scepter, entityModel: Model)
 end
 
 function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterConfig.AttackData)
+	ViewmodelController.animationObject:StopAll()
 	self.cooldown = true
+
 	task.delay(1, function()
+		ViewmodelController.animationObject:Play("ViewModelScepterIdle")
+		ReplicatedStorage["global-data"].canSwitchToNewItem.Value = true
 		self.cooldown = false
 	end)
 
@@ -111,8 +117,25 @@ function Scepter.attack(self: Scepter, attackName: string, attackData: ScepterCo
 
 	ViewmodelController.animationObject:Play(`ViewModel{attackName}`)
 
+	task.spawn(function()
+		repeat
+			task.wait()
+		until track.IsPlaying == false
+
+		ViewmodelController:getViewmodel():setArmInvisible("left")
+	end)
+
 	local c = track:GetMarkerReachedSignal("hit"):Once(function()
-		-- local root = CharacterState:getRoot() :: BasePart
+		local TIME = 0.4
+		if attackName == "Batter" then
+			TIME = 0.7
+		end
+
+		task.delay(TIME, function()
+			-- ViewmodelController:getViewmodel():setArmInvisible("left")
+			ReplicatedStorage["global-data"].canSwitchToNewItem.Value = true
+		end)
+
 		local hitboxCFrame = camera.CFrame + (camera.CFrame.LookVector * 4)
 		local debugFlag = false
 

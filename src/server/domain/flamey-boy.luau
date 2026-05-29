@@ -30,7 +30,6 @@ Network:OnServer("damageNPC", function(_, charModel: Model, damage: number)
 		charModel:AddTag("PleaseIgnore")
 		charModel:SetAttribute("Burned", true)
 		charModel:AddTag("Burned")
-
 		charModel:SetAttribute("DeathTollCollected", true)
 
 		if charModel:GetAttribute("OriginalEntityType") == "Aggressive" then

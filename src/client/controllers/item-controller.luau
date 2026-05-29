@@ -96,6 +96,9 @@ function ItemController.watchInputs(self: ItemController)
 
 		local itemName = config.Items[input.KeyCode]
 		if itemName then
+			if not ReplicatedStorage["global-data"].canSwitchToNewItem.Value then
+				return
+			end
 			self:toggleEquip(itemName)
 		end
 	end))

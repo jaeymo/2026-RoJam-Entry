@@ -77,6 +77,13 @@
                 
                 "isInDialogue": {
                     "$className": "BoolValue"
+                },
+                
+                "canSwitchToNewItem": {
+                    "$className": "BoolValue",
+                    "$properties": {
+                        "Value": true
+                    }
                 }
             },
             "proxies": {

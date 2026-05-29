@@ -1,4 +1,5 @@
 --!strict
+local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local ServerScriptService = game:GetService("ServerScriptService")
 
@@ -19,6 +20,10 @@ function SleepService.initiateSleepProcess(self: SleepService)
 end
 
 function SleepService.finishSleepProcess(self: SleepService)
+	for _, v in CollectionService:GetTagged("Entity") do
+		v:Destroy()
+	end
+
 	self.sleepCount += 1
 	SignalRegistry.playerSlept:Fire()
 end

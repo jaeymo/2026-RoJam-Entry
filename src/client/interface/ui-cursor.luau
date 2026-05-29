@@ -71,7 +71,6 @@ RunService.PreRender:Connect(function()
 		return
 	end
 
-	print(Target)
 	local Distance = (HumanoidRootPart.Position - Result.Position).Magnitude
 
 	if Distance > 10 then

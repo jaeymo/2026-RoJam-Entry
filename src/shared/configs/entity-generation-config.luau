@@ -18,7 +18,7 @@ local ENDING_PASSIVE_WEIGHT = 1
 local ENDING_AGGRESSIVE_WEIGHT = 5
 
 local ENTITY_GENERATION_CONFIG = {
-	useOnlyAggressive = true,
+	useOnlyAggressive = false,
 	useOnlyPassive = false,
 
 	getSpawnAmount = function(_: any)

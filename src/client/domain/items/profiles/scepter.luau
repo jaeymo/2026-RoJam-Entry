@@ -1,6 +1,10 @@
 --!strict
 local HttpService = game:GetService("HttpService")
+local Lighting = game:GetService("Lighting")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local repertoire = require(ReplicatedStorage.packages.repertoire)
 
 local CharacterState = require(ReplicatedStorage.client.domain.character["character-state"])
 local FindFirstAncestorWithTag = require(ReplicatedStorage.shared.utils["find-first-ancestor-with-tag"])
@@ -9,6 +13,8 @@ local ScepterConfig = require(ReplicatedStorage.shared.configs["scepter-config"]
 
 local ViewmodelController
 local HitboxController
+
+local CameraShaker = require(ReplicatedStorage.client.controllers["camera-controller"]).shaker
 
 local camera = workspace.CurrentCamera
 local network = Jaegar:GetNetwork()
@@ -58,6 +64,8 @@ local function getRandomAttackName(): string
 	return selection
 end
 
+local ScepterHitSwings = ReplicatedStorage.assets.sounds.ScepterSwings:GetChildren()
+
 function Scepter.primary(self: Scepter)
 	if self.cooldown then
 		return
@@ -75,14 +83,52 @@ function Scepter.primary(self: Scepter)
 		end
 	end)
 
+	if workspace.CurrentCamera.FieldOfView > 75 then
+		TweenService:Create(
+			workspace.CurrentCamera,
+			TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, true),
+			{
+				FieldOfView = 75,
+			}
+		):Play()
+	end
+
 	local randomAttackName = getRandomAttackName()
 	local attackData = ScepterConfig.attacks[randomAttackName]
 	self:attack(randomAttackName, attackData)
+
+	local newSwingSOund = ScepterHitSwings[math.random(1, #ScepterHitSwings)]
+	newSwingSOund.PlaybackSpeed = math.random(90, 140) / 100
+	repertoire.Accent(newSwingSOund):Spawn(workspace.CurrentCamera.CFrame.Position)
 end
 
 function Scepter.secondary(_self: Scepter) end
 
-function Scepter.handleNormalHit(self: Scepter, entityModel: Model) end
+local normalHitAccent =
+	repertoire.Accent(ReplicatedStorage.assets.particles.HitEffect):AddAction(repertoire.Actions.EmitCount):Props({
+		Num = 1,
+	})
+
+local sweatCopy = ReplicatedStorage.assets.particles.Sweat:Clone()
+sweatCopy.Enabled = false
+local sweatAccent = repertoire.Accent(sweatCopy):AddAction(repertoire.Actions.EmitCount):Props({
+	Num = 10,
+})
+
+local ScepterHitSounds = ReplicatedStorage.assets.sounds.ScepterHits:GetChildren()
+
+function Scepter.handleNormalHit(self: Scepter, entityModel: Model)
+	CameraShaker:ShakeOnce(1.5, 3, 0.1, 0.55)
+	TweenService:Create(Lighting, TweenInfo.new(0.175, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, true), {
+		ExposureCompensation = -0.2,
+	}):Play()
+
+	local origin = entityModel:GetPivot().Position
+	normalHitAccent:Spawn(origin)
+	sweatAccent:Spawn(origin)
+
+	repertoire.Accent(ScepterHitSounds[math.random(1, #ScepterHitSounds)]):Spawn(origin)
+end
 
 function Scepter.handleDeathHit(self: Scepter, entityModel: Model)
 	local client = entityModel:FindFirstChild("Client")
